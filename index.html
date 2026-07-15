@@ -563,9 +563,8 @@ const PETS = [
     { icon: '👻', name: 'Vô Thường "Ghi Sổ Đầu Bài"' },
     { icon: '🐢', name: 'Kim Quy "Nộp Bài Trễ"' }
 ];
-
-
 let currentPet = '🦊';
+let currentPetName = "";
 let screenHistory = [];
 let studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123" } };
 let allLogsCache = [];
@@ -576,7 +575,6 @@ let questionsQueue = [], exactErrorDetails = [], allErrorsGlobal = [];
 
 let sessionMaxCombo = 0, currentCombo = 0, sessionFixedErrors = 0, sessionErrorWords = [];
 let pastStudentErrors = new Set();
- 
 
 let tempTestParams = {}; let currentIsOfficial = false; let testStartTime = 0;
 let cheatWarnings = 0; let timeLeft = 0, timerInterval;
@@ -584,7 +582,6 @@ let deadlineIntervals = [];
 
 let parentChartInst = null, pRadarChartInst = null;
 
-// HÀM ĐÃ SỬA ĐỂ ƯU TIÊN LINK HARDCODE TRÁNH LỖI LOCALSTORAGE CHO HỌC SINH
 function getScriptUrl() { return GLOBAL_SCRIPT_URL || localStorage.getItem("edtech_scriptUrl") || ""; }
 
 function saveSystemSettings() { let scriptUrl = document.getElementById("settingScriptUrl").value.trim(); if(scriptUrl) localStorage.setItem("edtech_scriptUrl", scriptUrl); closeModal('adminSettingsModal'); showToast("Đã lưu Link Hệ Thống!"); setTimeout(() => location.reload(), 1000); }
@@ -642,14 +639,6 @@ function triggerSecurityAlert(msg) { let ab = document.getElementById('securityA
 function executeForceSubmit() { closeModal('forceSubmitModal'); clearInterval(timerInterval); if(currentType === 'grammar') evaluateGrammarTest(true); else evaluateVocabTest(true); }
 
 window.onload = async function() { 
-    // VÔ HIỆU HÓA LỊCH SỬ VÀ GỢI Ý BÀN PHÍM CHO TẤT CẢ Ô NHẬP LIỆU TRÊN APP
-    document.querySelectorAll('input').forEach(inp => {
-        inp.setAttribute('autocomplete', inp.type === 'password' ? 'new-password' : 'off');
-        inp.setAttribute('autocorrect', 'off');
-        inp.setAttribute('autocapitalize', 'off');
-        inp.setAttribute('spellcheck', 'false');
-    });
-
     renderPetSelector(); document.getElementById('settingScriptUrl').value = getScriptUrl();
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
     if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass });
@@ -657,41 +646,34 @@ window.onload = async function() {
     fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { if(d.logs) { allLogsCache = d.logs; if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } } });
 };
 
-let currentPetName = ""; // Biến lưu tên Tùy tùng
-
 function renderPetSelector() { 
     document.getElementById('petSelector').innerHTML = PETS.map((pet, i) => `<div class="pet-btn ${i === 0 ? 'selected' : ''}" title='${pet.name}' onclick="selectPet(this, ${i})">${pet.icon}</div>`).join(''); 
     currentPet = PETS[0].icon; currentPetName = PETS[0].name;
     let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = currentPetName; 
 }
-
 function selectPet(el, index) { 
     document.querySelectorAll('.pet-btn').forEach(btn => btn.classList.remove('selected')); el.classList.add('selected'); 
     currentPet = PETS[index].icon; currentPetName = PETS[index].name;
     let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = currentPetName; 
 }
-
 function login() {
     let id = document.getElementById('studentId').value.trim().toUpperCase();
     if(id === 'T11' || studentDB[id]) {
         currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến (Admin Test)" : studentDB[id].name;
         
-        // ĐÂY LÀ 2 DÒNG TUI QUÊN LÚC NÃY: IN TÊN, AVATAR VÀ TÙY TÙNG LÊN GIAO DIỆN CHÍNH
         document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
         document.getElementById('dashAvatar').innerText = currentPet; 
         
-        // VÀO THẲNG MÀN HÌNH CHÍNH
         switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor();
     } else { 
         if (Object.keys(studentDB).length <= 1) {
-            showToast("⏳ App đang lấy dữ liệu từ Google Sheet, đợi 2-3 giây rồi bấm lại nhé!");
+            showToast("⏳ App đang lấy dữ liệu, đợi 2-3 giây rồi bấm lại nhé!");
         } else {
-            showToast("🤴💢 TO GAN! Dám dùng lệnh bài 'pha kè' trà trộn Hoàng Cung? Người đâu, bắt nhập lại!"); 
+            showToast("🤴💢 TO GAN! Dám dùng lệnh bài 'pha kè' trà trộn Hoàng Cung? Bắt nhập lại!"); 
             let inp = document.getElementById('studentId'); inp.style.borderColor = "var(--accent-red)"; setTimeout(() => inp.style.borderColor = "var(--border-dark)", 500); 
         }
     }
 }
-
 
 function checkMissingTasks(studentId) {
     if(serverDeadlines.length === 0 || allLogsCache.length === 0) return;
@@ -725,7 +707,6 @@ function checkMissingTasks(studentId) {
     } else { box.style.display = 'none'; }
 }
 
-// ĐỐI THỦ TRUYỀN KIẾP - CHỈ SỬ DỤNG TÊN THẬT
 function calcRivalAnchor() {
     if(allLogsCache.length === 0 || currentStudentId === 'T11') return;
     let scores = {};
@@ -755,10 +736,247 @@ function calcRivalAnchor() {
     document.getElementById('rivalList').innerHTML = html; document.getElementById('rivalGaze').innerText = msg || "Bạn đang là Độc Cô Cầu Bại, tiến lên Top 1!"; document.getElementById('rivalAnchorBox').style.display = 'block';
 }
 
+function openBaoBai() { switchScreen('baoBaiScreen'); document.getElementById('baoBaiContent').innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang tải lệnh...</div>'; fetchWithFallback(getScriptUrl(), "getBaoBai", { content: "Chưa có thông báo nào." }).then(data => { document.getElementById('baoBaiContent').innerText = data.content; }); }
+function openDauTruong() { switchScreen('dauTruongMenuScreen'); }
+
+function openUnitGrid(type, action) {
+    currentType = type; currentAction = action; 
+    let prefix = action === 'learn' ? "ÔN TẬP " : "THỰC CHIẾN ", suffix = type === 'wordform' ? "WORD FORM" : (type === 'vocab' ? "VOCAB" : (type === 'prep' ? "PREP" : "NGỮ PHÁP"));
+    document.getElementById('unitSelectTitle').innerText = prefix + suffix;
+    let grid = document.getElementById('unitGridContainer'); grid.innerHTML = "";
+    
+    if (type === 'grammar') {
+        grid.style.display = 'grid'; grid.style.gridTemplateColumns = 'repeat(4, 1fr)'; grid.style.gap = '10px';
+        for (let i = 1; i <= 12; i++) grid.innerHTML += `<button class="btn btn-disabled" style="font-size:12px; padding: 12px 5px;" onclick="showHumorousLock()"><i class="fa-solid fa-lock"></i> U${i}</button>`;
+        switchScreen('unitSelectScreen'); return;
+    }
+    grid.style.display = 'grid'; grid.style.gridTemplateColumns = 'repeat(4, 1fr)'; grid.style.gap = '10px';
+    for (let i = 1; i <= 12; i++) {
+        if (i === 1) {
+            if (action === 'test') {
+                grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="promptTestMode('${type}', ${i}, 1)">U${i} - P1</button>`; 
+                let catQuery = type === 'wordform' ? 'Word Form' : (type === 'vocab' ? 'Từ Vựng' : 'Giới từ');
+                let p1Done = allLogsCache.some(row => row[1] === currentStudentId && row[3] && row[3].toString().includes(catQuery) && row[4].toString().includes(`Unit ${i} - P1`));
+                if (p1Done || currentStudentId === 'T11') grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="promptTestMode('${type}', ${i}, 2)">U${i} - P2</button>`; 
+                else grid.innerHTML += `<button class="btn btn-disabled" style="font-size:13px; padding: 15px 5px;" onclick="showToast('Bạn phải diệt gọn Phần 1 mới được mở khóa Phần 2 nha!')"><i class="fa-solid fa-lock"></i> U${i} - P2</button>`;
+            } else {
+                grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 1)">U${i} - P1</button>`; grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 2)">U${i} - P2</button>`; 
+            }
+        } else {
+            grid.innerHTML += `<button class="btn btn-disabled" style="font-size:12px; padding: 12px 5px;" onclick="showHumorousLock()"><i class="fa-solid fa-lock"></i> U${i} - P1</button><button class="btn btn-disabled" style="font-size:12px; padding: 12px 5px;" onclick="showHumorousLock()"><i class="fa-solid fa-lock"></i> U${i} - P2</button>`;
+        }
+    }
+    switchScreen('unitSelectScreen');
+}
+
+function promptTestMode(type, unit, part) { currentType = type; tempTestParams = { unit: unit, part: part }; document.getElementById('preTestModal').style.display = 'flex'; document.getElementById('parentPinSection').style.display = 'none'; document.getElementById('parentPinEntry').value = ''; }
+function confirmParentPin() { let pin = document.getElementById('parentPinEntry').value.trim(), correctPin = studentDB[currentStudentId] ? studentDB[currentStudentId].pass.toString() : "123"; if (pin === correctPin || currentStudentId === 'T11') { currentIsOfficial = true; closeModal('preTestModal'); startFlow(tempTestParams.unit, tempTestParams.part); } else showToast("Sai mã PIN! Kêu phụ huynh ra nhập lại lẹ lên!"); }
+function startPracticeMode() { let cacheKey = 'cooldown_' + currentStudentId + '_' + currentType + '_' + tempTestParams.unit + '_' + tempTestParams.part; let lastTime = localStorage.getItem(cacheKey); if (lastTime && (Date.now() - parseInt(lastTime) < 30 * 60 * 1000) && currentStudentId !== 'T11') { let remain = Math.ceil((30 * 60 * 1000 - (Date.now() - parseInt(lastTime))) / 60000); showToast(`Bình tĩnh bạn ơi! Cố quá là não mệt. Nghỉ ngơi, ${remain} phút nữa quay lại phục thù!`); return; } localStorage.setItem(cacheKey, Date.now().toString()); currentIsOfficial = false; closeModal('preTestModal'); startFlow(tempTestParams.unit, tempTestParams.part); }
+
+function shuffleArray(array) { let cur = array.length, ran; while (cur > 0) { ran = Math.floor(Math.random() * cur); cur--; [array[cur], array[ran]] = [array[ran], array[cur]]; } return array; }
+
+async function startFlow(unit, part = 0) {
+    currentUnit = unit; currentPart = part; showToast("Đang kết nối Server...");
+    let isGrammar = currentType === 'grammar', apiMode = isGrammar ? 'getBank' : 'getTraBai';
+    const MOCK_VOCAB = [{ baseWord: "Nghệ nhân*", answers: "artisan", type: "vocab" }, { baseWord: "HISTORY", answers: "adj:historic* | adj:historical | adv:historically", type: "wordform" }, { baseWord: "Famous*", answers: "for", type: "prep" }, { baseWord: "Balance*", answers: "n:balance | adj:balanced", type: "wordform" }];
+    let mockFallback = MOCK_VOCAB.filter(q => q.type === currentType);
+    let data = await fetchWithFallback(getScriptUrl(), apiMode, { questions: mockFallback }, `&type=${isGrammar ? 'grammar' : currentType}&unit=${unit}`);
+    let fetchedQuestions = data.questions && data.questions.length > 0 ? data.questions : mockFallback;
+    setupSession(fetchedQuestions, part);
+}
+
+function setupSession(data, part = 0) {
+    clearInterval(timerInterval); exactErrorDetails = []; cheatWarnings = 0; testStartTime = Date.now();
+    sessionMaxCombo = 0; currentCombo = 0; sessionFixedErrors = 0; sessionErrorWords = [];
+    pastStudentErrors.clear(); allLogsCache.filter(r => r[1] === currentStudentId).forEach(r => { if(r[13]) r[13].toString().split(',').forEach(w => pastStudentErrors.add(w.trim())); });
+    let formattedData = data.map(q => { if(currentType === 'grammar') return q; return { vn: q.baseWord || q.vn, en: q.answers || q.en, type: currentType }; });
+    if (part === 1 || part === 2) { let mid = Math.ceil(formattedData.length / 2); if (part === 1) formattedData = formattedData.slice(0, mid); else if (part === 2) formattedData = formattedData.slice(mid); }
+    if (!currentIsOfficial && currentAction === 'test') { formattedData = shuffleArray(formattedData); }
+    questionsQueue = formattedData; totalQuestionsCount = questionsQueue.length; currentQIndex = 0;
+    if (currentType === 'grammar') { userAnswersArray = questionsQueue.map(() => null); renderGrammarQuestion(); switchScreen('grammarTestScreen'); } 
+    else { if (currentAction === 'learn') { document.getElementById('fcNavButtons').style.display = 'flex'; renderFlashcardMode(); switchScreen('vocabLearnScreen'); } else startTypingTestPhase(); }
+}
+
+function renderFlashcardMode() {
+    let q = questionsQueue[currentQIndex]; document.getElementById('fcProgress').innerText = `Thẻ ${currentQIndex + 1} / ${questionsQueue.length}`; document.getElementById('fcVi').innerText = q.vn;
+    let enText = q.en, posHtml = "";
+    if(currentType === 'vocab') posHtml = `<div class="pos-tag">Vocabulary</div>`; 
+    else if(currentType === 'wordform') { enText = q.en.split('|').map(p => { let parts = p.split(':'); if(parts.length > 1) return `${parts[1].trim()} <span style="font-size:10px; background:var(--border-dark); color:white; padding:2px 6px; border-radius:4px;">[${parts[0].trim().toUpperCase()}]</span>`; return p; }).join('<br><br>'); posHtml = `<div class="pos-tag" style="background:var(--border-dark); color:white;">Word Family</div>`; } 
+    else if (currentType === 'prep') { enText = q.vn + " " + q.en; posHtml = `<div class="pos-tag">Preposition</div>`; }
+    document.getElementById('fcEn').innerHTML = enText; document.getElementById('fcPos').innerHTML = posHtml; document.getElementById('fcPos').style.display = "inline-block";
+    let btnNext = document.getElementById('btnVocabNext'); if(currentQIndex === questionsQueue.length - 1) { btnNext.innerHTML = 'KẾT THÚC'; btnNext.className = "btn btn-green"; } else { btnNext.innerHTML = 'TIẾP TỤC'; btnNext.className = "btn btn-yellow"; }
+}
+function flipCard() { let el = document.getElementById('flashcardEl'); el.classList.toggle('is-flipped'); if (el.classList.contains('is-flipped')) setTimeout(() => speakCurrentWord(null), 300); }
+function speakCurrentWord(e) { if(e) e.stopPropagation(); let cleanWord = questionsQueue[currentQIndex].en.replace(/\*/g, '').replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim(); window.speechSynthesis.cancel(); let msg = new SpeechSynthesisUtterance(cleanWord); msg.lang = 'en-US'; msg.rate = 0.85; window.speechSynthesis.speak(msg); }
+function navVocabLearn(dir) { document.getElementById('flashcardEl').classList.remove('is-flipped'); setTimeout(() => { if(dir === -1 && currentQIndex > 0) { currentQIndex--; renderFlashcardMode(); } else if (dir === 1 && currentQIndex < questionsQueue.length - 1) { currentQIndex++; renderFlashcardMode(); } else if (dir === 1 && currentQIndex === questionsQueue.length - 1) { goHome(); showToast("Đã ôn tập xong!"); } }, 200); }
+
+function startTypingTestPhase() { exactErrorDetails = []; totalQuestionsCount = questionsQueue.length; renderTypingTest(); switchScreen('vocabTestScreen'); }
+function renderTypingTest() {
+    if(questionsQueue.length === 0) { evaluateVocabTest(); return; }
+    let q = questionsQueue[0]; document.getElementById('vtProgress').innerText = `Câu ${totalQuestionsCount - questionsQueue.length + 1}/${totalQuestionsCount}`;
+    timeLeft = q.type === 'wordform' ? 30 : 15; let timerEl = document.getElementById('vtTimer'); timerEl.innerText = timeLeft; timerEl.classList.remove('urgent'); 
+    clearInterval(timerInterval); timerInterval = setInterval(() => { timeLeft--; timerEl.innerText = timeLeft; if(timeLeft <= 5) timerEl.classList.add('urgent'); if(timeLeft <= 0) { clearInterval(timerInterval); checkVocabAnswer(true); } }, 1000);
+    let inputArea = document.getElementById('vtInputArea'); inputArea.innerHTML = ""; let hintTextClean = q.vn.replace(/\*/g, '');
+    if (q.type === 'wordform') {
+        document.getElementById('vtHint').innerText = hintTextClean; document.getElementById('vtSubHint').innerText = "Nhập các dạng từ tương ứng";
+        q.en.split('|').forEach((p, i) => { let type = p.split(':')[0] || 'word'; inputArea.innerHTML += `<div style="width:100%; display:flex; gap:10px; align-items:center;"><span style="font-weight:900; color:var(--accent-blue); min-width:50px; text-transform:uppercase;">${type}</span><input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0;" data-ans="${p.split(':')[1] || p}" autocomplete="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)"></div>`; });
+    } else if (q.type === 'prep') {
+        document.getElementById('vtHint').innerText = hintTextClean + " + [ ___ ]"; document.getElementById('vtSubHint').innerText = "Điền giới từ phù hợp"; inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" autocomplete="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)">`;
+    } else {
+        document.getElementById('vtHint').innerText = hintTextClean; document.getElementById('vtSubHint').innerText = ""; let cleanAns = q.en.split('(')[0].trim().replace(/\*/g, ''); inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" autocomplete="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)">`;
+    }
+    setTimeout(() => { let inp = document.getElementById('vtInput_0'); if(inp) inp.focus(); }, 100); document.getElementById('vtFeedback').innerHTML = ""; let btnSubmit = document.getElementById('btnVtSubmit'); btnSubmit.innerHTML = 'CHỐT ĐÁP ÁN'; btnSubmit.className = "btn btn-blue"; btnSubmit.onclick = () => checkVocabAnswer(false);
+}
+
+function checkVocabAnswer(isTimeout) {
+    clearInterval(timerInterval); let q = questionsQueue[0]; let inputs = document.querySelectorAll('#vtInputArea input'); let isAllCorrect = true, specificErrors = [];
+    if (q.type === 'wordform') {
+        let expectedGroups = {}, userGroups = {};
+        q.en.split('|').forEach(p => { let parts = p.split(':'), type = parts.length > 1 ? parts[0].trim().toLowerCase() : 'word', target = normalizeText(parts[1] || p).replace(/\*/g, ''); if(!expectedGroups[type]) expectedGroups[type] = []; expectedGroups[type].push(target); if(!expectedGroups[type + "_orig"]) expectedGroups[type + "_orig"] = []; expectedGroups[type + "_orig"].push((parts[1] || p).replace(/\*/g, '').trim()); });
+        inputs.forEach(inp => { let typeSpan = inp.previousElementSibling.innerText.toLowerCase(), answer = normalizeText(inp.value); if(!userGroups[typeSpan]) userGroups[typeSpan] = []; userGroups[typeSpan].push({ answer: answer, origAnswer: inp.value, inp: inp }); });
+        for(let type in userGroups) {
+            let targets = expectedGroups[type] || [], origTargets = expectedGroups[type + "_orig"] || [], matchedIndices = [];
+            userGroups[type].forEach(uObj => {
+                let matchIdx = targets.findIndex((t, idx) => t === uObj.answer && !matchedIndices.includes(idx));
+                if(matchIdx !== -1) { matchedIndices.push(matchIdx); uObj.inp.style.borderColor = "var(--accent-green)"; } 
+                else {
+                    isAllCorrect = false; uObj.inp.style.borderColor = "var(--accent-red)"; if(isTimeout) uObj.inp.classList.add('timeout');
+                    let availIdx = origTargets.findIndex((_, idx) => !matchedIndices.includes(idx)), correctSuggestion = availIdx !== -1 ? origTargets[availIdx] : origTargets.join(' / '); if(availIdx !== -1) matchedIndices.push(availIdx); 
+                    specificErrors.push(`[${type.toUpperCase()}] Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${isTimeout ? "(Hết giờ)" : (uObj.origAnswer || "(Trống)")}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${correctSuggestion}</span>`);
+                }
+            });
+        }
+    } else {
+        inputs.forEach(inp => {
+            let answer = normalizeText(inp.value), target = normalizeText(inp.getAttribute('data-ans').replace(/\*/g, '')), origTarget = inp.getAttribute('data-ans').split('(')[0].trim().replace(/\*/g, '');
+            if(isTimeout) { inp.classList.add('timeout'); isAllCorrect = false; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">(Hết giờ)</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); } 
+            else if(answer === target) { inp.style.borderColor = "var(--accent-green)"; } 
+            else { isAllCorrect = false; inp.style.borderColor = "var(--accent-red)"; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${inp.value || "(Trống)"}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); }
+        });
+    }
+
+    let feedback = document.getElementById('vtFeedback'), btnSubmit = document.getElementById('btnVtSubmit');
+    let cleanWordKey = q.vn.replace(/\*/g, '').trim();
+
+    if(isAllCorrect && !isTimeout) {
+        currentCombo++; if(currentCombo > sessionMaxCombo) sessionMaxCombo = currentCombo;
+        if(pastStudentErrors.has(cleanWordKey)) { sessionFixedErrors++; pastStudentErrors.delete(cleanWordKey); }
+        feedback.innerHTML = `<div style="background:#dcfce7; border:3px solid var(--accent-green); padding:15px; border-radius:8px; font-weight:bold; color:#166534;"><i class="fa-solid fa-check"></i> Tuyệt vời! Combo: ${currentCombo} 🔥</div>`;
+        questionsQueue.shift(); btnSubmit.innerHTML = 'TIẾP TỤC'; btnSubmit.className = "btn btn-green"; btnSubmit.onclick = renderTypingTest;
+    } else {
+        currentCombo = 0; sessionErrorWords.push(cleanWordKey);
+        let errHtml = specificErrors.join("<br>"); if(!exactErrorDetails.some(e => e.q === q.vn)) exactErrorDetails.push({ q: cleanWordKey, htmlDetails: errHtml });
+        feedback.innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">${isTimeout ? 'HẾT GIỜ!' : 'SAI RỒI!'}</h3><div style="font-size: 14px; line-height: 1.6;">${errHtml}</div></div>`;
+        questionsQueue.shift(); btnSubmit.innerHTML = 'ĐÃ HIỂU LỖI SAI, TIẾP TỤC'; btnSubmit.className = "btn btn-red"; btnSubmit.onclick = renderTypingTest;
+    }
+}
+
+function evaluateVocabTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
+function renderGrammarQuestion() { if(currentQIndex >= questionsQueue.length) { evaluateGrammarTest(); return; } let qData = questionsQueue[currentQIndex]; document.getElementById('grammarProgress').innerText = `${currentQIndex + 1}/${questionsQueue.length}`; document.getElementById('grammarQuestionText').innerHTML = qData.q.replace("_____", "<b>_____</b>"); document.getElementById('grammarInputArea').innerHTML = `<input type="text" id="grammarInput" class="input-brutal" placeholder="Nhập đáp án..." onkeypress="if(event.key === 'Enter') checkGrammarAnswer()">`; document.getElementById('grammarFeedback').innerHTML = ""; document.getElementById('grammarInput').focus(); }
+function checkGrammarAnswer() { let qData = questionsQueue[currentQIndex], userTyped = document.getElementById('grammarInput').value; if(!userTyped) { showToast("Vui lòng nhập đáp án!"); return; } if(normalizeText(userTyped) === normalizeText(qData.ans)) { document.getElementById('grammarFeedback').innerHTML = `<h3 style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> ĐÚNG!</h3>`; currentQIndex++; setTimeout(renderGrammarQuestion, 1000); } else { let errHtml = `Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${userTyped}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án chuẩn phải là: <span style="color:var(--accent-green); font-weight:bold;">${qData.ans}</span>`; exactErrorDetails.push({ q: qData.q, htmlDetails: errHtml }); document.getElementById('grammarFeedback').innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">SAI RỒI!</h3><p>Đáp án đúng: <b>${qData.ans}</b></p><button class="btn btn-dark" style="width: 100%; margin-top: 10px;" onclick="currentQIndex++; renderGrammarQuestion();">TIẾP TỤC</button></div>`; } }
+function evaluateGrammarTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
+
+function finishSession(score, typeName, cheatMsg) {
+    clearInterval(timerInterval);
+    let durSec = Math.round((Date.now() - testStartTime)/1000), durStr = Math.floor(durSec/60) + "p " + (durSec%60) + "s";
+    let typeTitles = { 'wordform': 'Word Form', 'vocab': 'Từ Vựng', 'prep': 'Giới từ', 'grammar': 'Ngữ Pháp' };
+    let partText = currentPart === 0 ? "" : (currentPart === 1 ? " - P1" : " - P2");
+    let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]", fullTitle = `Thi ${typeTitles[currentType] || typeName}${logModeTag}`, unitTitle = `Unit ${currentUnit}${partText}`;
+
+    document.getElementById('finalScore').innerText = score + "/10"; document.getElementById('rName').innerText = `${currentStudentName} (${currentStudentId}) - ${currentPet}`; document.getElementById('rType').innerText = fullTitle + " - " + unitTitle; document.getElementById('rTime').innerText = durStr;
+
+    let fbMsg = document.getElementById('feedbackMsg'), scBox = document.getElementById('scoreBoxColor');
+    if (score === 10) { fbMsg.innerText = "XUẤT SẮC - HOÀN HẢO!"; scBox.style.background = "rgba(46,213,115,0.1)"; scBox.style.borderColor = "var(--accent-green)"; fbMsg.style.color = "var(--accent-green)"; } 
+    else if (score >= 8) { fbMsg.innerText = "GIỎI - HÃY PHÁT HUY!"; scBox.style.background = "rgba(30,144,255,0.1)"; scBox.style.borderColor = "var(--accent-blue)"; fbMsg.style.color = "var(--accent-blue)"; } 
+    else if (score >= 5) { fbMsg.innerText = "TẠM ỔN - CẦN CHÚ Ý LỖI SAI!"; scBox.style.background = "rgba(255,165,0,0.1)"; scBox.style.borderColor = "var(--accent-yellow)"; fbMsg.style.color = "var(--accent-yellow)"; } 
+    else { fbMsg.innerText = "YẾU - CẦN ÔN TẬP LẠI KHẨN CẤP!"; scBox.style.background = "rgba(239,68,68,0.1)"; scBox.style.borderColor = "var(--accent-red)"; fbMsg.style.color = "var(--accent-red)"; }
+
+    let errBox = document.getElementById('rErrorsDetail');
+    if(exactErrorDetails.length === 0) { errBox.innerHTML = `Hoàn hảo! Không có lỗi sai.`; errBox.style.borderLeftColor = "var(--accent-green)"; errBox.style.background = "rgba(46,213,115,0.1)"; errBox.style.color = "var(--accent-green)"; } 
+    else { let errHtml = `<ul style="margin:0; padding-left:20px;">`; exactErrorDetails.forEach(err => { errHtml += `<li style="margin-bottom: 15px; color: var(--border-dark);"><b>Câu hỏi:</b> ${err.q}<br>${err.htmlDetails}</li>`; }); errBox.innerHTML = errHtml + `</ul>`; errBox.style.borderLeftColor = "var(--accent-red)"; errBox.style.background = "white"; errBox.style.color = "var(--border-dark)"; }
+
+    if (score === 10 && !currentIsOfficial) document.getElementById('zaloShareContainer').style.display = 'block'; else document.getElementById('zaloShareContainer').style.display = 'none';
+
+    let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, fullTitle, unitTitle, score.toString(), (totalQuestionsCount - exactErrorDetails.length).toString(), exactErrorDetails.length.toString(), totalQuestionsCount.toString(), cheatMsg, durStr, sessionMaxCombo, sessionFixedErrors, sessionErrorWords.join(',') ];
+    allLogsCache.push(localLog);
+    if(score >= 8) confetti({particleCount: 150, spread: 80});
+
+    if (getScriptUrl().startsWith("http")) {
+        fetch(getScriptUrl(), { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: cheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: sessionFixedErrors, errorWords: sessionErrorWords.join(',') }) }).then(() => checkMissingTasks(currentStudentId)).catch(e=>{});
+    }
+    switchScreen('resultScreen');
+}
+
+function shareZalo() { let msg = `Ting ting! Báo cáo chiến sự: Hôm nay bạn ${currentStudentName} tự bế quan luyện ${currentType.toUpperCase()} (Unit ${currentUnit}) và đạt điểm tối đa! Ba mẹ thả tim nạp năng lượng nhé! 🥰`; navigator.clipboard.writeText(msg).then(() => { showToast("Đã copy thần chú! Mở Zalo dán gửi Ba Mẹ ngay!"); }).catch(err => { showToast("Lỗi copy rồi! Mấy đứa bôi đen copy tay nhé."); }); }
+
+function loginParentPortal() {
+    let id = document.getElementById('parentStudentId').value.trim().toUpperCase(); if(!studentDB[id] && id !== 'T11') { showToast("Không tìm thấy Mã học sinh!"); return; }
+    closeModal('parentLoginModal'); switchScreen('parentScreen'); document.getElementById('parentStudentName').innerText = studentDB[id] ? studentDB[id].name : "Học sinh Test";
+    
+    let studentRows = allLogsCache.filter(row => row[1] === id);
+    let vocabRowsAsc = studentRows.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ")));
+    let vocabRowsDesc = [...vocabRowsAsc].reverse();
+    let vocabHtml = "", grammarHtml = "", totalVocabScore = 0, vocabCount = 0, totalGrammarScore = 0, grammarCount = 0;
+
+    let timelineHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+    studentRows.forEach(row => {
+        let timeStr = row[0], category = row[3] ? row[3].toString() : "", unitInfo = row[4] ? row[4].toString() : "", score = row[5] ? parseFloat(row[5]) : 0, isOfficial = category.includes("[Thi Thật]");
+        if(category.includes("Ngữ Pháp")) { totalGrammarScore += score; grammarCount++; let cCount = row[6] ? row[6].toString() : "0", wCount = row[7] ? row[7].toString() : "0", durStr = row[10] ? row[10].toString() : "--"; grammarHtml += `<tr><td style="text-align:left;"><b>${unitInfo}</b><br><small>${category.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "")}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`; }
+        let remark = score === 10 ? "Đỉnh cao phong độ!" : (score >= 8 ? "Bắt đầu giác ngộ!" : (score >= 5 ? "Thực tế phũ phàng..." : "Cú sốc đầu đời 😭")), icon = isOfficial ? "🔴" : "🟢", typeStr = isOfficial ? "Kiểm tra cùng Phụ huynh" : "Tự ôn tập";
+        timelineHtml += `<div style="background:rgba(0,0,0,0.02); border:2px solid var(--border-dark); padding:10px; border-radius:8px;"><div style="font-size:12px; color:var(--text-muted); font-weight:bold;">${timeStr} - ${unitInfo}</div><div style="font-size:14px; margin-top:5px; font-weight:900;">${icon} ${typeStr}: <span style="color:var(--accent-red);">${score}/10 điểm</span> <br><span style="font-size:12px; font-style:italic; font-weight:normal; color:var(--text-dark);">${remark}</span></div></div>`;
+    });
+    timelineHtml += `</div>`; document.getElementById('parentTimelineBox').innerHTML = timelineHtml || `<div style="color:var(--text-muted); text-align:center;">Chưa có lịch sử ôn tập.</div>`;
+
+    vocabRowsDesc.forEach((row, index) => {
+        let timeStr = row[0], category = row[3] ? row[3].toString().replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "") : "", unitInfo = row[4] ? row[4].toString() : "", score = row[5] ? parseFloat(row[5]) : 0, cCount = row[6] ? row[6].toString() : "0", wCount = row[7] ? row[7].toString() : "0", durStr = row[10] ? row[10].toString() : "--";
+        totalVocabScore += score; vocabCount++; let badge = index === 0 ? `<span class="badge-new">NEW ✨</span>` : "";
+        vocabHtml += `<tr><td style="text-align:left;"><b>${unitInfo}</b> ${badge}<br><small>${category}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
+    });
+    document.getElementById('parentVocabLogsBody').innerHTML = vocabHtml || `<tr><td colspan="6" style="color:var(--text-muted);">Chưa thi Từ Vựng.</td></tr>`;
+    if(grammarCount === 0) document.getElementById('grammarParentContainer').style.display = 'none'; else { document.getElementById('grammarParentContainer').style.display = 'block'; document.getElementById('parentGrammarLogsBody').innerHTML = grammarHtml; }
+
+    let recBox = document.getElementById('parentRecommendationBox'), avgVocab = vocabCount > 0 ? (totalVocabScore / vocabCount) : 10, avgGrammar = grammarCount > 0 ? (totalGrammarScore / grammarCount) : 10, proposal = "";
+    if(avgVocab < 7) proposal += "⚠️ <b>Từ vựng:</b> Phụ huynh nên đốc thúc con vào mục 'Trại Huấn Luyện' mỗi ngày 10 phút.<br>"; else proposal += "✅ <b>Từ vựng:</b> Nhớ từ và dạng từ rất tốt. Duy trì nhé!<br>";
+    if(grammarCount > 0) { if(avgGrammar < 7) proposal += "⚠️ <b>Ngữ pháp:</b> Đang bị hổng cấu trúc. Cần xem lại vở."; else proposal += "✅ <b>Ngữ pháp:</b> Nắm chắc quy tắc câu. Tốt!"; }
+    recBox.innerHTML = proposal;
+
+    if(parentChartInst) parentChartInst.destroy(); let ctx = document.getElementById('parentHistoryChart').getContext('2d');
+    let labels = vocabRowsAsc.map((_, i) => `Lần ${i+1}`);
+    parentChartInst = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'Word Form', data: vocabRowsAsc.map(r => r[3].toString().includes("Word Form") ? parseFloat(r[5]) : null), borderColor: '#1e90ff', spanGaps: true, tension: 0.3, pointBackgroundColor: '#1e90ff' }, { label: 'Từ Vựng', data: vocabRowsAsc.map(r => r[3].toString().includes("Từ Vựng") ? parseFloat(r[5]) : null), borderColor: '#2ed573', spanGaps: true, tension: 0.3, pointBackgroundColor: '#2ed573' }, { label: 'Giới từ', data: vocabRowsAsc.map(r => r[3].toString().includes("Giới từ") ? parseFloat(r[5]) : null), borderColor: '#ffa502', spanGaps: true, tension: 0.3, pointBackgroundColor: '#ffa502' }] }, options: { scales: { y: { min: 0, max: 10 } } } });
+    if(pRadarChartInst) pRadarChartInst.destroy(); let ctxR = document.getElementById('parentRadarChart').getContext('2d'); pRadarChartInst = new Chart(ctxR, { type: 'radar', data: { labels: ['Từ vựng', 'Ngữ pháp', 'Đọc hiểu', 'Sự Tập Trung'], datasets: [{ label: 'Năng lực', data: [avgVocab*10, avgGrammar*10, 90, 85], backgroundColor: 'rgba(46, 213, 115, 0.2)', borderColor: '#2ed573', borderWidth: 3 }] }, options: { scales: { r: { suggestedMin: 0, suggestedMax: 100 } }, plugins: { legend: {display: false} } } });
+    generateHeatmap(id, studentRows);
+}
+
+function generateHeatmap(id, historyRows) {
+    let container = document.getElementById('heatmapGrid'); container.innerHTML = "";
+    if(historyRows.length === 0 && id !== 'T11') { container.innerHTML = `<div style="font-size:12px; color:var(--text-muted); font-style:italic;">Chưa có dữ liệu từ ngày bắt đầu.</div>`; return; }
+    let dateMap = {}, minTime = Infinity;
+    historyRows.forEach(row => {
+        let parts = row[0].split(' ')[0].split('/'); if(parts.length >= 3) {
+            let dStr = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`; 
+            let time = new Date(dStr).getTime();
+            if(!isNaN(time)) { if(time < minTime) minTime = time; dateMap[dStr] = (dateMap[dStr] || 0) + 1; }
+        }
+    });
+    if(minTime === Infinity) minTime = Date.now() - 30*24*3600*1000;
+    let start = new Date(minTime), dayOfWeek = start.getDay(), offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; 
+    start = new Date(start.getTime() - offset*24*3600*1000);
+    let end = new Date(), days = Math.floor((end - start)/(24*3600*1000)) + 1;
+    for(let i=0; i<days; i++) {
+        let cur = new Date(start.getTime() + i*24*3600*1000), dStr = `${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}-${cur.getDate().toString().padStart(2,'0')}`, count = dateMap[dStr] || 0;
+        let cell = document.createElement('div'); cell.className = "heatmap-cell"; cell.title = `${dStr}: Xong ${count} bài`;
+        if(count === 1) cell.classList.add('active-1'); else if(count === 2) cell.classList.add('active-2'); else if(count >= 3) cell.classList.add('active-3'); container.appendChild(cell);
+    }
+}
+
+function switchLBTab(tabId, el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); el.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(tabId).style.display = 'block';
+}
+
 function openLeaderboard() {
     document.getElementById('leaderboardModal').style.display = 'flex';
     
-    // TAB 2: CHÚA TỂ THỜI GIAN (Speed-Run)
     let cTime = document.getElementById('contentLBTime');
     let bestTimes = {};
     allLogsCache.forEach(row => {
@@ -771,12 +989,11 @@ function openLeaderboard() {
     if(sortedTime.length === 0) cTime.innerHTML = `<div style="text-align:center; padding:20px;">Chưa có kỷ lục Tốc độ nào...</div>`;
     else {
         let h2 = ""; sortedTime.forEach((item, i) => {
-            let nick = item[1].name; let medal = i === 0 ? '⚡' : `#${i+1}`;
+            let nick = studentDB[item[0]]?.name || item[1].name; let medal = i === 0 ? '⚡' : `#${i+1}`;
             h2 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-red); font-weight:900; font-size:16px;">${item[1].str}</div></div>`;
         }); cTime.innerHTML = h2;
     }
 
-    // TAB 3: HẢO HÁN CẦN MẪN (Practice Streak)
     let cStreak = document.getElementById('contentLBStreak');
     let practiceCounts = {};
     allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Tự Luyện]')) { practiceCounts[row[1]] = (practiceCounts[row[1]] || 0) + 1; } });
@@ -790,22 +1007,20 @@ function openLeaderboard() {
         }); cStreak.innerHTML = h3;
     }
 
-    // TAB 4: THỢ SĂN COMBO
     let cCombo = document.getElementById('contentLBCombo');
     let maxCombos = {}; allLogsCache.forEach((row) => { let id = row[1], combo = parseInt(row[11]) || 0; if(id && (!maxCombos[id] || combo > maxCombos[id].combo)) maxCombos[id] = { name: row[2], combo: combo }; });
     let sortedCombo = Object.entries(maxCombos).sort((a,b) => b[1].combo - a[1].combo).slice(0, 5);
     if(sortedCombo.length === 0 || sortedCombo[0][1].combo === 0) cCombo.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai lập chuỗi Combo...</div>`; 
     else {
-        let h4 = ""; sortedCombo.forEach((item, i) => { if(item[1].combo === 0) return; let nick = item[1].name; let medal = i === 0 ? '🔥' : (i === 1 ? '⚡' : `#${i+1}`); h4 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-blue); font-weight:900; font-size:18px;">${item[1].combo} Hits</div></div>`; }); cCombo.innerHTML = h4;
+        let h4 = ""; sortedCombo.forEach((item, i) => { if(item[1].combo === 0) return; let nick = studentDB[item[0]]?.name || item[1].name; let medal = i === 0 ? '🔥' : (i === 1 ? '⚡' : `#${i+1}`); h4 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-blue); font-weight:900; font-size:18px;">${item[1].combo} Hits</div></div>`; }); cCombo.innerHTML = h4;
     }
 
-    // TAB 5: HỦY DIỆT LỖI SAI
     let cRedeem = document.getElementById('contentLBRedeem');
     let totalFixed = {}; allLogsCache.forEach((row) => { let id = row[1], fix = parseInt(row[12]) || 0; if(id) totalFixed[id] = { name: row[2], fix: (totalFixed[id]?totalFixed[id].fix:0) + fix }; });
     let sortedFixed = Object.entries(totalFixed).sort((a,b) => b[1].fix - a[1].fix).slice(0, 5);
     if(sortedFixed.length === 0 || sortedFixed[0][1].fix === 0) cRedeem.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai phục thù lỗi sai...</div>`; 
     else {
-        let h5 = ""; sortedFixed.forEach((item, i) => { if(item[1].fix === 0) return; let nick = item[1].name; let medal = i === 0 ? '🛠️' : (i === 1 ? '💡' : `#${i+1}`); h5 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-purple); font-weight:900; font-size:18px;">+${item[1].fix} Lỗi</div></div>`; }); cRedeem.innerHTML = h5;
+        let h5 = ""; sortedFixed.forEach((item, i) => { if(item[1].fix === 0) return; let nick = studentDB[item[0]]?.name || item[1].name; let medal = i === 0 ? '🛠️' : (i === 1 ? '💡' : `#${i+1}`); h5 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-purple); font-weight:900; font-size:18px;">+${item[1].fix} Lỗi</div></div>`; }); cRedeem.innerHTML = h5;
     }
 }
 
@@ -834,6 +1049,7 @@ function renderMatrixAttendance(type) {
 }
 
 function checkAdminLogin() { if(document.getElementById('adminPassInput').value === 'admin') { closeModal('adminLoginModal'); document.getElementById('adminPassInput').value = ""; switchScreen('adminScreen'); } else showToast("Sai mật khẩu Admin!"); }
+
 </script>
 </body>
 </html>
