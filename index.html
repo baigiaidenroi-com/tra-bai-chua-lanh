@@ -789,7 +789,18 @@ function setupSession(data, part = 0) {
     clearInterval(timerInterval); exactErrorDetails = []; cheatWarnings = 0; testStartTime = Date.now();
     sessionMaxCombo = 0; currentCombo = 0; sessionFixedErrors = 0; sessionErrorWords = [];
     pastStudentErrors.clear(); allLogsCache.filter(r => r[1] === currentStudentId).forEach(r => { if(r[13]) r[13].toString().split(',').forEach(w => pastStudentErrors.add(w.trim())); });
-    let formattedData = data.map(q => { if(currentType === 'grammar') return q; return { vn: q.baseWord || q.vn, en: q.answers || q.en, type: currentType }; });
+    
+    // Đã thêm trường meaning để hứng dữ liệu từ Apps Script
+    let formattedData = data.map(q => { 
+        if(currentType === 'grammar') return q; 
+        return { 
+            vn: q.baseWord || q.vn, 
+            en: q.answers || q.en, 
+            type: currentType, 
+            meaning: q.meaning || q.nghia || q.NghiaVN || "" 
+        }; 
+    });
+    
     if (part === 1 || part === 2) { let mid = Math.ceil(formattedData.length / 2); if (part === 1) formattedData = formattedData.slice(0, mid); else if (part === 2) formattedData = formattedData.slice(mid); }
     if (!currentIsOfficial && currentAction === 'test') { formattedData = shuffleArray(formattedData); }
     questionsQueue = formattedData; totalQuestionsCount = questionsQueue.length; currentQIndex = 0;
@@ -800,12 +811,32 @@ function setupSession(data, part = 0) {
 function renderFlashcardMode() {
     let q = questionsQueue[currentQIndex]; document.getElementById('fcProgress').innerText = `Thẻ ${currentQIndex + 1} / ${questionsQueue.length}`; document.getElementById('fcVi').innerText = q.vn;
     let enText = q.en, posHtml = "";
-    if(currentType === 'vocab') posHtml = `<div class="pos-tag">Vocabulary</div>`; 
-    else if(currentType === 'wordform') { enText = q.en.split('|').map(p => { let parts = p.split(':'); if(parts.length > 1) return `${parts[1].trim()} <span style="font-size:10px; background:var(--border-dark); color:white; padding:2px 6px; border-radius:4px;">[${parts[0].trim().toUpperCase()}]</span>`; return p; }).join('<br><br>'); posHtml = `<div class="pos-tag" style="background:var(--border-dark); color:white;">Word Family</div>`; } 
-    else if (currentType === 'prep') { enText = q.vn + " " + q.en; posHtml = `<div class="pos-tag">Preposition</div>`; }
+    let meanText = q.meaning ? q.meaning : "";
+
+    if(currentType === 'vocab') {
+        posHtml = `<div class="pos-tag">Vocabulary</div>`; 
+        if(meanText) document.getElementById('fcVi').innerHTML = `${q.vn}<br><span style="font-size:16px; color:var(--text-muted);">[${meanText}]</span>`;
+    } 
+    else if(currentType === 'wordform') { 
+        let meanings = meanText.split('|');
+        enText = q.en.split('|').map((p, i) => { 
+            let parts = p.split(':'); 
+            let m = meanings[i] ? ` <span style="color:var(--accent-yellow); font-size:15px; font-weight:bold;">[${meanings[i].trim()}]</span>` : '';
+            if(parts.length > 1) return `${parts[1].trim()}${m} <span style="font-size:10px; background:var(--border-dark); color:white; padding:2px 6px; border-radius:4px;">[${parts[0].trim().toUpperCase()}]</span>`; 
+            return p + m; 
+        }).join('<br><br>'); 
+        posHtml = `<div class="pos-tag" style="background:var(--border-dark); color:white;">Word Family</div>`; 
+    } 
+    else if (currentType === 'prep') { 
+        // TRÌNH BÀY PREP: BE CRAZY ABOUT + [phát cuồng vì]
+        enText = `${q.vn} ${q.en} <br><span style="font-size:22px; color:var(--accent-yellow); font-weight:900; margin-top:12px; display:block;">[${meanText}]</span>`; 
+        posHtml = `<div class="pos-tag">Preposition</div>`; 
+    }
+    
     document.getElementById('fcEn').innerHTML = enText; document.getElementById('fcPos').innerHTML = posHtml; document.getElementById('fcPos').style.display = "inline-block";
     let btnNext = document.getElementById('btnVocabNext'); if(currentQIndex === questionsQueue.length - 1) { btnNext.innerHTML = 'KẾT THÚC'; btnNext.className = "btn btn-green"; } else { btnNext.innerHTML = 'TIẾP TỤC'; btnNext.className = "btn btn-yellow"; }
 }
+
 function flipCard() { let el = document.getElementById('flashcardEl'); el.classList.toggle('is-flipped'); if (el.classList.contains('is-flipped')) setTimeout(() => speakCurrentWord(null), 300); }
 function speakCurrentWord(e) { if(e) e.stopPropagation(); let cleanWord = questionsQueue[currentQIndex].en.replace(/\*/g, '').replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim(); window.speechSynthesis.cancel(); let msg = new SpeechSynthesisUtterance(cleanWord); msg.lang = 'en-US'; msg.rate = 0.85; window.speechSynthesis.speak(msg); }
 function navVocabLearn(dir) { document.getElementById('flashcardEl').classList.remove('is-flipped'); setTimeout(() => { if(dir === -1 && currentQIndex > 0) { currentQIndex--; renderFlashcardMode(); } else if (dir === 1 && currentQIndex < questionsQueue.length - 1) { currentQIndex++; renderFlashcardMode(); } else if (dir === 1 && currentQIndex === questionsQueue.length - 1) { goHome(); showToast("Đã ôn tập xong!"); } }, 200); }
@@ -817,15 +848,32 @@ function renderTypingTest() {
     timeLeft = q.type === 'wordform' ? 30 : 15; let timerEl = document.getElementById('vtTimer'); timerEl.innerText = timeLeft; timerEl.classList.remove('urgent'); 
     clearInterval(timerInterval); timerInterval = setInterval(() => { timeLeft--; timerEl.innerText = timeLeft; if(timeLeft <= 5) timerEl.classList.add('urgent'); if(timeLeft <= 0) { clearInterval(timerInterval); checkVocabAnswer(true); } }, 1000);
     let inputArea = document.getElementById('vtInputArea'); inputArea.innerHTML = ""; let hintTextClean = q.vn.replace(/\*/g, '');
+    let meanText = q.meaning ? q.meaning : "";
+
     if (q.type === 'wordform') {
         document.getElementById('vtHint').innerText = hintTextClean; document.getElementById('vtSubHint').innerText = "Nhập các dạng từ tương ứng";
-        q.en.split('|').forEach((p, i) => { let type = p.split(':')[0] || 'word'; inputArea.innerHTML += `<div style="width:100%; display:flex; gap:10px; align-items:center;"><span style="font-weight:900; color:var(--accent-blue); min-width:50px; text-transform:uppercase;">${type}</span><input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0;" data-ans="${p.split(':')[1] || p}" autocomplete="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)"></div>`; });
+        let meanings = meanText.split('|');
+        q.en.split('|').forEach((p, i) => { 
+            let type = p.split(':')[0] || 'word'; 
+            let m = meanings[i] ? meanings[i].trim() : '';
+            inputArea.innerHTML += `<div style="width:100%; display:flex; gap:10px; align-items:center;">
+                <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:70px;">
+                    <span class="wf-type-label" style="font-weight:900; color:var(--accent-blue); text-transform:uppercase;">${type}</span>
+                    ${m ? `<span style="font-size:11px; color:var(--text-muted); font-weight:bold;">[${m}]</span>` : ''}
+                </div>
+                <input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0; flex-grow:1;" data-ans="${p.split(':')[1] || p}" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)" readonly onfocus="this.removeAttribute('readonly');">
+            </div>`; 
+        });
     } else if (q.type === 'prep') {
-        document.getElementById('vtHint').innerText = hintTextClean + " + [ ___ ]"; document.getElementById('vtSubHint').innerText = "Điền giới từ phù hợp"; inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" autocomplete="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)">`;
+        document.getElementById('vtHint').innerText = hintTextClean + " + [ ___ ]"; 
+        document.getElementById('vtSubHint').innerHTML = meanText ? `<span style="color:var(--accent-red); font-size:15px; font-weight:900; text-transform:uppercase;">[${meanText}]</span>` : "Điền giới từ phù hợp"; 
+        inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)" readonly onfocus="this.removeAttribute('readonly');">`;
     } else {
-        document.getElementById('vtHint').innerText = hintTextClean; document.getElementById('vtSubHint').innerText = ""; let cleanAns = q.en.split('(')[0].trim().replace(/\*/g, ''); inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" autocomplete="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)">`;
+        document.getElementById('vtHint').innerText = hintTextClean; document.getElementById('vtSubHint').innerText = meanText ? `[${meanText}]` : ""; 
+        let cleanAns = q.en.split('(')[0].trim().replace(/\*/g, ''); 
+        inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeypress="if(event.key === 'Enter') checkVocabAnswer(false)" readonly onfocus="this.removeAttribute('readonly');">`;
     }
-    setTimeout(() => { let inp = document.getElementById('vtInput_0'); if(inp) inp.focus(); }, 100); document.getElementById('vtFeedback').innerHTML = ""; let btnSubmit = document.getElementById('btnVtSubmit'); btnSubmit.innerHTML = 'CHỐT ĐÁP ÁN'; btnSubmit.className = "btn btn-blue"; btnSubmit.onclick = () => checkVocabAnswer(false);
+    setTimeout(() => { let inp = document.getElementById('vtInput_0'); if(inp) { inp.removeAttribute('readonly'); inp.focus(); } }, 100); document.getElementById('vtFeedback').innerHTML = ""; let btnSubmit = document.getElementById('btnVtSubmit'); btnSubmit.innerHTML = 'CHỐT ĐÁP ÁN'; btnSubmit.className = "btn btn-blue"; btnSubmit.onclick = () => checkVocabAnswer(false);
 }
 
 function checkVocabAnswer(isTimeout) {
@@ -833,7 +881,14 @@ function checkVocabAnswer(isTimeout) {
     if (q.type === 'wordform') {
         let expectedGroups = {}, userGroups = {};
         q.en.split('|').forEach(p => { let parts = p.split(':'), type = parts.length > 1 ? parts[0].trim().toLowerCase() : 'word', target = normalizeText(parts[1] || p).replace(/\*/g, ''); if(!expectedGroups[type]) expectedGroups[type] = []; expectedGroups[type].push(target); if(!expectedGroups[type + "_orig"]) expectedGroups[type + "_orig"] = []; expectedGroups[type + "_orig"].push((parts[1] || p).replace(/\*/g, '').trim()); });
-        inputs.forEach(inp => { let typeSpan = inp.previousElementSibling.innerText.toLowerCase(), answer = normalizeText(inp.value); if(!userGroups[typeSpan]) userGroups[typeSpan] = []; userGroups[typeSpan].push({ answer: answer, origAnswer: inp.value, inp: inp }); });
+        inputs.forEach(inp => { 
+            // Tách riêng nhãn type (n, adj...) ra để chấm điểm, bỏ qua phần Tiếng Việt
+            let typeLabel = inp.previousElementSibling.querySelector('.wf-type-label');
+            let typeSpan = typeLabel ? typeLabel.innerText.toLowerCase() : inp.previousElementSibling.innerText.toLowerCase();
+            let answer = normalizeText(inp.value); 
+            if(!userGroups[typeSpan]) userGroups[typeSpan] = []; 
+            userGroups[typeSpan].push({ answer: answer, origAnswer: inp.value, inp: inp }); 
+        });
         for(let type in userGroups) {
             let targets = expectedGroups[type] || [], origTargets = expectedGroups[type + "_orig"] || [], matchedIndices = [];
             userGroups[type].forEach(uObj => {
@@ -854,6 +909,22 @@ function checkVocabAnswer(isTimeout) {
             else { isAllCorrect = false; inp.style.borderColor = "var(--accent-red)"; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${inp.value || "(Trống)"}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); }
         });
     }
+
+    let feedback = document.getElementById('vtFeedback'), btnSubmit = document.getElementById('btnVtSubmit');
+    let cleanWordKey = q.vn.replace(/\*/g, '').trim();
+
+    if(isAllCorrect && !isTimeout) {
+        currentCombo++; if(currentCombo > sessionMaxCombo) sessionMaxCombo = currentCombo;
+        if(pastStudentErrors.has(cleanWordKey)) { sessionFixedErrors++; pastStudentErrors.delete(cleanWordKey); }
+        feedback.innerHTML = `<div style="background:#dcfce7; border:3px solid var(--accent-green); padding:15px; border-radius:8px; font-weight:bold; color:#166534;"><i class="fa-solid fa-check"></i> Tuyệt vời! Combo: ${currentCombo} 🔥</div>`;
+        questionsQueue.shift(); btnSubmit.innerHTML = 'TIẾP TỤC'; btnSubmit.className = "btn btn-green"; btnSubmit.onclick = renderTypingTest;
+    } else {
+        currentCombo = 0; sessionErrorWords.push(cleanWordKey);
+        let errHtml = specificErrors.join("<br>"); if(!exactErrorDetails.some(e => e.q === q.vn)) exactErrorDetails.push({ q: cleanWordKey, htmlDetails: errHtml });
+        feedback.innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">${isTimeout ? 'HẾT GIỜ!' : 'SAI RỒI!'}</h3><div style="font-size: 14px; line-height: 1.6;">${errHtml}</div></div>`;
+        questionsQueue.shift(); btnSubmit.innerHTML = 'ĐÃ HIỂU LỖI SAI, TIẾP TỤC'; btnSubmit.className = "btn btn-red"; btnSubmit.onclick = renderTypingTest;
+    }
+}
 
     let feedback = document.getElementById('vtFeedback'), btnSubmit = document.getElementById('btnVtSubmit');
     let cleanWordKey = q.vn.replace(/\*/g, '').trim();
