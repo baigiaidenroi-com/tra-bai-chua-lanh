@@ -178,20 +178,7 @@
     </div>
 </div>
 
-<div class="modal-overlay" id="stealthModal" style="z-index: 10000;">
-    <div class="modal-content" style="text-align: center; border-color: var(--accent-purple); box-shadow: 8px 8px 0px var(--accent-purple);">
-        <h2 style="color: var(--accent-purple); text-transform: uppercase; margin-top:0;">🎭 TẠO HỒ SƠ ẨN DANH</h2>
-        <p style="font-size: 13px; font-weight:bold; color:var(--text-muted); margin-bottom:20px;">Bảng Vàng quá áp lực? Hãy chọn một thân phận bí mật để đua Top mà không ai biết bạn là ai!</p>
-        
-        <h4 style="margin-bottom: 10px; color:var(--border-dark);">1. Chọn Avatar Bí Mật</h4>
-        <div id="stealthAvatarContainer" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px;"></div>
-        
-        <h4 style="margin-bottom: 10px; color:var(--border-dark);">2. Chọn Danh Xưng Bựa Bang</h4>
-        <select id="stealthNickSelect" class="input-brutal" style="margin-bottom: 25px;"></select>
-        
-        <button class="btn btn-purple" style="width: 100%; padding: 18px;" onclick="saveStealthProfile()">LƯU THÂN PHẬN & VÀO HỌC</button>
-    </div>
-</div>
+
 
 <div class="modal-overlay" id="preTestModal" style="z-index: 1005;">
     <div class="modal-content" style="text-align: center;">
@@ -290,21 +277,18 @@
             <i class="fa-solid fa-times close-modal" style="position: static;" onclick="closeModal('leaderboardModal')"></i>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 5px;">
-            <button class="tab-btn active" onclick="switchLBTab('lbStealth', this)">ẨN DANH<br>CHI VƯƠNG</button>
-            <button class="tab-btn" onclick="switchLBTab('lbTime', this)">CHÚA TỂ<br>THỜI GIAN</button>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 5px;">
+            <button class="tab-btn active" onclick="switchLBTab('lbTime', this)">CHÚA TỂ<br>THỜI GIAN</button>
             <button class="tab-btn" onclick="switchLBTab('lbStreak', this)">HẢO HÁN<br>CẦN MẪN</button>
         </div>
+
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: -3px;">
             <button class="tab-btn" onclick="switchLBTab('lbCombo', this)">THỢ SĂN<br>COMBO</button>
             <button class="tab-btn" onclick="switchLBTab('lbRedeem', this)">KẺ HỦY DIỆT<br>LỖI SAI</button>
         </div>
 
-        <div id="lbStealth" class="tab-content" style="display:block;">
-            <p style="font-size:12px; color:var(--text-muted); text-align:center; font-style:italic; margin-top:0; font-weight:bold;">*Đấu Trường League: Chỉ hiển thị các quái vật cùng hạng cân.</p>
-            <div id="contentLBStealth">Đang tải...</div>
-        </div>
-        <div id="lbTime" class="tab-content">
+        
+        <div id="lbTime" class="tab-content" style="display:block;">
             <p style="font-size:12px; color:var(--accent-red); text-align:center; font-weight:bold; margin-top:0;">*Top 10/10 có Tốc độ gõ phím nhanh như chớp.</p>
             <div id="contentLBTime">Đang tải...</div>
         </div>
