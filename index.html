@@ -356,13 +356,27 @@
 
     <div id="loginScreen" class="screen active-screen scrollable-area">
         <div style="max-width: 450px; margin: auto; width: 100%;">
-            <div style="text-align: center; border: 4px solid var(--border-dark); background: var(--surface-color); padding: 30px; box-shadow: var(--shadow-hard-large); border-radius: 16px;">
-                <h2 style="margin: 0; color: var(--accent-blue); font-weight: 900; margin-bottom: 15px;">CHÀO MỪNG TRỞ LẠI!</h2>
-                <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">1. Chọn Thú Cưng:</label>
+            <div style="text-align: center; border: 4px solid var(--border-dark); background: #fffae6; padding: 30px; box-shadow: var(--shadow-hard-large); border-radius: 16px;">
+                
+                <h2 style="margin: 0; color: #b91c1c; font-weight: 900; margin-bottom: 20px; font-size: 22px; text-transform: uppercase; line-height: 1.4; text-shadow: 2px 2px 0px #fca5a5;">
+                    📜 THÁNH CHỈ ĐẾN!<br>MỜI CÁC VỊ TIỂU CHỦ LÊN ĐIỆN KIỂM TRA BÀI!!!
+                </h2>
+                
+                <img src="https://i.postimg.cc/mZXvnGSS/bai-giai-den-roi-cham-com-slogan.png" alt="Thánh Chỉ Slogan" style="width: 100%; max-width: 350px; border: 3px solid var(--border-dark); border-radius: 8px; box-shadow: 4px 4px 0px var(--border-dark); margin-bottom: 25px; background: white;">
+
+                <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">1. Chọn Tùy Tùng Theo Hầu:</label>
                 <div class="pet-selector" id="petSelector"></div>
-                <h3 style="margin: 25px 0 15px 0; text-transform: uppercase; border-top: 4px dashed var(--border-dark); padding-top: 25px; color: var(--border-dark);">2. Mã Định Danh</h3>
-                <input type="text" id="studentId" class="input-brutal" placeholder="Mã HS (VD: 91)" style="font-size: 22px; text-transform: uppercase; letter-spacing: 2px;" onkeypress="if(event.key === 'Enter') login()">
-                <button class="btn btn-blue" style="width: 100%; margin-top: 25px; padding: 20px; font-size: 18px;" onclick="login()"><i class="fa-solid fa-bolt"></i> VÀO HỌC VIỆN</button>
+                
+                <h3 style="margin: 25px 0 15px 0; text-transform: uppercase; border-top: 4px dashed var(--border-dark); padding-top: 25px; color: #b91c1c; font-size: 15px; line-height: 1.5;">
+                    2. ĐỆ TRÌNH LỆNH BÀI LÊN ĐÂY<br>ĐỂ ĐƯỢC CẤP QUYỀN VÀO THƯ PHÒNG!
+                </h3>
+                
+                <input type="text" id="studentId" class="input-brutal" placeholder="Nhập Lệnh Bài (VD: 91)..." style="font-size: 20px; text-transform: uppercase; letter-spacing: 2px; border-color: #b91c1c; border-width: 4px;" onkeypress="if(event.key === 'Enter') login()">
+                
+                <button class="btn" style="background-color: #b91c1c; color: #fffae6; width: 100%; margin-top: 25px; padding: 20px; font-size: 18px;" onclick="login()">
+                    <i class="fa-solid fa-gavel fa-shake"></i> TIẾP CHỈ & TIẾN CUNG
+                </button>
+
             </div>
         </div>
     </div>
@@ -644,7 +658,7 @@ function login() {
         if (Object.keys(studentDB).length <= 1) {
             showToast("⏳ App đang lấy dữ liệu từ Google Sheet, đợi 2-3 giây rồi bấm lại nhé!");
         } else {
-            showToast("Sai mã báo danh! Kêu phụ huynh liên hệ Thầy."); 
+            showToast("🤴💢 TO GAN! Dám dùng lệnh bài 'pha kè' trà trộn Hoàng Cung? Người đâu, lôi ra... bắt nhập lại!"); 
             let inp = document.getElementById('studentId'); inp.style.borderColor = "var(--accent-red)"; setTimeout(() => inp.style.borderColor = "var(--border-dark)", 500); 
         }
     }
