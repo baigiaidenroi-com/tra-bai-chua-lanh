@@ -642,9 +642,17 @@ function triggerSecurityAlert(msg) { let ab = document.getElementById('securityA
 function executeForceSubmit() { closeModal('forceSubmitModal'); clearInterval(timerInterval); if(currentType === 'grammar') evaluateGrammarTest(true); else evaluateVocabTest(true); }
 
 window.onload = async function() { 
+    // VÔ HIỆU HÓA LỊCH SỬ VÀ GỢI Ý BÀN PHÍM CHO TẤT CẢ Ô NHẬP LIỆU TRÊN APP
+    document.querySelectorAll('input').forEach(inp => {
+        inp.setAttribute('autocomplete', inp.type === 'password' ? 'new-password' : 'off');
+        inp.setAttribute('autocorrect', 'off');
+        inp.setAttribute('autocapitalize', 'off');
+        inp.setAttribute('spellcheck', 'false');
+    });
+
     renderPetSelector(); document.getElementById('settingScriptUrl').value = getScriptUrl();
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
-    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, stealthNick: s.stealthNick, stealthAva: s.stealthAva });
+    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass });
     if(data.deadlines) serverDeadlines = data.deadlines;
     fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { if(d.logs) { allLogsCache = d.logs; if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } } });
 };
