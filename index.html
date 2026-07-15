@@ -358,7 +358,7 @@
         <div style="max-width: 450px; margin: auto; width: 100%;">
             <div style="text-align: center; border: 4px solid var(--border-dark); background: #fffae6; padding: 30px; box-shadow: var(--shadow-hard-large); border-radius: 16px;">
                 
-                <h2 style="margin: 0; color: #b91c1c; font-weight: 900; margin-bottom: 20px; font-size: 22px; text-transform: uppercase; line-height: 1.4; text-shadow: 2px 2px 0px #fca5a5;">
+                <h2 style="margin: 0; color: #b91c1c; font-weight: 900; margin-bottom: 20px; font-size: 22px; text-transform: uppercase; line-height: 1.4;">
                     📜 THÁNH CHỈ ĐẾN!<br>MỜI CÁC VỊ TIỂU CHỦ LÊN ĐIỆN KIỂM TRA BÀI!!!
                 </h2>
                 
@@ -367,7 +367,9 @@
                 <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">1. Chọn Tùy Tùng Theo Hầu:</label>
                 <div class="pet-selector" id="petSelector"></div>
                 
-                <h3 style="margin: 25px 0 15px 0; text-transform: uppercase; border-top: 4px dashed var(--border-dark); padding-top: 25px; color: #b91c1c; font-size: 15px; line-height: 1.5;">
+                <div id="petNameDisplay" style="font-weight: 900; color: #b91c1c; margin-bottom: 25px; padding: 10px; border: 3px dashed var(--border-dark); background: rgba(0,0,0,0.05); border-radius: 8px; font-size: 15px;">Đang chọn...</div>
+                
+                <h3 style="margin: 0 0 15px 0; text-transform: uppercase; border-top: 4px dashed var(--border-dark); padding-top: 25px; color: #b91c1c; font-size: 15px; line-height: 1.5;">
                     2. ĐỆ TRÌNH LỆNH BÀI LÊN ĐÂY<br>ĐỂ ĐƯỢC CẤP QUYỀN VÀO THƯ PHÒNG!
                 </h3>
                 
@@ -550,7 +552,20 @@
 const GLOBAL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrCnbrXk5GZIlMTQjs_TAN67-cr98SQKKyxTMcNfebDSPi82NovPft9IUKEP9Th7LX/exec"; // <-- BÁC DÁN LINK WEB APP CỦA BÁC VÀO GIỮA 2 DẤU NGOẶC KÉP NÀY. VÍ DỤ: "https://script.google.com/macros/s/.../exec"
 // ==========================================
 
-const PETS = ['🦊', '🦖', '🦄', '🐳', '🦉', '🐙', '🦥', '🦦', '🐉'];
+const PETS = [
+    { icon: '🐕', name: 'Đại Nội "Cộc Tính"' },
+    { icon: '🤡', name: 'Thượng Thư "Ảo Tưởng"' },
+    { icon: '🦉', name: 'Thái Y "Cú Đêm"' },
+    { icon: '🐙', name: 'Ngự Tiền "Tám Tay"' },
+    { icon: '🐢', name: 'Lão Ma Ma "Trễ Nải"' },
+    { icon: '🦚', name: 'Khâm Sai "Thảo Mai"' },
+    { icon: '🐘', name: 'Voi Cung Nữ' },
+    { icon: '🔮', name: 'Quý Nhân "Tâm Linh"' },
+    { icon: '🦥', name: 'Lười Nương Nương' },
+    { icon: '🐧', name: 'Tước Quý Nhân' },
+    { icon: '🦖', name: 'Bạo Long Tài Nhân' },
+    { icon: '🐷', name: 'Ngự Trư Tần' }
+];
 const STEALTH_AVATARS = ['👽','👻','🤖','🤡','💩','👺','👹','🎃','💀','😎','🥸','🤫'];
 const STEALTH_NICKS = ['Chúa Tể Từ Vựng', 'Kẻ Diệt Giới Từ', 'Độc Cô Cầu Bại', 'Chiến Thần Gõ Phím', 'Sát Thủ Ngữ Pháp', 'Giáo Sư Gánh Team', 'Đại Ca Học Đường', 'Bóng Ma Hành Lang', 'Kẻ Hủy Diệt Deadline', 'Hảo Hán Vô Danh', 'Trùm Cuối Khép Kín', 'Thánh Lật Thẻ', 'Cao Thủ Ngủ Gật', 'Ninja Báo Bài', 'Bậc Thầy Chữa Lành', 'Kẻ Cắp Ước Mơ', 'Chuyên Gia Tấu Hài', 'Thần Đồng Ngôn Ngữ', 'Kẻ Hủy Diệt Đề Thi'];
 
