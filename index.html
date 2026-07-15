@@ -678,16 +678,28 @@ function login() {
 function checkMissingTasks(studentId) {
     if(serverDeadlines.length === 0 || allLogsCache.length === 0) return;
     let studentLogs = allLogsCache.filter(row => row[1] === studentId); let missingTasksHtml = [];
+    
     serverDeadlines.forEach(dl => {
         let typeMapping = { "vocab": "Từ Vựng", "grammar": "Ngữ Pháp", "wordform": "Word Form", "prep": "Giới từ" };
+        
+        // MAPPING THỜI GIAN DỰ KIẾN CỦA TỪNG THỂ LOẠI (Bác có thể sửa số phút ở đây)
+        let timeEstMapping = { "vocab": 5, "prep": 5, "wordform": 10, "grammar": 15 };
+        let est = timeEstMapping[dl.type] || 5;
+
         let categoryName = "Thi " + (typeMapping[dl.type] || dl.type);
         let unitText = "Unit " + dl.unit + (dl.part !== "0" ? " - P" + dl.part : "");
         let isDone = studentLogs.some(row => row[3] && row[4] && row[3].toString().includes(categoryName) && row[4].toString() === unitText);
+        
         if(!isDone) {
             let friendlyName = (typeMapping[dl.type] || dl.type).toUpperCase() + ` (U${dl.unit}` + (dl.part !== "0" ? ` - P${dl.part})` : `)`);
+            
+            // TẠO NHÃN HIỂN THỊ THỜI GIAN (Giao diện thẻ nổi)
+            let estLabel = `<span style="font-size:10px; color:var(--border-dark); background:var(--accent-yellow); padding:3px 8px; border-radius:12px; margin-left:10px; font-weight:900; border: 2px solid var(--border-dark); box-shadow: 2px 2px 0px var(--border-dark);"><i class="fa-solid fa-stopwatch"></i> ~${est}p</span>`;
+
             let targetTime = parseDeadlineTime(dl.deadlineStr);
             let timeHtml = targetTime ? `<span class="dl-timer" data-time="${targetTime}" style="color:var(--accent-red); font-weight:900;">Đang tính...</span>` : `<span style="color:var(--accent-red);">${dl.deadlineStr}</span>`;
-            missingTasksHtml.push(`<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px dashed var(--accent-red); padding: 8px 0;"><div>🔴 ${friendlyName}</div><div>${timeHtml}</div></div>`);
+            
+            missingTasksHtml.push(`<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px dashed rgba(239, 68, 68, 0.3); padding: 12px 0;"><div style="display:flex; align-items:center;">🔴 ${friendlyName} ${estLabel}</div><div>${timeHtml}</div></div>`);
         }
     });
     
