@@ -159,7 +159,14 @@
         .tab-btn { flex: 1; padding: 10px 5px; font-size: 10px; font-weight: 900; text-transform: uppercase; background: var(--surface-color); border: 2px solid var(--border-dark); border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; color: var(--text-muted); }
         .tab-btn.active { background: var(--accent-yellow); color: var(--border-dark); border: 3px solid var(--border-dark); border-bottom: none; z-index: 2; position: relative; top: 1px;}
         .tab-content { display: none; border: 3px solid var(--border-dark); padding: 15px; background: var(--surface-color); border-radius: 0 0 8px 8px; box-shadow: var(--shadow-hard); max-height: 400px; overflow-y: auto;}
-    </style>
+    
+/* CSS CHO NÚT HỘP KÝ ỨC */
+.memory-btn-card { font-size: 24px; color: #cbd5e1; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: 0.2s; border: 3px solid var(--border-dark); background: var(--surface-color); position: absolute; bottom: 15px; left: 15px; box-shadow: 2px 2px 0px var(--border-dark); z-index: 10; cursor: pointer;}
+.memory-btn-card:hover { transform: scale(1.1); }
+.memory-btn-card.saved { color: #ec4899; border-color: #ec4899; animation: heartBeat 0.5s alternate; }
+@keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+</style>
 </head>
 <body oncontextmenu="return false;">
 
@@ -473,8 +480,13 @@
             <div class="flashcard-container">
                 <div class="flashcard" id="flashcardEl">
                     <div class="card-face card-front" onclick="flipCard()"><div class="word-vi" id="fcVi" style="font-size: 30px; font-weight: 900; color: var(--accent-blue); text-transform: uppercase;">Tiếng Việt</div><div style="margin-top: 30px; font-size: 13px; color: var(--text-muted); font-weight: bold; background: rgba(0,0,0,0.05); padding: 5px 15px; border-radius: 10px; border: 2px dashed var(--border-dark);"><i class="fa-solid fa-hand-pointer"></i> Chạm để lật thẻ</div></div>
-                    <div class="card-face card-back" onclick="flipCard()"><div class="word-en" id="fcEn" style="font-size: 32px; font-weight: 900; margin-bottom: 15px; letter-spacing: 1px;">English</div><div id="fcPos" class="pos-tag" style="display: none;"></div><i class="fa-solid fa-volume-high speak-btn-card" onclick="speakCurrentWord(event)"></i></div>
-                </div>
+                    <div class="card-face card-back" onclick="flipCard()"><div class="word-en" id="fcEn" style="font-size: 32px; font-weight: 900; margin-bottom: 15px; letter-spacing: 1px;">English</div>
+<div id="fcPos" class="pos-tag" style="display: none;"></div>
+            
+            <i class="fa-solid fa-heart memory-btn-card" id="fcMemoryBtn" onclick="toggleMemoryWord(event)" title="Lưu vào Hộp Ký Ức"></i>
+            
+            <i class="fa-solid fa-volume-high speak-btn-card" onclick="speakCurrentWord(event)"></i>
+        </div>
             </div>
         </div>
         <div class="nav-buttons" id="fcNavButtons"><button class="btn btn-outline" style="flex:1;" onclick="navVocabLearn(-1)"><i class="fa-solid fa-arrow-left"></i> LÙI</button><button class="btn btn-yellow" style="flex:1;" onclick="navVocabLearn(1)" id="btnVocabNext">TIẾP <i class="fa-solid fa-arrow-right"></i></button></div>
@@ -742,16 +754,19 @@ function calcRivalAnchor() {
     if(myIdx > 0) { 
         let rival = sorted[myIdx - 1]; let diff = rival.score - sorted[myIdx].score;
         let rNick = studentDB[rival.id]?.name || rival.id;
-        html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--border-dark); border-radius:6px; background:rgba(0,0,0,0.02);"><span style="font-size:12px;">🔼 Top ${myIdx}: ${rNick}</span><span style="font-weight:bold; color:var(--accent-red); font-size:13px;">${rival.score} đ</span></div>`; 
+        // Đã làm tròn 1 chữ số cho Top trên
+        html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--border-dark); border-radius:6px; background:rgba(0,0,0,0.02);"><span style="font-size:12px;">🔼 Top ${myIdx}: ${rNick}</span><span style="font-weight:bold; color:var(--accent-red); font-size:13px;">${rival.score.toFixed(1)} đ</span></div>`; 
         msg = `Gắt! Chỉ cần ${diff.toFixed(1)} điểm nữa là đá bay bạn [${rNick}] khỏi vị trí Top ${myIdx}!`;
     }
     
-    html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--accent-blue); border-radius:6px; background:rgba(30,144,255,0.1);"><span style="font-size:12px; font-weight:bold; color:var(--accent-blue);">➡️ Top ${myIdx+1}: BẠN HIỆN TẠI</span><span style="font-weight:bold; color:var(--accent-blue); font-size:13px;">${sorted[myIdx].score} đ</span></div>`;
+    // Đã làm tròn 1 chữ số cho Bản thân
+    html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--accent-blue); border-radius:6px; background:rgba(30,144,255,0.1);"><span style="font-size:12px; font-weight:bold; color:var(--accent-blue);">➡️ Top ${myIdx+1}: BẠN HIỆN TẠI</span><span style="font-weight:bold; color:var(--accent-blue); font-size:13px;">${sorted[myIdx].score.toFixed(1)} đ</span></div>`;
     
     if(myIdx < sorted.length - 1) {
         let bot = sorted[myIdx + 1]; let diff2 = sorted[myIdx].score - bot.score;
         let bNick = studentDB[bot.id]?.name || bot.id;
-        html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px dashed var(--border-dark); border-radius:6px; opacity:0.8;"><span style="font-size:12px;">🔽 Top ${myIdx+2}: ${bNick}</span><span style="font-weight:bold; color:var(--border-dark); font-size:13px;">${bot.score} đ</span></div>`;
+        // Đã làm tròn 1 chữ số cho Top dưới
+        html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px dashed var(--border-dark); border-radius:6px; opacity:0.8;"><span style="font-size:12px;">🔽 Top ${myIdx+2}: ${bNick}</span><span style="font-weight:bold; color:var(--border-dark); font-size:13px;">${bot.score.toFixed(1)} đ</span></div>`;
         if(!msg) msg = `Cẩn thận! Bạn [${bNick}] đang phả hơi nóng ngay sau lưng kìa!`;
     }
     
