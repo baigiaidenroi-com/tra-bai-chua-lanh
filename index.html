@@ -680,26 +680,36 @@ function checkMissingTasks(studentId) {
     let studentLogs = allLogsCache.filter(row => row[1] === studentId); let missingTasksHtml = [];
     
     serverDeadlines.forEach(dl => {
-        let typeMapping = { "vocab": "Từ Vựng", "grammar": "Ngữ Pháp", "wordform": "Word Form", "prep": "Giới từ" };
+        // 1. MAPPING LOGIC (Tuyệt đối không đổi để app nhận diện đúng lịch sử cũ)
+        let logTypeMapping = { "vocab": "Từ Vựng", "grammar": "Ngữ Pháp", "wordform": "Word Form", "prep": "Giới từ" };
         
-        // MAPPING THỜI GIAN DỰ KIẾN CỦA TỪNG THỂ LOẠI (Bác có thể sửa số phút ở đây)
+        // 2. MAPPING HIỂN THỊ (Đổi sang tiếng Anh cho ngầu)
+        let displayTypeMapping = { "vocab": "VOCAB", "grammar": "GRAMMAR", "wordform": "WORD FORM", "prep": "PREP" };
+        
+        // 3. THỜI GIAN DỰ KIẾN (phút)
         let timeEstMapping = { "vocab": 5, "prep": 5, "wordform": 10, "grammar": 15 };
         let est = timeEstMapping[dl.type] || 5;
 
-        let categoryName = "Thi " + (typeMapping[dl.type] || dl.type);
+        // Dò trong lịch sử xem học sinh đã làm chưa
+        let categoryName = "Thi " + (logTypeMapping[dl.type] || dl.type);
         let unitText = "Unit " + dl.unit + (dl.part !== "0" ? " - P" + dl.part : "");
         let isDone = studentLogs.some(row => row[3] && row[4] && row[3].toString().includes(categoryName) && row[4].toString() === unitText);
         
         if(!isDone) {
-            let friendlyName = (typeMapping[dl.type] || dl.type).toUpperCase() + ` (U${dl.unit}` + (dl.part !== "0" ? ` - P${dl.part})` : `)`);
+            // Tên hiển thị chuẩn Tây: VOCAB (U1 - P1)
+            let friendlyName = (displayTypeMapping[dl.type] || dl.type) + ` (U${dl.unit}` + (dl.part !== "0" ? ` - P${dl.part})` : `)`);
             
-            // TẠO NHÃN HIỂN THỊ THỜI GIAN (Giao diện thẻ nổi)
-            let estLabel = `<span style="font-size:10px; color:var(--border-dark); background:var(--accent-yellow); padding:3px 8px; border-radius:12px; margin-left:10px; font-weight:900; border: 2px solid var(--border-dark); box-shadow: 2px 2px 0px var(--border-dark);"><i class="fa-solid fa-stopwatch"></i> ~${est}p</span>`;
+            // Hiện Ngày Deadline trong ngoặc vuông []
+            let dateLabel = `<span style="color:var(--text-muted); font-size:12px; font-weight:bold; margin-left:6px;">[${dl.deadlineStr}]</span>`;
+            
+            // Hiện số phút làm bài
+            let estLabel = `<span style="font-size:10px; color:var(--border-dark); background:var(--accent-yellow); padding:3px 8px; border-radius:12px; margin-left:8px; font-weight:900; border: 2px solid var(--border-dark); box-shadow: 2px 2px 0px var(--border-dark);"><i class="fa-solid fa-stopwatch"></i> ~${est}p</span>`;
 
+            // Đồng hồ đếm ngược
             let targetTime = parseDeadlineTime(dl.deadlineStr);
             let timeHtml = targetTime ? `<span class="dl-timer" data-time="${targetTime}" style="color:var(--accent-red); font-weight:900;">Đang tính...</span>` : `<span style="color:var(--accent-red);">${dl.deadlineStr}</span>`;
             
-            missingTasksHtml.push(`<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px dashed rgba(239, 68, 68, 0.3); padding: 12px 0;"><div style="display:flex; align-items:center;">🔴 ${friendlyName} ${estLabel}</div><div>${timeHtml}</div></div>`);
+            missingTasksHtml.push(`<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px dashed rgba(239, 68, 68, 0.3); padding: 12px 0;"><div style="display:flex; align-items:center; flex-wrap: wrap;">🔴 <span style="font-weight:900;">${friendlyName}</span> ${dateLabel} ${estLabel}</div><div>${timeHtml}</div></div>`);
         }
     });
     
