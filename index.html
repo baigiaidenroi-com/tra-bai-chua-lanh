@@ -421,15 +421,17 @@
         </div>
     </div>
 
-    <div id="baoBaiScreen" class="screen scrollable-area" style="display: flex; flex-direction: column; height: 100%;">
-        <div class="top-bar" style="flex-shrink: 0;">
-            <h2 style="margin: 0; color: var(--accent-red); text-transform: uppercase;"><i class="fa-solid fa-bullhorn"></i> Lệnh từ Thầy</h2>
-            <button class="btn btn-outline" style="padding: 10px;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
+    <div id="baoBaiScreen" class="screen scrollable-area">
+        <div style="display: flex; flex-direction: column; height: 100%;">
+            <div class="top-bar" style="flex-shrink: 0;">
+                <h2 style="margin: 0; color: var(--accent-red); text-transform: uppercase;"><i class="fa-solid fa-bullhorn"></i> Lệnh từ Thầy</h2>
+                <button class="btn btn-outline" style="padding: 10px;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div style="flex-grow: 1; display: flex; flex-direction: column;">
+                <div id="baoBaiContent" style="background: var(--surface-color); border: 4px dashed var(--border-dark); padding: 25px; border-radius: 8px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; height: auto; min-height: fit-content; flex-grow: 1;">Đang tải dữ liệu...</div>
+            </div>
+            <button class="btn btn-blue" style="width: 100%; margin-top: 20px; flex-shrink: 0;" onclick="goBack()">ĐÃ RÕ NHIỆM VỤ!</button>
         </div>
-        <div style="flex-grow: 1; display: flex; flex-direction: column;">
-            <div id="baoBaiContent" style="background: var(--surface-color); border: 4px dashed var(--border-dark); padding: 25px; border-radius: 8px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; height: auto; min-height: fit-content; flex-grow: 1;">Đang tải dữ liệu...</div>
-        </div>
-        <button class="btn btn-blue" style="width: 100%; margin-top: 20px; flex-shrink: 0;" onclick="goBack()">ĐÃ RÕ NHIỆM VỤ!</button>
     </div>
 
     <div id="dauTruongMenuScreen" class="screen scrollable-area">
