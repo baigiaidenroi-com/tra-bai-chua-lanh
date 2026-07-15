@@ -649,22 +649,30 @@ window.onload = async function() {
     fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { if(d.logs) { allLogsCache = d.logs; if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } } });
 };
 
+let currentPetName = ""; // Biến lưu tên Tùy tùng
+
 function renderPetSelector() { 
     document.getElementById('petSelector').innerHTML = PETS.map((pet, i) => `<div class="pet-btn ${i === 0 ? 'selected' : ''}" title='${pet.name}' onclick="selectPet(this, ${i})">${pet.icon}</div>`).join(''); 
-    currentPet = PETS[0].icon; 
-    let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = PETS[0].name; 
+    currentPet = PETS[0].icon; currentPetName = PETS[0].name;
+    let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = currentPetName; 
 }
+
 function selectPet(el, index) { 
     document.querySelectorAll('.pet-btn').forEach(btn => btn.classList.remove('selected')); el.classList.add('selected'); 
-    currentPet = PETS[index].icon; 
-    let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = PETS[index].name; 
+    currentPet = PETS[index].icon; currentPetName = PETS[index].name;
+    let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = currentPetName; 
 }
+
 function login() {
     let id = document.getElementById('studentId').value.trim().toUpperCase();
     if(id === 'T11' || studentDB[id]) {
         currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến (Admin Test)" : studentDB[id].name;
         
-        // VÀO THẲNG MÀN HÌNH CHÍNH LUÔN, KHÔNG HỎI ẨN DANH NỮA
+        // ĐÂY LÀ 2 DÒNG TUI QUÊN LÚC NÃY: IN TÊN, AVATAR VÀ TÙY TÙNG LÊN GIAO DIỆN CHÍNH
+        document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
+        document.getElementById('dashAvatar').innerText = currentPet; 
+        
+        // VÀO THẲNG MÀN HÌNH CHÍNH
         switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor();
     } else { 
         if (Object.keys(studentDB).length <= 1) {
