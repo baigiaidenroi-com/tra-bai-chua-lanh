@@ -71,7 +71,7 @@
         .btn-outline { background-color: transparent; }
         .btn-disabled { background-color: var(--surface-color); opacity: 0.6; cursor: not-allowed; border-style: dashed;}
 
-        /* HEADER CĂN LỀ TRÁI PHẢI CHUẨN XỊN */
+        /* ĐỔI GIAO DIỆN HEADER SANG DẠNG TRÁI/PHẢI */
         .header { background: var(--border-dark); color: var(--surface-color); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; flex-shrink: 0;}
         .home-btn { cursor: pointer; font-size: 20px; color: var(--accent-yellow); transition: 0.2s;}
         .home-btn:hover { transform: scale(1.1); }
@@ -153,20 +153,10 @@
         .forget-bar-bg { width: 100%; height: 12px; background: rgba(0,0,0,0.05); border: 2px solid var(--border-dark); border-radius: 6px; overflow: hidden; margin-top: 5px;}
         .forget-bar-fill { height: 100%; background: var(--accent-red); border-radius: 0;}
 
-        /* CSS TABS CHO BẢNG VÀNG - 6 TABS CHUẨN XỊN */
+        /* CSS TABS CHO BẢNG VÀNG VIP PRO */
         .tab-btn { flex: 1; padding: 10px 5px; font-size: 10px; font-weight: 900; text-transform: uppercase; background: var(--surface-color); border: 2px solid var(--border-dark); border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; color: var(--text-muted); }
         .tab-btn.active { background: var(--accent-yellow); color: var(--border-dark); border: 3px solid var(--border-dark); border-bottom: none; z-index: 2; position: relative; top: 1px;}
         .tab-content { display: none; border: 3px solid var(--border-dark); padding: 15px; background: var(--surface-color); border-radius: 0 0 8px 8px; box-shadow: var(--shadow-hard); max-height: 400px; overflow-y: auto;}
-
-        .stealth-card:hover { background: rgba(30,144,255,0.05) !important; }
-        
-        /* HIỆU ỨNG KHÓA AVATAR */
-        .stealth-locked {
-            opacity: 0.35 !important;
-            filter: grayscale(100%);
-            cursor: not-allowed !important;
-            background: #e2e8f0 !important;
-        }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -187,19 +177,15 @@
 </div>
 
 <div class="modal-overlay" id="stealthModal" style="z-index: 10000;">
-    <div class="modal-content" style="text-align: center; border-color: var(--accent-purple); box-shadow: 8px 8px 0px var(--accent-purple); padding: 20px;">
+    <div class="modal-content" style="text-align: center; border-color: var(--accent-purple); box-shadow: 8px 8px 0px var(--accent-purple);">
         <h2 style="color: var(--accent-purple); text-transform: uppercase; margin-top:0;">🎭 TẠO HỒ SƠ ẨN DANH</h2>
-        <p style="font-size: 13px; font-weight:bold; color:var(--text-muted); margin-bottom:15px;">Bảng Vàng quá áp lực? Hãy chọn một thân phận bí mật để đua Top mà không ai biết bạn là ai!</p>
+        <p style="font-size: 13px; font-weight:bold; color:var(--text-muted); margin-bottom:20px;">Bảng Vàng quá áp lực? Hãy chọn một thân phận bí mật để đua Top mà không ai biết bạn là ai!</p>
         
-        <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-            <button class="tab-btn stealth-tab-btn active" onclick="switchStealthTab(1, this)">NHÓM 1<br>THI CỬ</button>
-            <button class="tab-btn stealth-tab-btn" onclick="switchStealthTab(2, this)">NHÓM 2<br>LỊCH SỬ</button>
-            <button class="tab-btn stealth-tab-btn" onclick="switchStealthTab(3, this)">NHÓM 3<br>FANTASY</button>
-        </div>
-
-        <div id="stealthProfileList" style="display:flex; flex-direction:column; gap:10px; max-height: 320px; overflow-y:auto; margin-bottom: 20px; text-align: left;">
-            <!-- JS Tự động render danh sách Profile vào đây -->
-        </div>
+        <h4 style="margin-bottom: 10px; color:var(--border-dark);">1. Chọn Avatar Bí Mật</h4>
+        <div id="stealthAvatarContainer" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px;"></div>
+        
+        <h4 style="margin-bottom: 10px; color:var(--border-dark);">2. Chọn Danh Xưng Bựa Bang</h4>
+        <select id="stealthNickSelect" class="input-brutal" style="margin-bottom: 25px;"></select>
         
         <button class="btn btn-purple" style="width: 100%; padding: 18px;" onclick="saveStealthProfile()">LƯU THÂN PHẬN & VÀO HỌC</button>
     </div>
@@ -259,7 +245,7 @@
 
 <div class="modal-overlay" id="adminLoginModal">
     <div class="modal-content" style="max-width: 350px; text-align: center;">
-        <h2 style="margin: 0; color: var(--accent-red); text-transform: uppercase;"><i class="fa-solid fa-shield-halved"></i> Admin Zone</h2>
+        <h2 style="margin-top: 0; color: var(--accent-red); text-transform: uppercase;"><i class="fa-solid fa-shield-halved"></i> Admin Zone</h2>
         <input type="password" id="adminPassInput" class="input-brutal" placeholder="Nhập pass: admin">
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button class="btn btn-outline" style="flex:1;" onclick="closeModal('adminLoginModal')">HỦY</button>
@@ -295,7 +281,6 @@
     </div>
 </div>
 
-<!-- HỆ SINH THÁI BẢNG VÀNG - 6 TAB KHAI PHÓNG -->
 <div class="modal-overlay" id="leaderboardModal">
     <div class="modal-content" style="max-width: 550px; padding: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark); padding-bottom: 10px; margin-bottom: 15px;">
@@ -306,12 +291,11 @@
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 5px;">
             <button class="tab-btn active" onclick="switchLBTab('lbStealth', this)">ẨN DANH<br>CHI VƯƠNG</button>
             <button class="tab-btn" onclick="switchLBTab('lbTime', this)">CHÚA TỂ<br>THỜI GIAN</button>
-            <button class="tab-btn" onclick="switchLBTab('lbImprove', this)">CÁ CHÉP<br>NGƯỢC DÒNG</button>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: -3px;">
             <button class="tab-btn" onclick="switchLBTab('lbStreak', this)">HẢO HÁN<br>CẦN MẪN</button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: -3px;">
             <button class="tab-btn" onclick="switchLBTab('lbCombo', this)">THỢ SĂN<br>COMBO</button>
-            <button class="tab-btn" onclick="switchLBTab('lbRedeem', this)">HỦY DIỆT<br>LỖI SAI</button>
+            <button class="tab-btn" onclick="switchLBTab('lbRedeem', this)">KẺ HỦY DIỆT<br>LỖI SAI</button>
         </div>
 
         <div id="lbStealth" class="tab-content" style="display:block;">
@@ -321,10 +305,6 @@
         <div id="lbTime" class="tab-content">
             <p style="font-size:12px; color:var(--accent-red); text-align:center; font-weight:bold; margin-top:0;">*Top 10/10 có Tốc độ gõ phím nhanh như chớp.</p>
             <div id="contentLBTime">Đang tải...</div>
-        </div>
-        <div id="lbImprove" class="tab-content">
-            <p style="font-size:12px; color:var(--accent-red); text-align:center; font-weight:bold; margin-top:0;">*Sự bứt phá vĩ đại: (Điểm thi gần nhất) - (Điểm lần đầu).</p>
-            <div id="contentLBImprove">Đang tải...</div>
         </div>
         <div id="lbStreak" class="tab-content">
             <p style="font-size:12px; color:var(--accent-green); text-align:center; font-weight:bold; margin-top:0;">*Cần cù bù thông minh: Top cày cuốc Tự Luyện.</p>
@@ -545,66 +525,15 @@
 </div>
 
 <script>
+// ==========================================
+// CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
+const GLOBAL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrCnbrXk5GZIlMTQjs_TAN67-cr98SQKKyxTMcNfebDSPi82NovPft9IUKEP9Th7LX/exec"; // <-- BÁC DÁN LINK WEB APP CỦA BÁC VÀO GIỮA 2 DẤU NGOẶC KÉP NÀY. VÍ DỤ: "https://script.google.com/macros/s/.../exec"
+// ==========================================
+
 const PETS = ['🦊', '🦖', '🦄', '🐳', '🦉', '🐙', '🦥', '🦦', '🐉'];
+const STEALTH_AVATARS = ['👽','👻','🤖','🤡','💩','👺','👹','🎃','💀','😎','🥸','🤫'];
+const STEALTH_NICKS = ['Chúa Tể Từ Vựng', 'Kẻ Diệt Giới Từ', 'Độc Cô Cầu Bại', 'Chiến Thần Gõ Phím', 'Sát Thủ Ngữ Pháp', 'Giáo Sư Gánh Team', 'Đại Ca Học Đường', 'Bóng Ma Hành Lang', 'Kẻ Hủy Diệt Deadline', 'Hảo Hán Vô Danh', 'Trùm Cuối Khép Kín', 'Thánh Lật Thẻ', 'Cao Thủ Ngủ Gật', 'Ninja Báo Bài', 'Bậc Thầy Chữa Lành', 'Kẻ Cắp Ước Mơ', 'Chuyên Gia Tấu Hài', 'Thần Đồng Ngôn Ngữ', 'Kẻ Hủy Diệt Đề Thi'];
 
-// 48 THÂN PHẬN BÁO THỦ ĐỘC BẢN (KHÔNG TRÙNG LẶP, CÓ CHIA NHÓM)
-const STEALTH_PROFILES = [
-    // Nhóm 1: Huyền Thoại Thi Cử
-    { group: 1, ava: '📟', name: 'Máy Tính Báo Lỗi', desc: 'Bấm phím nhanh như chớp múa quạt, nhưng kết quả luôn hiện "Syntax ERROR" ngay lúc nước sôi lửa bỏng.' },
-    { group: 1, ava: '📄', name: 'Giấy Thi Trinh Nguyên', desc: 'Ngồi cắn móng tay vò đầu bứt tai suốt 45 phút, nộp bài tờ giấy vẫn giữ được sự tinh khôi trong trắng.' },
-    { group: 1, ava: '📸', name: 'Camera Chạy Bằng Cơm', desc: 'Sở hữu siêu năng lực zoom cận đáp án đứa bàn trên cách 5 mét, chụp lén dìm hàng lớp trưởng không trượt.' },
-    { group: 1, ava: '🏃', name: 'VĐV Chạy Trốn', desc: 'Bứt tốc phá kỷ lục thế giới nhưng chỉ kích hoạt khi nghe tiếng mẹ gọi rửa bát hoặc giám thị xuống hành lang.' },
-    { group: 1, ava: '🐟', name: 'Đại Sứ Não Cá Vàng', desc: 'Tự tin thuộc làu đề cương đêm hôm trước, sáng hôm sau vào phòng thi chỉ nhớ đúng mỗi họ và tên mình.' },
-    { group: 1, ava: '🔖', name: 'Phao Thi Tàng Hình', desc: 'Dành cả thanh xuân cắt giấy làm phao siêu nhỏ, lúc lén lôi ra mới phát hiện quên chưa chép chữ vào.' },
-    { group: 1, ava: '🔍', name: 'Thám Tử Soi Lỗ Hổng', desc: 'Không biết giải bài nhưng luôn dùng mắt cú vọ soi ra lỗi chính tả của đề để cãi cùn xin vớt 0.25 điểm.' },
-    { group: 1, ava: '🧽', name: 'Bọt Biển Hút Nước Mắt', desc: 'Vật bất ly thân dùng để thấm đẫm những giọt sầu lăn dài trên má sau mỗi buổi họp phụ huynh giông bão.' },
-    { group: 1, ava: '📓', name: 'Sổ Đầu Bài Tử Thần', desc: 'Thánh vật hắc ám phong ấn linh hồn báo thủ, ai vinh dự được ghi danh xác định tối nay gia môn bất hạnh.' },
-    { group: 1, ava: '🗑️', name: 'Thùng Rác Đam Mê', desc: 'Nơi yên nghỉ vĩnh hằng của bài kiểm tra 1 điểm, kế hoạch giảm cân và lời hứa "để mai con làm".' },
-    { group: 1, ava: '🙋‍♂️', name: 'Đại Biểu Đi Vệ Sinh', desc: 'Hăng hái giơ tay cao nhất lớp với ánh mắt rực lửa, không phải để phát biểu mà để xin ra ngoài hít thở.' },
-    { group: 1, ava: '🧪', name: 'Lang Băm Tạp Chất', desc: 'Thí nghiệm Hóa học lúc nào cũng bốc khói mịt mù, chuyên gia biến phòng thực hành thành bãi chiến trường.' },
-    { group: 1, ava: '⛏️', name: 'Thợ Mỏ Cày Rank Đêm', desc: 'Ban ngày vật vờ gật gù như zombie, đêm xuống xách cuốc đi cày game miệt mài bất chấp ngày mai thi.' },
-    { group: 1, ava: '👻', name: 'Hồn Lìa Khỏi Xác', desc: 'Trạng thái lơ lửng trên mây, mắt trợn ngược khi đột ngột bị giáo viên gọi trúng tên lên dò bài cũ.' },
-    { group: 1, ava: '🧘‍♂️', name: 'Thánh Nhân Tu Tiên', desc: 'Bế quan tỏa cảng, nhắm mắt thiền định, tâm bất biến mặc kệ thầy cô đang gào thét giảng bài hăng say.' },
-    { group: 1, ava: '🚽', name: 'Chủ Nhân Ngai Vàng', desc: 'Suy tôn nhà vệ sinh của trường là lô cốt an toàn nhất vũ trụ để ẩn nấp qua cơn bão táp kiểm tra.' },
-    
-    // Nhóm 2: Thần Thoại/Lịch Sử Báo Thủ
-    { group: 2, ava: '🪭', name: 'Khổng Minh Thối Nhầm', desc: 'Gia Cát Lượng trên thông thiên văn dưới tường địa lý nhưng ra căng tin mua đồ tính nhẩm toàn sai.' },
-    { group: 2, ava: '🥵', name: 'Quan Vũ Tịt Ngòi', desc: 'Mặt đỏ phừng phừng không phải vì trung nghĩa mà vì bị gọi lên bảng giải phương trình bậc 3.' },
-    { group: 2, ava: '🎤', name: 'Trương Phi Hát Rap', desc: 'Giọng ồm ồm như sấm sét nhưng lại đam mê theo đuổi sự nghiệp flow nhạc hip hop học đường.' },
-    { group: 2, ava: '🧎', name: 'Lữ Bố Kén Đại Ca', desc: 'Kẻ phản trắc số 1, nhóm nào làm xong bài tập nhóm là lập tức nịnh nọt xin ghi tên vào ké.' },
-    { group: 2, ava: '🚽', name: 'Tào Tháo Chạy Toilet', desc: 'Anh hùng gian hùng một cõi nhưng hệ tiêu hóa yếu, cứ đến giờ thi là đau bụng chạy té khói.' },
-    { group: 2, ava: '🐒', name: 'Ngộ Không Phép Dỏm', desc: 'Nhổ lông măng thổi biến hình ra cây bút bi nhưng thổi quá tay thế là bút bay mất tiêu.' },
-    { group: 2, ava: '🐷', name: 'Bát Giới Gồng Sáu Múi', desc: 'Cố gắng hóp bụng nín thở để cưa cẩm hoa khôi của trường nhưng toàn thất bại thảm hại.' },
-    { group: 2, ava: '🔋', name: 'Na Tra Sạc Pin', desc: 'Sở hữu bảo bối thần tiên nhưng là đồ nội địa, đang bay giữa trời đánh nhau thì báo pin yếu.' },
-    { group: 2, ava: '🥢', name: 'Đường Tăng Vấp Đĩa', desc: 'Tụng kinh gõ mõ siêu nhanh nhưng toàn quên lời chửi thề mắng mỏ đệ tử giữa đường.' },
-    { group: 2, ava: '🐮', name: 'Ngưu Ma Vương Bơm Keo', desc: 'Cặp sừng uy nghi bị gãy vì đụng trúng cạnh cửa, phải lấy keo 502 dán lại lén lút trong đêm.' },
-    { group: 2, ava: '👓', name: 'Nhị Lang Thần Cận Thị', desc: 'Mở con mắt thứ 3 thần thánh để soi phao nhưng bị lóa sáng do cận thị bẩm sinh chưa đo độ.' },
-    { group: 2, ava: '🌚', name: 'Bao Công Xài Kem Trộn', desc: 'Muốn da trắng bóc như idol Hàn Quốc nên bôi kem rởm, mặt lốm đốm nhìn tấu hài vô cực.' },
-    { group: 2, ava: '🍱', name: 'Triệu Vân Ăn Chực', desc: 'Xông pha giữa vạn quân dũng mãnh vô song chỉ để tranh giành suất cơm cuối cùng ở căn tin.' },
-    { group: 2, ava: '🔌', name: 'Thái Thượng Quên Bếp', desc: 'Bỏ tiên đơn vào lò bát quái luyện 9 81 ngày dốc hết tâm huyết nhưng phát hiện ra quên cắm điện.' },
-    { group: 2, ava: '💧', name: 'Hồng Hài Nhi Phun Nước', desc: 'Cố gắng phun lửa tam muội chân hỏa thị uy nhưng bị viêm họng, chỉ nhổ ra được vài giọt nước.' },
-    { group: 2, ava: '🦊', name: 'Đát Kỷ Rớt Mi Giả', desc: 'Đang dùng nhan sắc mỹ miều xin xỏ lớp trưởng bỏ qua lỗi lầm thì rớt cọng mi giả vướng vào mũi.' },
-
-    // Nhóm 3: Dark Fantasy Báo Thủ
-    { group: 3, ava: '🧛', name: 'Ma Cà Rồng Niềng Răng', desc: 'Muốn cắn cổ hút máu tỏ ra đáng sợ nhưng sợ bung mắc cài nha khoa nên đành ngậm miệng e thẹn.' },
-    { group: 3, ava: '🧟', name: 'Xác Ướp Thiếu Gạc', desc: 'Nhà nghèo không có tiền mua băng y tế mới, phải quấn đỡ bằng giấy vệ sinh nên đi trời mưa là tan nát.' },
-    { group: 3, ava: '🧟‍♂️', name: 'Frankenstein Lắp Lộn Tay', desc: 'Cánh tay khâu vá bị ngược chiều, cầm đũa gắp thức ăn toàn tự chọc vào mũi mình.' },
-    { group: 3, ava: '🐺', name: 'Người Sói Dị Ứng Lông Chó', desc: 'Cứ mỗi đêm trăng tròn biến hình là lại hắt xì hơi liên tục 100 cái mệt lả người.' },
-    { group: 3, ava: '🐍', name: 'Medusa Duỗi Tóc Ép Kép', desc: 'Đàn rắn trên đầu bị bắt ép đi tiệm salon duỗi thẳng tắp trông cực kỳ đần độn.' },
-    { group: 3, ava: '🐕', name: 'Chó Ba Đầu Tranh Cục Xương', desc: 'Ba cái đầu tự cắn xé cấu xé lẫn nhau chỉ vì một miếng thịt bò khô.' },
-    { group: 3, ava: '💀', name: 'Thần Chết Rớt Lưỡi Hái', desc: 'Khuôn mặt bộ xương hoang mang tột độ, cắn rứt lương tâm không biết có nên vớt lưỡi hái từ bồn cầu lên không.' },
-    { group: 3, ava: '🧙‍♀️', name: 'Phù Thủy Rớt Bằng Lái', desc: 'Bay lượn lạng lách đánh võng đâm sầm vào cột điện, chổi gãy làm đôi mặt mũi sưng vù.' },
-    { group: 3, ava: '🧜‍♀️', name: 'Mỹ Nhân Ngư Cạn Nước Mắt', desc: 'Lên bờ tập đi nhưng vấp cục đá ngã sấp mặt, đau quá hát lệch tone làm bể kính cửa sổ.' },
-    { group: 3, ava: '👺', name: 'Quỷ Lùn Mất Sổ Tiết Kiệm', desc: 'Ôm đầu bứt tai lăn lộn ăn vạ trên sàn đất vì quên mất chỗ chôn kho báu ở đâu.' },
-    { group: 3, ava: '🦁', name: 'Nhân Sư Quên Câu Đố', desc: 'Ngồi chễm chệ cản đường anh hùng nhưng lôi điện thoại ra Google câu đố vì trí nhớ cá vàng.' },
-    { group: 3, ava: '🏇', name: 'Kỵ Sĩ Không Đầu Đội Mũ', desc: 'Để tuân thủ luật giao thông, anh ta kẹp cái mũ bảo hiểm nửa đầu vào nách cạnh cái đầu của mình.' },
-    { group: 3, ava: '🦑', name: 'Cthulhu Rối Xúc Tu', desc: 'Quái vật biển sâu thức tỉnh nhưng tự buộc 8 cái xúc tu của mình thành nút thắt không gỡ được.' },
-    { group: 3, ava: '🧌', name: 'Yêu Tinh Sợ Bóng Tối', desc: 'Mang tiếng là ác quỷ bóng đêm nhưng đi ngủ bắt buộc phải ôm gấu bông và bật đèn ngủ Hello Kitty.' },
-    { group: 3, ava: '🪨', name: 'Người Đá Nhai Sỏi Giảm Cân', desc: 'Tảng đá khổng lồ đang cố gắng nhai sỏi bào chữa cho việc giữ dáng chuẩn eo thon.' },
-    { group: 3, ava: '🦹', name: 'Chúa Tể Hắc Ám Yếu Tim', desc: 'Không có mũi để thở hắt ra, nhưng thường xuyên bị giật mình ôm ngực vì có người hù dọa từ sau lưng.' }
-];
-
-let currentStealthGroup = 1;
 let currentPet = '🦊';
 let screenHistory = [];
 let studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123", stealthNick: "Admin Ngầm", stealthAva: "👑" } };
@@ -616,7 +545,7 @@ let questionsQueue = [], exactErrorDetails = [], allErrorsGlobal = [];
 
 let sessionMaxCombo = 0, currentCombo = 0, sessionFixedErrors = 0, sessionErrorWords = [];
 let pastStudentErrors = new Set();
-let selectedStealthProfile = null;
+let selectedStealthAva = "";
 
 let tempTestParams = {}; let currentIsOfficial = false; let testStartTime = 0;
 let cheatWarnings = 0; let timeLeft = 0, timerInterval;
@@ -624,56 +553,9 @@ let deadlineIntervals = [];
 
 let parentChartInst = null, pRadarChartInst = null;
 
-// ================= HÀM TIÊM TÀI KHOẢN CLONE ĐỂ TEST =================
-function injectTestClones() {
-    let now = Date.now();
-    for(let i=94; i<=108; i++) {
-        let idStr = "T" + i;
-        let profileIdx = i - 94; 
-        let p = STEALTH_PROFILES[profileIdx];
-        
-        studentDB[idStr] = { name: "Clone " + idStr, pass: "1", stealthNick: p.name, stealthAva: p.ava };
+// HÀM ĐÃ SỬA ĐỂ ƯU TIÊN LINK HARDCODE TRÁNH LỖI LOCALSTORAGE CHO HỌC SINH
+function getScriptUrl() { return GLOBAL_SCRIPT_URL || localStorage.getItem("edtech_scriptUrl") || ""; }
 
-        if (idStr === "T94") { 
-            for(let j=0; j<10; j++) {
-                let t = new Date(now - j*24*3600*1000).toLocaleString('vi-VN');
-                allLogsCache.push([t, idStr, studentDB[idStr].name, "Thi Từ Vựng [Tự Luyện]", "Unit 1 - P1", "10", "10", "0", "10", "Nghiêm túc", "0m 30s", 50, 10, ""]);
-            }
-            let tf = new Date(now - 10000).toLocaleString('vi-VN');
-            allLogsCache.push([tf, idStr, studentDB[idStr].name, "Thi Word Form [Thi Thật]", "Unit 1 - P1", "10", "10", "0", "10", "Nghiêm túc", "0m 25s", 120, 20, ""]);
-        } else if (idStr === "T95") { 
-            let t1 = new Date(now - 15*24*3600*1000).toLocaleString('vi-VN');
-            allLogsCache.push([t1, idStr, studentDB[idStr].name, "Thi Ngữ Pháp [Thi Thật]", "Unit 1", "2", "2", "8", "10", "Nghiêm túc", "5m 00s", 2, 0, "err"]);
-            let t2 = new Date(now - 1000).toLocaleString('vi-VN');
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Ngữ Pháp [Thi Thật]", "Unit 1", "10", "10", "0", "10", "Nghiêm túc", "2m 00s", 10, 5, ""]);
-        } else if (idStr === "T96") { 
-            let t2 = new Date(now - 2000).toLocaleString('vi-VN');
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Từ Vựng [Thi Thật]", "Unit 2 - P1", "8", "8", "2", "10", "Nghiêm túc", "2m 00s", 10, 68, ""]);
-        } else if (idStr === "T97") { 
-            let t2 = new Date(now - 3000).toLocaleString('vi-VN');
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Từ Vựng [Thi Thật]", "Unit 2 - P1", "9", "9", "1", "10", "Nghiêm túc", "2m 00s", 95, 5, ""]);
-        } else if (idStr === "T98") { 
-            let t2 = new Date(now - 4000).toLocaleString('vi-VN');
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Từ Vựng [Thi Thật]", "Unit 2 - P1", "10", "10", "0", "10", "Nghiêm túc", "0m 14s", 10, 5, ""]);
-        } else if (idStr === "T99") { 
-            for(let j=0; j<155; j++) {
-                let t = new Date(now - Math.random()*20*24*3600*1000).toLocaleString('vi-VN');
-                allLogsCache.push([t, idStr, studentDB[idStr].name, "Thi Từ Vựng [Tự Luyện]", "Unit 3 - P1", "7", "7", "3", "10", "Nghiêm túc", "1m 30s", 5, 2, "err"]);
-            }
-        } else { 
-            let s1 = Math.floor(Math.random()*3) + 4; let s2 = Math.floor(Math.random()*4) + 6;
-            let t1 = new Date(now - 5*24*3600*1000).toLocaleString('vi-VN'); let t2 = new Date(now - 1*24*3600*1000).toLocaleString('vi-VN');
-            allLogsCache.push([t1, idStr, studentDB[idStr].name, "Thi Từ Vựng [Thi Thật]", "Unit 1 - P1", s1.toString(), s1.toString(), (10-s1).toString(), "10", "Nghiêm túc", "3m 00s", 5, 1, "err"]);
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Từ Vựng [Thi Thật]", "Unit 1 - P1", s2.toString(), s2.toString(), (10-s2).toString(), "10", "Nghiêm túc", "2m 30s", 12, 4, "err"]);
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Ngữ Pháp [Thi Thật]", "Unit 1", "8", "8", "2", "10", "Nghiêm túc", "2m 00s", 10, 2, ""]);
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Word Form [Thi Thật]", "Unit 1 - P1", "7", "7", "3", "10", "Nghiêm túc", "2m 00s", 10, 2, ""]);
-            allLogsCache.push([t2, idStr, studentDB[idStr].name, "Thi Word Form [Thi Thật]", "Unit 1 - P2", "9", "9", "1", "10", "Nghiêm túc", "2m 00s", 10, 2, ""]);
-        }
-    }
-}
-// =======================================================================
-
-function getScriptUrl() { return localStorage.getItem("edtech_scriptUrl") || ""; }
 function saveSystemSettings() { let scriptUrl = document.getElementById("settingScriptUrl").value.trim(); if(scriptUrl) localStorage.setItem("edtech_scriptUrl", scriptUrl); closeModal('adminSettingsModal'); showToast("Đã lưu Link Hệ Thống!"); setTimeout(() => location.reload(), 1000); }
 function showToast(msg) { const toast = document.getElementById('toastMsg'); toast.querySelector('span').innerText = msg; toast.style.top = '20px'; setTimeout(() => { toast.style.top = '-100px'; }, 3000); }
 function showHumorousLock() { const msgs = ["Bình tĩnh! Thầy đang bế quan luyện công soạn bài, rớt hết tóc rồi!", "Chưa mở đâu mấy đứa, lo cày Unit 1 cho full 10 đi!", "Đang update, vui lòng quay lại sau khi thầy mọc lại tóc!"]; showToast(msgs[Math.floor(Math.random() * msgs.length)]); }
@@ -733,14 +615,7 @@ window.onload = async function() {
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
     if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, stealthNick: s.stealthNick, stealthAva: s.stealthAva });
     if(data.deadlines) serverDeadlines = data.deadlines;
-    
-    fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { 
-        if(d.logs) { 
-            allLogsCache = d.logs; 
-            injectTestClones(); 
-            if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } 
-        } 
-    });
+    fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { if(d.logs) { allLogsCache = d.logs; if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } } });
 };
 
 function renderPetSelector() { document.getElementById('petSelector').innerHTML = PETS.map((pet, i) => `<div class="pet-btn ${i === 0 ? 'selected' : ''}" onclick="selectPet(this, '${pet}')">${pet}</div>`).join(''); currentPet = PETS[0]; }
@@ -748,83 +623,64 @@ function selectPet(el, pet) { document.querySelectorAll('.pet-btn').forEach(btn 
 
 function login() {
     let id = document.getElementById('studentId').value.trim().toUpperCase();
-    if(studentDB[id]) {
+    if(id === 'T11' || studentDB[id]) {
         currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến (Admin Test)" : studentDB[id].name;
-        document.getElementById('dashName').innerText = currentStudentName; document.getElementById('dashAvatar').innerText = currentPet; 
         
-        if(currentStudentId !== 'T11' && (!studentDB[currentStudentId] || !studentDB[currentStudentId].stealthNick)) {
-            renderStealthOptions(); document.getElementById('stealthModal').style.display = 'flex';
+        // KIỂM TRA THÂN PHẬN ẨN DANH SAU KHI LOGIN
+        if(currentStudentId !== 'T11' && !studentDB[currentStudentId].stealthNick) {
+            renderStealthOptions();
+            document.getElementById('stealthModal').style.display = 'flex';
         } else {
             switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor();
         }
-    } else { showToast("Sai mã báo danh! Kêu phụ huynh liên hệ Thầy."); let inp = document.getElementById('studentId'); inp.style.borderColor = "var(--accent-red)"; setTimeout(() => inp.style.borderColor = "var(--border-dark)", 500); }
-}
-
-function switchStealthTab(groupId, el) {
-    document.querySelectorAll('.stealth-tab-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    currentStealthGroup = groupId;
-    renderStealthOptions();
+    } else { 
+        // XỬ LÝ LỖI BẤM QUÁ NHANH KHI CHƯA TẢI XONG DỮ LIỆU
+        if (Object.keys(studentDB).length <= 1) {
+            showToast("⏳ App đang lấy dữ liệu từ Google Sheet, đợi 2-3 giây rồi bấm lại nhé!");
+        } else {
+            showToast("Sai mã báo danh! Kêu phụ huynh liên hệ Thầy."); 
+            let inp = document.getElementById('studentId'); inp.style.borderColor = "var(--accent-red)"; setTimeout(() => inp.style.borderColor = "var(--border-dark)", 500); 
+        }
+    }
 }
 
 function renderStealthOptions() {
-    let otherStudents = Object.keys(studentDB).filter(k => k !== currentStudentId);
-    let usedNicks = otherStudents.map(k => studentDB[k].stealthNick).filter(Boolean);
-    
-    let html = '';
-    let filteredProfiles = STEALTH_PROFILES.filter(p => p.group === currentStealthGroup);
+    let usedAvas = Object.values(studentDB).map(s => s.stealthAva).filter(Boolean);
+    let usedNicks = Object.values(studentDB).map(s => s.stealthNick).filter(Boolean);
 
-    filteredProfiles.forEach((p) => {
-        let absIndex = STEALTH_PROFILES.indexOf(p);
-        let isUsed = usedNicks.includes(p.name);
-        let isSelected = selectedStealthProfile && selectedStealthProfile.name === p.name;
-        
-        let disabledClass = isUsed ? 'stealth-locked' : '';
-        let selectedStyle = isSelected ? 'background:rgba(30,144,255,0.1); border-color:var(--accent-blue); transform:translate(4px, 4px); box-shadow:var(--shadow-hard);' : 'background:var(--surface-color); border-color:var(--border-dark);';
-        
-        let onclick = isUsed ? `onclick="showToast('Thân phận này đã bị cao thủ khác đoạt mất!')"` : `onclick="selectStealthProfile(this, ${absIndex})"`;
-        let status = isUsed ? '<span style="color:var(--accent-red); font-size:11px;">🔒 [ĐÃ CÓ CHỦ]</span>' : '';
+    let avaHtml = STEALTH_AVATARS.map(ava => {
+        let disabled = usedAvas.includes(ava) ? 'opacity:0.3; cursor:not-allowed;' : 'cursor:pointer;';
+        let onclick = usedAvas.includes(ava) ? '' : `onclick="selectStealthAva(this, '${ava}')"`;
+        return `<div class="pet-btn" style="${disabled}" ${onclick}>${ava}</div>`;
+    }).join('');
+    document.getElementById('stealthAvatarContainer').innerHTML = avaHtml;
 
-        html += `
-        <div class="stealth-card ${disabledClass}" style="border:3px solid; border-radius:8px; padding:15px; margin-bottom:10px; ${selectedStyle} transition:0.2s;" ${onclick} id="stealthCard_${absIndex}">
-            <div style="display:flex; gap:15px; align-items:center;">
-                <div style="font-size:35px;">${p.ava}</div>
-                <div>
-                    <div style="font-weight:900; color:var(--accent-blue); font-size:14px; margin-bottom:5px;">${p.name} ${status}</div>
-                    <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">${p.desc}</div>
-                </div>
-            </div>
-        </div>`;
+    let nickHtml = `<option value="">-- Chọn danh xưng bựa bang --</option>`;
+    STEALTH_NICKS.forEach(nick => {
+        if(!usedNicks.includes(nick)) nickHtml += `<option value="${nick}">${nick}</option>`;
     });
-    document.getElementById('stealthProfileList').innerHTML = html;
+    document.getElementById('stealthNickSelect').innerHTML = nickHtml;
 }
 
-function selectStealthProfile(el, index) {
-    document.querySelectorAll('.stealth-card').forEach(c => {
-        if(!c.classList.contains('stealth-locked')) {
-            c.style.background = 'var(--surface-color)';
-            c.style.borderColor = 'var(--border-dark)';
-            c.style.transform = 'none';
-            c.style.boxShadow = 'none';
-        }
-    });
-    el.style.background = 'rgba(30,144,255,0.1)';
-    el.style.borderColor = 'var(--accent-blue)';
-    el.style.transform = 'translate(4px, 4px)';
-    el.style.boxShadow = 'var(--shadow-hard)';
-    selectedStealthProfile = STEALTH_PROFILES[index];
+function selectStealthAva(el, ava) {
+    document.getElementById('stealthAvatarContainer').querySelectorAll('.pet-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected'); selectedStealthAva = ava;
 }
 
 function saveStealthProfile() {
-    if(!selectedStealthProfile) { showToast('Bạn phải chọn một thân phận bí mật!'); return; }
-    let nick = selectedStealthProfile.name;
-    let ava = selectedStealthProfile.ava;
-    if(studentDB[currentStudentId]) {
-        studentDB[currentStudentId].stealthAva = ava; studentDB[currentStudentId].stealthNick = nick;
-    }
-    closeModal('stealthModal'); switchScreen('dashboardScreen'); showToast('Tạo thân phận ẩn danh thành công!');
+    let nick = document.getElementById('stealthNickSelect').value;
+    if(!selectedStealthAva || !nick) { showToast('Bạn phải chọn đủ Avatar và Danh xưng!'); return; }
+    
+    studentDB[currentStudentId].stealthAva = selectedStealthAva;
+    studentDB[currentStudentId].stealthNick = nick;
+    
+    closeModal('stealthModal'); switchScreen('dashboardScreen');
+    showToast('Tạo thân phận ẩn danh thành công!');
     checkMissingTasks(currentStudentId); calcRivalAnchor();
-    if (getScriptUrl().startsWith("http")) { fetch(getScriptUrl(), { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveStealth", studentId: currentStudentId, stealthNick: nick, stealthAva: ava }) }).catch(e=>{}); }
+
+    if (getScriptUrl().startsWith("http")) {
+        fetch(getScriptUrl(), { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveStealth", studentId: currentStudentId, stealthNick: nick, stealthAva: selectedStealthAva }) }).catch(e=>{});
+    }
 }
 
 function checkMissingTasks(studentId) {
@@ -859,34 +715,34 @@ function checkMissingTasks(studentId) {
     } else { box.style.display = 'none'; }
 }
 
+// ĐỐI THỦ TRUYỀN KIẾP - SỬ DỤNG TÊN ẨN DANH ĐỂ TĂNG ĐỘ BÍ ẨN
 function calcRivalAnchor() {
-    try {
-        if(allLogsCache.length === 0 || currentStudentId === 'T11') return;
-        let scores = {};
-        allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]')) scores[row[1]] = (scores[row[1]] || 0) + parseFloat(row[5]); });
-        let sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]).map(x => ({ id: x[0], score: x[1] }));
-        let myIdx = sorted.findIndex(x => x.id === currentStudentId);
-        if(myIdx === -1) { document.getElementById('rivalAnchorBox').style.display = 'none'; return; }
-        
-        let html = ``, msg = "";
-        if(myIdx > 0) { 
-            let rival = sorted[myIdx - 1]; let diff = rival.score - sorted[myIdx].score;
-            let rNick = (studentDB[rival.id] && studentDB[rival.id].stealthNick) ? studentDB[rival.id].stealthNick : (studentDB[rival.id] ? studentDB[rival.id].name : rival.id);
-            html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--border-dark); border-radius:6px; background:rgba(0,0,0,0.02);"><span style="font-size:12px;">🔼 Top ${myIdx}: ${rNick}</span><span style="font-weight:bold; color:var(--accent-red); font-size:13px;">${rival.score.toFixed(1)} đ</span></div>`; 
-            msg = `Gắt! Chỉ cần ${diff.toFixed(1)} điểm nữa là đá bay bạn [${rNick}] khỏi vị trí Top ${myIdx}!`;
-        }
-        
-        html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--accent-blue); border-radius:6px; background:rgba(30,144,255,0.1);"><span style="font-size:12px; font-weight:bold; color:var(--accent-blue);">➡️ Top ${myIdx+1}: BẠN HIỆN TẠI</span><span style="font-weight:bold; color:var(--accent-blue); font-size:13px;">${sorted[myIdx].score.toFixed(1)} đ</span></div>`;
-        
-        if(myIdx < sorted.length - 1) {
-            let bot = sorted[myIdx + 1]; let diff2 = sorted[myIdx].score - bot.score;
-            let bNick = (studentDB[bot.id] && studentDB[bot.id].stealthNick) ? studentDB[bot.id].stealthNick : (studentDB[bot.id] ? studentDB[bot.id].name : bot.id);
-            html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px dashed var(--border-dark); border-radius:6px; opacity:0.8;"><span style="font-size:12px;">🔽 Top ${myIdx+2}: ${bNick}</span><span style="font-weight:bold; color:var(--border-dark); font-size:13px;">${bot.score.toFixed(1)} đ</span></div>`;
-            if(!msg) msg = `Cẩn thận! Bạn [${bNick}] đang phả hơi nóng ngay sau lưng kìa!`;
-        }
-        
-        document.getElementById('rivalList').innerHTML = html; document.getElementById('rivalGaze').innerText = msg || "Bạn đang là Độc Cô Cầu Bại, tiến lên Top 1!"; document.getElementById('rivalAnchorBox').style.display = 'block';
-    } catch(e) { console.error(e); }
+    if(allLogsCache.length === 0 || currentStudentId === 'T11') return;
+    let scores = {};
+    allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]')) scores[row[1]] = (scores[row[1]] || 0) + parseFloat(row[5]); });
+    let sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]).map(x => ({ id: x[0], score: x[1] }));
+    let myIdx = sorted.findIndex(x => x.id === currentStudentId);
+    if(myIdx === -1) { document.getElementById('rivalAnchorBox').style.display = 'none'; return; }
+    
+    let html = ``, msg = "";
+    
+    if(myIdx > 0) { 
+        let rival = sorted[myIdx - 1]; let diff = rival.score - sorted[myIdx].score;
+        let rNick = studentDB[rival.id]?.stealthNick || studentDB[rival.id]?.name || rival.id;
+        html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--border-dark); border-radius:6px; background:rgba(0,0,0,0.02);"><span style="font-size:12px;">🔼 Top ${myIdx}: ${rNick}</span><span style="font-weight:bold; color:var(--accent-red); font-size:13px;">${rival.score} đ</span></div>`; 
+        msg = `Gắt! Chỉ cần ${diff.toFixed(1)} điểm nữa là đá bay bạn [${rNick}] khỏi vị trí Top ${myIdx}!`;
+    }
+    
+    html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px solid var(--accent-blue); border-radius:6px; background:rgba(30,144,255,0.1);"><span style="font-size:12px; font-weight:bold; color:var(--accent-blue);">➡️ Top ${myIdx+1}: BẠN HIỆN TẠI</span><span style="font-weight:bold; color:var(--accent-blue); font-size:13px;">${sorted[myIdx].score} đ</span></div>`;
+    
+    if(myIdx < sorted.length - 1) {
+        let bot = sorted[myIdx + 1]; let diff2 = sorted[myIdx].score - bot.score;
+        let bNick = studentDB[bot.id]?.stealthNick || studentDB[bot.id]?.name || bot.id;
+        html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px dashed var(--border-dark); border-radius:6px; opacity:0.8;"><span style="font-size:12px;">🔽 Top ${myIdx+2}: ${bNick}</span><span style="font-weight:bold; color:var(--border-dark); font-size:13px;">${bot.score} đ</span></div>`;
+        if(!msg) msg = `Cẩn thận! Bạn [${bNick}] đang phả hơi nóng ngay sau lưng kìa!`;
+    }
+    
+    document.getElementById('rivalList').innerHTML = html; document.getElementById('rivalGaze').innerText = msg || "Bạn đang là Độc Cô Cầu Bại, tiến lên Top 1!"; document.getElementById('rivalAnchorBox').style.display = 'block';
 }
 
 function openBaoBai() { switchScreen('baoBaiScreen'); document.getElementById('baoBaiContent').innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang tải lệnh...</div>'; fetchWithFallback(getScriptUrl(), "getBaoBai", { content: "Chưa có thông báo nào." }).then(data => { document.getElementById('baoBaiContent').innerText = data.content; }); }
@@ -910,7 +766,7 @@ function openUnitGrid(type, action) {
                 grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="promptTestMode('${type}', ${i}, 1)">U${i} - P1</button>`; 
                 let catQuery = type === 'wordform' ? 'Word Form' : (type === 'vocab' ? 'Từ Vựng' : 'Giới từ');
                 let p1Done = allLogsCache.some(row => row[1] === currentStudentId && row[3] && row[3].toString().includes(catQuery) && row[4].toString().includes(`Unit ${i} - P1`));
-                if (p1Done || currentStudentId === 'T11' || currentStudentId >= 'T94') grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="promptTestMode('${type}', ${i}, 2)">U${i} - P2</button>`; 
+                if (p1Done || currentStudentId === 'T11') grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="promptTestMode('${type}', ${i}, 2)">U${i} - P2</button>`; 
                 else grid.innerHTML += `<button class="btn btn-disabled" style="font-size:13px; padding: 15px 5px;" onclick="showToast('Bạn phải diệt gọn Phần 1 mới được mở khóa Phần 2 nha!')"><i class="fa-solid fa-lock"></i> U${i} - P2</button>`;
             } else {
                 grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 1)">U${i} - P1</button>`; grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 2)">U${i} - P2</button>`; 
@@ -923,8 +779,8 @@ function openUnitGrid(type, action) {
 }
 
 function promptTestMode(type, unit, part) { currentType = type; tempTestParams = { unit: unit, part: part }; document.getElementById('preTestModal').style.display = 'flex'; document.getElementById('parentPinSection').style.display = 'none'; document.getElementById('parentPinEntry').value = ''; }
-function confirmParentPin() { let pin = document.getElementById('parentPinEntry').value.trim(), correctPin = studentDB[currentStudentId] ? studentDB[currentStudentId].pass.toString() : "123"; if (pin === correctPin || currentStudentId === 'T11' || currentStudentId >= 'T94') { currentIsOfficial = true; closeModal('preTestModal'); startFlow(tempTestParams.unit, tempTestParams.part); } else showToast("Sai mã PIN! Kêu phụ huynh ra nhập lại lẹ lên!"); }
-function startPracticeMode() { let cacheKey = 'cooldown_' + currentStudentId + '_' + currentType + '_' + tempTestParams.unit + '_' + tempTestParams.part; let lastTime = localStorage.getItem(cacheKey); if (lastTime && (Date.now() - parseInt(lastTime) < 30 * 60 * 1000) && currentStudentId !== 'T11' && currentStudentId < 'T94') { let remain = Math.ceil((30 * 60 * 1000 - (Date.now() - parseInt(lastTime))) / 60000); showToast(`Bình tĩnh bạn ơi! Cố quá là não mệt. Nghỉ ngơi, ${remain} phút nữa quay lại phục thù!`); return; } localStorage.setItem(cacheKey, Date.now().toString()); currentIsOfficial = false; closeModal('preTestModal'); startFlow(tempTestParams.unit, tempTestParams.part); }
+function confirmParentPin() { let pin = document.getElementById('parentPinEntry').value.trim(), correctPin = studentDB[currentStudentId] ? studentDB[currentStudentId].pass.toString() : "123"; if (pin === correctPin || currentStudentId === 'T11') { currentIsOfficial = true; closeModal('preTestModal'); startFlow(tempTestParams.unit, tempTestParams.part); } else showToast("Sai mã PIN! Kêu phụ huynh ra nhập lại lẹ lên!"); }
+function startPracticeMode() { let cacheKey = 'cooldown_' + currentStudentId + '_' + currentType + '_' + tempTestParams.unit + '_' + tempTestParams.part; let lastTime = localStorage.getItem(cacheKey); if (lastTime && (Date.now() - parseInt(lastTime) < 30 * 60 * 1000) && currentStudentId !== 'T11') { let remain = Math.ceil((30 * 60 * 1000 - (Date.now() - parseInt(lastTime))) / 60000); showToast(`Bình tĩnh bạn ơi! Cố quá là não mệt. Nghỉ ngơi, ${remain} phút nữa quay lại phục thù!`); return; } localStorage.setItem(cacheKey, Date.now().toString()); currentIsOfficial = false; closeModal('preTestModal'); startFlow(tempTestParams.unit, tempTestParams.part); }
 
 function shuffleArray(array) { let cur = array.length, ran; while (cur > 0) { ran = Math.floor(Math.random() * cur); cur--; [array[cur], array[ran]] = [array[ran], array[cur]]; } return array; }
 
@@ -1054,7 +910,7 @@ function finishSession(score, typeName, cheatMsg) {
     allLogsCache.push(localLog);
     if(score >= 8) confetti({particleCount: 150, spread: 80});
 
-    if (getScriptUrl().startsWith("http") && currentStudentId !== "T11" && !(currentStudentId >= "T94" && currentStudentId <= "T108")) {
+    if (getScriptUrl().startsWith("http")) {
         fetch(getScriptUrl(), { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: cheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: sessionFixedErrors, errorWords: sessionErrorWords.join(',') }) }).then(() => checkMissingTasks(currentStudentId)).catch(e=>{});
     }
     switchScreen('resultScreen');
@@ -1063,209 +919,149 @@ function finishSession(score, typeName, cheatMsg) {
 function shareZalo() { let msg = `Ting ting! Báo cáo chiến sự: Hôm nay bạn ${currentStudentName} tự bế quan luyện ${currentType.toUpperCase()} (Unit ${currentUnit}) và đạt điểm tối đa! Ba mẹ thả tim nạp năng lượng nhé! 🥰`; navigator.clipboard.writeText(msg).then(() => { showToast("Đã copy thần chú! Mở Zalo dán gửi Ba Mẹ ngay!"); }).catch(err => { showToast("Lỗi copy rồi! Mấy đứa bôi đen copy tay nhé."); }); }
 
 function loginParentPortal() {
-    try {
-        let id = document.getElementById('parentStudentId').value.trim().toUpperCase(); if(!studentDB[id] && id !== 'T11' && id < 'T94') { showToast("Không tìm thấy Mã học sinh!"); return; }
-        closeModal('parentLoginModal'); switchScreen('parentScreen'); document.getElementById('parentStudentName').innerText = studentDB[id] ? studentDB[id].name : "Học sinh Test";
-        
-        let studentRows = allLogsCache.filter(row => row[1] === id);
-        let vocabRowsAsc = studentRows.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ")));
-        let vocabRowsDesc = [...vocabRowsAsc].reverse();
-        let vocabHtml = "", grammarHtml = "", totalVocabScore = 0, vocabCount = 0, totalGrammarScore = 0, grammarCount = 0;
+    let id = document.getElementById('parentStudentId').value.trim().toUpperCase(); if(!studentDB[id] && id !== 'T11') { showToast("Không tìm thấy Mã học sinh!"); return; }
+    closeModal('parentLoginModal'); switchScreen('parentScreen'); document.getElementById('parentStudentName').innerText = studentDB[id] ? studentDB[id].name : "Học sinh Test";
+    
+    let studentRows = allLogsCache.filter(row => row[1] === id);
+    let vocabRowsAsc = studentRows.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ")));
+    let vocabRowsDesc = [...vocabRowsAsc].reverse();
+    let vocabHtml = "", grammarHtml = "", totalVocabScore = 0, vocabCount = 0, totalGrammarScore = 0, grammarCount = 0;
 
-        let timelineHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
-        studentRows.forEach(row => {
-            let timeStr = row[0], category = row[3] ? row[3].toString() : "", unitInfo = row[4] ? row[4].toString() : "", score = row[5] ? parseFloat(row[5]) : 0, isOfficial = category.includes("[Thi Thật]");
-            if(category.includes("Ngữ Pháp")) { totalGrammarScore += score; grammarCount++; let cCount = row[6] ? row[6].toString() : "0", wCount = row[7] ? row[7].toString() : "0", durStr = row[10] ? row[10].toString() : "--"; grammarHtml += `<tr><td style="text-align:left;"><b>${unitInfo}</b><br><small>${category.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "")}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`; }
-            let remark = score === 10 ? "Đỉnh cao phong độ!" : (score >= 8 ? "Bắt đầu giác ngộ!" : (score >= 5 ? "Thực tế phũ phàng..." : "Cú sốc đầu đời 😭")), icon = isOfficial ? "🔴" : "🟢", typeStr = isOfficial ? "Kiểm tra cùng Phụ huynh" : "Tự ôn tập";
-            timelineHtml += `<div style="background:rgba(0,0,0,0.02); border:2px solid var(--border-dark); padding:10px; border-radius:8px;"><div style="font-size:12px; color:var(--text-muted); font-weight:bold;">${timeStr} - ${unitInfo}</div><div style="font-size:14px; margin-top:5px; font-weight:900;">${icon} ${typeStr}: <span style="color:var(--accent-red);">${score}/10 điểm</span> <br><span style="font-size:12px; font-style:italic; font-weight:normal; color:var(--text-dark);">${remark}</span></div></div>`;
-        });
-        timelineHtml += `</div>`; document.getElementById('parentTimelineBox').innerHTML = timelineHtml || `<div style="color:var(--text-muted); text-align:center;">Chưa có lịch sử ôn tập.</div>`;
+    let timelineHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+    studentRows.forEach(row => {
+        let timeStr = row[0], category = row[3] ? row[3].toString() : "", unitInfo = row[4] ? row[4].toString() : "", score = row[5] ? parseFloat(row[5]) : 0, isOfficial = category.includes("[Thi Thật]");
+        if(category.includes("Ngữ Pháp")) { totalGrammarScore += score; grammarCount++; let cCount = row[6] ? row[6].toString() : "0", wCount = row[7] ? row[7].toString() : "0", durStr = row[10] ? row[10].toString() : "--"; grammarHtml += `<tr><td style="text-align:left;"><b>${unitInfo}</b><br><small>${category.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "")}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`; }
+        let remark = score === 10 ? "Đỉnh cao phong độ!" : (score >= 8 ? "Bắt đầu giác ngộ!" : (score >= 5 ? "Thực tế phũ phàng..." : "Cú sốc đầu đời 😭")), icon = isOfficial ? "🔴" : "🟢", typeStr = isOfficial ? "Kiểm tra cùng Phụ huynh" : "Tự ôn tập";
+        timelineHtml += `<div style="background:rgba(0,0,0,0.02); border:2px solid var(--border-dark); padding:10px; border-radius:8px;"><div style="font-size:12px; color:var(--text-muted); font-weight:bold;">${timeStr} - ${unitInfo}</div><div style="font-size:14px; margin-top:5px; font-weight:900;">${icon} ${typeStr}: <span style="color:var(--accent-red);">${score}/10 điểm</span> <br><span style="font-size:12px; font-style:italic; font-weight:normal; color:var(--text-dark);">${remark}</span></div></div>`;
+    });
+    timelineHtml += `</div>`; document.getElementById('parentTimelineBox').innerHTML = timelineHtml || `<div style="color:var(--text-muted); text-align:center;">Chưa có lịch sử ôn tập.</div>`;
 
-        vocabRowsDesc.forEach((row, index) => {
-            let timeStr = row[0], category = row[3] ? row[3].toString().replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "") : "", unitInfo = row[4] ? row[4].toString() : "", score = row[5] ? parseFloat(row[5]) : 0, cCount = row[6] ? row[6].toString() : "0", wCount = row[7] ? row[7].toString() : "0", durStr = row[10] ? row[10].toString() : "--";
-            totalVocabScore += score; vocabCount++; let badge = index === 0 ? `<span class="badge-new">NEW ✨</span>` : "";
-            vocabHtml += `<tr><td style="text-align:left;"><b>${unitInfo}</b> ${badge}<br><small>${category}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
-        });
-        document.getElementById('parentVocabLogsBody').innerHTML = vocabHtml || `<tr><td colspan="6" style="color:var(--text-muted);">Chưa thi Từ Vựng.</td></tr>`;
-        if(grammarCount === 0) document.getElementById('grammarParentContainer').style.display = 'none'; else { document.getElementById('grammarParentContainer').style.display = 'block'; document.getElementById('parentGrammarLogsBody').innerHTML = grammarHtml; }
+    vocabRowsDesc.forEach((row, index) => {
+        let timeStr = row[0], category = row[3] ? row[3].toString().replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "") : "", unitInfo = row[4] ? row[4].toString() : "", score = row[5] ? parseFloat(row[5]) : 0, cCount = row[6] ? row[6].toString() : "0", wCount = row[7] ? row[7].toString() : "0", durStr = row[10] ? row[10].toString() : "--";
+        totalVocabScore += score; vocabCount++; let badge = index === 0 ? `<span class="badge-new">NEW ✨</span>` : "";
+        vocabHtml += `<tr><td style="text-align:left;"><b>${unitInfo}</b> ${badge}<br><small>${category}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
+    });
+    document.getElementById('parentVocabLogsBody').innerHTML = vocabHtml || `<tr><td colspan="6" style="color:var(--text-muted);">Chưa thi Từ Vựng.</td></tr>`;
+    if(grammarCount === 0) document.getElementById('grammarParentContainer').style.display = 'none'; else { document.getElementById('grammarParentContainer').style.display = 'block'; document.getElementById('parentGrammarLogsBody').innerHTML = grammarHtml; }
 
-        let recBox = document.getElementById('parentRecommendationBox'), avgVocab = vocabCount > 0 ? (totalVocabScore / vocabCount) : 10, avgGrammar = grammarCount > 0 ? (totalGrammarScore / grammarCount) : 10, proposal = "";
-        if(avgVocab < 7) proposal += "⚠️ <b>Từ vựng:</b> Phụ huynh nên đốc thúc con vào mục 'Trại Huấn Luyện' mỗi ngày 10 phút.<br>"; else proposal += "✅ <b>Từ vựng:</b> Nhớ từ và dạng từ rất tốt. Duy trì nhé!<br>";
-        if(grammarCount > 0) { if(avgGrammar < 7) proposal += "⚠️ <b>Ngữ pháp:</b> Đang bị hổng cấu trúc. Cần xem lại vở."; else proposal += "✅ <b>Ngữ pháp:</b> Nắm chắc quy tắc câu. Tốt!"; }
-        recBox.innerHTML = proposal;
+    let recBox = document.getElementById('parentRecommendationBox'), avgVocab = vocabCount > 0 ? (totalVocabScore / vocabCount) : 10, avgGrammar = grammarCount > 0 ? (totalGrammarScore / grammarCount) : 10, proposal = "";
+    if(avgVocab < 7) proposal += "⚠️ <b>Từ vựng:</b> Phụ huynh nên đốc thúc con vào mục 'Trại Huấn Luyện' mỗi ngày 10 phút.<br>"; else proposal += "✅ <b>Từ vựng:</b> Nhớ từ và dạng từ rất tốt. Duy trì nhé!<br>";
+    if(grammarCount > 0) { if(avgGrammar < 7) proposal += "⚠️ <b>Ngữ pháp:</b> Đang bị hổng cấu trúc. Cần xem lại vở."; else proposal += "✅ <b>Ngữ pháp:</b> Nắm chắc quy tắc câu. Tốt!"; }
+    recBox.innerHTML = proposal;
 
-        if(parentChartInst) parentChartInst.destroy(); let ctx = document.getElementById('parentHistoryChart').getContext('2d');
-        let labels = vocabRowsAsc.map((_, i) => `Lần ${i+1}`);
-        parentChartInst = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'Word Form', data: vocabRowsAsc.map(r => r[3].toString().includes("Word Form") ? parseFloat(r[5]) : null), borderColor: '#1e90ff', spanGaps: true, tension: 0.3, pointBackgroundColor: '#1e90ff' }, { label: 'Từ Vựng', data: vocabRowsAsc.map(r => r[3].toString().includes("Từ Vựng") ? parseFloat(r[5]) : null), borderColor: '#2ed573', spanGaps: true, tension: 0.3, pointBackgroundColor: '#2ed573' }, { label: 'Giới từ', data: vocabRowsAsc.map(r => r[3].toString().includes("Giới từ") ? parseFloat(r[5]) : null), borderColor: '#ffa502', spanGaps: true, tension: 0.3, pointBackgroundColor: '#ffa502' }] }, options: { scales: { y: { min: 0, max: 10 } } } });
-        if(pRadarChartInst) pRadarChartInst.destroy(); let ctxR = document.getElementById('parentRadarChart').getContext('2d'); pRadarChartInst = new Chart(ctxR, { type: 'radar', data: { labels: ['Từ vựng', 'Ngữ pháp', 'Đọc hiểu', 'Sự Tập Trung'], datasets: [{ label: 'Năng lực', data: [avgVocab*10, avgGrammar*10, 90, 85], backgroundColor: 'rgba(46, 213, 115, 0.2)', borderColor: '#2ed573', borderWidth: 3 }] }, options: { scales: { r: { suggestedMin: 0, suggestedMax: 100 } }, plugins: { legend: {display: false} } } });
-        generateHeatmap(id, studentRows);
-    } catch(e) { console.error(e); }
+    if(parentChartInst) parentChartInst.destroy(); let ctx = document.getElementById('parentHistoryChart').getContext('2d');
+    let labels = vocabRowsAsc.map((_, i) => `Lần ${i+1}`);
+    parentChartInst = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'Word Form', data: vocabRowsAsc.map(r => r[3].toString().includes("Word Form") ? parseFloat(r[5]) : null), borderColor: '#1e90ff', spanGaps: true, tension: 0.3, pointBackgroundColor: '#1e90ff' }, { label: 'Từ Vựng', data: vocabRowsAsc.map(r => r[3].toString().includes("Từ Vựng") ? parseFloat(r[5]) : null), borderColor: '#2ed573', spanGaps: true, tension: 0.3, pointBackgroundColor: '#2ed573' }, { label: 'Giới từ', data: vocabRowsAsc.map(r => r[3].toString().includes("Giới từ") ? parseFloat(r[5]) : null), borderColor: '#ffa502', spanGaps: true, tension: 0.3, pointBackgroundColor: '#ffa502' }] }, options: { scales: { y: { min: 0, max: 10 } } } });
+    if(pRadarChartInst) pRadarChartInst.destroy(); let ctxR = document.getElementById('parentRadarChart').getContext('2d'); pRadarChartInst = new Chart(ctxR, { type: 'radar', data: { labels: ['Từ vựng', 'Ngữ pháp', 'Đọc hiểu', 'Sự Tập Trung'], datasets: [{ label: 'Năng lực', data: [avgVocab*10, avgGrammar*10, 90, 85], backgroundColor: 'rgba(46, 213, 115, 0.2)', borderColor: '#2ed573', borderWidth: 3 }] }, options: { scales: { r: { suggestedMin: 0, suggestedMax: 100 } }, plugins: { legend: {display: false} } } });
+    generateHeatmap(id, studentRows);
 }
 
 function generateHeatmap(id, historyRows) {
-    try {
-        let container = document.getElementById('heatmapGrid'); container.innerHTML = "";
-        if(historyRows.length === 0 && id !== 'T11' && id < 'T94') { container.innerHTML = `<div style="font-size:12px; color:var(--text-muted); font-style:italic;">Chưa có dữ liệu từ ngày bắt đầu.</div>`; return; }
-        let dateMap = {}, minTime = Infinity;
-        historyRows.forEach(row => {
-            let parts = row[0].split(' ')[0].split('/'); if(parts.length >= 3) {
-                let dStr = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`; 
-                let time = new Date(dStr).getTime();
-                if(!isNaN(time)) { if(time < minTime) minTime = time; dateMap[dStr] = (dateMap[dStr] || 0) + 1; }
-            }
-        });
-        if(minTime === Infinity) minTime = Date.now() - 30*24*3600*1000;
-        
-        let start = new Date(minTime);
-        if (start.getTime() < Date.now() - 100*24*3600*1000) { start = new Date(Date.now() - 100*24*3600*1000); } 
-        
-        let dayOfWeek = start.getDay(), offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; 
-        start = new Date(start.getTime() - offset*24*3600*1000);
-        let end = new Date(), days = Math.floor((end - start)/(24*3600*1000)) + 1;
-        if (days > 100) days = 100; 
-
-        for(let i=0; i<days; i++) {
-            let cur = new Date(start.getTime() + i*24*3600*1000), dStr = `${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}-${cur.getDate().toString().padStart(2,'0')}`, count = dateMap[dStr] || 0;
-            let cell = document.createElement('div'); cell.className = "heatmap-cell"; cell.title = `${dStr}: Xong ${count} bài`;
-            if(count === 1) cell.classList.add('active-1'); else if(count === 2) cell.classList.add('active-2'); else if(count >= 3) cell.classList.add('active-3'); container.appendChild(cell);
+    let container = document.getElementById('heatmapGrid'); container.innerHTML = "";
+    if(historyRows.length === 0 && id !== 'T11') { container.innerHTML = `<div style="font-size:12px; color:var(--text-muted); font-style:italic;">Chưa có dữ liệu từ ngày bắt đầu.</div>`; return; }
+    let dateMap = {}, minTime = Infinity;
+    historyRows.forEach(row => {
+        let parts = row[0].split(' ')[0].split('/'); if(parts.length >= 3) {
+            let dStr = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`; 
+            let time = new Date(dStr).getTime();
+            if(!isNaN(time)) { if(time < minTime) minTime = time; dateMap[dStr] = (dateMap[dStr] || 0) + 1; }
         }
-    } catch(e) { console.error(e); }
+    });
+    if(minTime === Infinity) minTime = Date.now() - 30*24*3600*1000;
+    let start = new Date(minTime), dayOfWeek = start.getDay(), offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; 
+    start = new Date(start.getTime() - offset*24*3600*1000);
+    let end = new Date(), days = Math.floor((end - start)/(24*3600*1000)) + 1;
+    for(let i=0; i<days; i++) {
+        let cur = new Date(start.getTime() + i*24*3600*1000), dStr = `${cur.getFullYear()}-${(cur.getMonth()+1).toString().padStart(2,'0')}-${cur.getDate().toString().padStart(2,'0')}`, count = dateMap[dStr] || 0;
+        let cell = document.createElement('div'); cell.className = "heatmap-cell"; cell.title = `${dStr}: Xong ${count} bài`;
+        if(count === 1) cell.classList.add('active-1'); else if(count === 2) cell.classList.add('active-2'); else if(count >= 3) cell.classList.add('active-3'); container.appendChild(cell);
+    }
 }
 
+// CHUYỂN ĐỔI TAB HỆ SINH THÁI BẢNG VÀNG VIP PRO
 function switchLBTab(tabId, el) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); el.classList.add('active');
     document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById(tabId).style.display = 'block';
 }
 
 function openLeaderboard() {
-    try {
-        document.getElementById('leaderboardModal').style.display = 'flex';
-        
-        let totalScores = {};
-        Object.keys(studentDB).forEach(id => totalScores[id] = 0);
-        allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]')) { if(totalScores[row[1]] !== undefined) totalScores[row[1]] += parseFloat(row[5]) || 0; } });
-        delete totalScores['T11']; 
-        let sortedUsers = Object.entries(totalScores).sort((a,b) => b[1] - a[1]);
-        
-        let cStealth = document.getElementById('contentLBStealth');
-        let myIndex = sortedUsers.findIndex(u => u[0] === currentStudentId);
-        if(myIndex === -1) myIndex = sortedUsers.length - 1;
-        let bracketIndex = Math.floor(myIndex / 10);
-        if (bracketIndex < 0) bracketIndex = 0;
-        let leagueNames = ['Challenger (Thách Đấu)', 'Diamond (Kim Cương)', 'Platinum (Bạch Kim)', 'Gold (Vàng)', 'Silver (Bạc)', 'Bronze (Đồng)'];
-        let myLeagueName = leagueNames[bracketIndex] || 'Tân Binh';
-        let myLeagueUsers = sortedUsers.slice(bracketIndex * 10, bracketIndex * 10 + 10);
-        
-        if(myLeagueUsers.length === 0 || myLeagueUsers[0][1] === 0) { cStealth.innerHTML = `<div style="text-align:center; padding:20px;">League ${myLeagueName} chưa có điểm số nào...</div>`; } 
-        else {
-            let h1 = `<div style="text-align:center; font-weight:900; color:var(--accent-purple); margin-bottom:15px; font-size:16px;">🏆 LEAGUE: ${myLeagueName}</div>`;
-            myLeagueUsers.slice(0,5).forEach((item, i) => {
-                let uData = studentDB[item[0]]; let uNick = (uData && uData.stealthNick) ? uData.stealthNick : ((uData && uData.name) ? uData.name : item[0]); let uAva = (uData && uData.stealthAva) ? uData.stealthAva : '🦊';
-                let isMe = item[0] === currentStudentId ? "border-color:var(--accent-blue); background:rgba(30,144,255,0.1);" : "border-color:var(--border-dark); background:white;";
-                let medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : `#${i+1}`));
-                h1 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid; border-radius:8px; margin-bottom:10px; ${isMe}"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${uAva}</span><span style="font-weight:900; font-size:14px;">${uNick}</span></div><div style="color:var(--accent-red); font-weight:900; font-size:18px;">${item[1].toFixed(1)}</div></div>`;
-            }); cStealth.innerHTML = h1;
-        }
+    document.getElementById('leaderboardModal').style.display = 'flex';
+    
+    let totalScores = {};
+    Object.keys(studentDB).forEach(id => totalScores[id] = 0);
+    allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]')) { if(totalScores[row[1]] !== undefined) totalScores[row[1]] += parseFloat(row[5]); } });
+    delete totalScores['T11'];
+    let sortedUsers = Object.entries(totalScores).sort((a,b) => b[1] - a[1]);
+    
+    // TAB 1: ẨN DANH CHI VƯƠNG (Chia League Trình Độ)
+    let cStealth = document.getElementById('contentLBStealth');
+    let myIndex = sortedUsers.findIndex(u => u[0] === currentStudentId);
+    if(myIndex === -1) myIndex = sortedUsers.length - 1;
+    let bracketIndex = Math.floor(myIndex / 10);
+    let leagueNames = ['Challenger (Thách Đấu)', 'Diamond (Kim Cương)', 'Platinum (Bạch Kim)', 'Gold (Vàng)', 'Silver (Bạc)', 'Bronze (Đồng)'];
+    let myLeagueName = leagueNames[bracketIndex] || 'Tân Binh';
+    let myLeagueUsers = sortedUsers.slice(bracketIndex * 10, bracketIndex * 10 + 10);
+    
+    if(myLeagueUsers.length === 0 || myLeagueUsers[0][1] === 0) { cStealth.innerHTML = `<div style="text-align:center; padding:20px;">League ${myLeagueName} chưa có điểm số nào...</div>`; } 
+    else {
+        let h1 = `<div style="text-align:center; font-weight:900; color:var(--accent-purple); margin-bottom:15px; font-size:16px;">🏆 LEAGUE: ${myLeagueName}</div>`;
+        myLeagueUsers.slice(0,5).forEach((item, i) => {
+            let uData = studentDB[item[0]]; let uNick = uData?.stealthNick || uData?.name || item[0]; let uAva = uData?.stealthAva || '🦊';
+            let isMe = item[0] === currentStudentId ? "border-color:var(--accent-blue); background:rgba(30,144,255,0.1);" : "border-color:var(--border-dark); background:white;";
+            let medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : `#${i+1}`));
+            h1 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid; border-radius:8px; margin-bottom:10px; ${isMe}"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${uAva}</span><span style="font-weight:900; font-size:14px;">${uNick}</span></div><div style="color:var(--accent-red); font-weight:900; font-size:18px;">${item[1].toFixed(1)}</div></div>`;
+        }); cStealth.innerHTML = h1;
+    }
 
-        let cTime = document.getElementById('contentLBTime');
-        let bestTimes = {};
-        allLogsCache.forEach(row => {
-            let score = parseFloat(row[5]) || 0;
-            if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]') && score === 10) {
-                let sec = parseDurSec(row[10]);
-                if(sec < 9999) { 
-                    let sNick = (studentDB[row[1]] && studentDB[row[1]].stealthNick) ? studentDB[row[1]].stealthNick : null;
-                    let sAva = (studentDB[row[1]] && studentDB[row[1]].stealthAva) ? studentDB[row[1]].stealthAva : null;
-                    if(!bestTimes[row[1]] || sec < bestTimes[row[1]].sec) bestTimes[row[1]] = { name: row[2], sec: sec, str: row[10], stealthNick: sNick, stealthAva: sAva }; 
-                }
-            }
-        });
-        let sortedTime = Object.entries(bestTimes).sort((a,b) => a[1].sec - b[1].sec).slice(0, 5);
-        if(sortedTime.length === 0) cTime.innerHTML = `<div style="text-align:center; padding:20px;">Chưa có kỷ lục Tốc độ nào...</div>`;
-        else {
-            let h2 = ""; sortedTime.forEach((item, i) => {
-                let nick = item[1].stealthNick || item[1].name; let ava = item[1].stealthAva || '🦊'; let medal = i === 0 ? '⚡' : `#${i+1}`;
-                h2 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-red); font-weight:900; font-size:16px;">${item[1].str}</div></div>`;
-            }); cTime.innerHTML = h2;
+    // TAB 2: CHÚA TỂ THỜI GIAN (Speed-Run)
+    let cTime = document.getElementById('contentLBTime');
+    let bestTimes = {};
+    allLogsCache.forEach(row => {
+        if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]') && parseFloat(row[5]) === 10) {
+            let sec = parseDurSec(row[10]);
+            if(sec < 9999) { if(!bestTimes[row[1]] || sec < bestTimes[row[1]].sec) bestTimes[row[1]] = { name: row[2], sec: sec, str: row[10], stealthNick: studentDB[row[1]]?.stealthNick, stealthAva: studentDB[row[1]]?.stealthAva }; }
         }
+    });
+    let sortedTime = Object.entries(bestTimes).sort((a,b) => a[1].sec - b[1].sec).slice(0, 5);
+    if(sortedTime.length === 0) cTime.innerHTML = `<div style="text-align:center; padding:20px;">Chưa có kỷ lục Tốc độ nào...</div>`;
+    else {
+        let h2 = ""; sortedTime.forEach((item, i) => {
+            let nick = item[1].stealthNick || item[1].name; let ava = item[1].stealthAva || '🦊'; let medal = i === 0 ? '⚡' : `#${i+1}`;
+            h2 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-red); font-weight:900; font-size:16px;">${item[1].str}</div></div>`;
+        }); cTime.innerHTML = h2;
+    }
 
-        let cImprove = document.getElementById('contentLBImprove');
-        let studentProgress = {};
-        let validLogsImpr = allLogsCache.filter(row => row[3] && row[3].toString().includes('[Thi Thật]'));
-        
-        validLogsImpr.forEach(row => {
-            let id = row[1], score = parseFloat(row[5]) || 0;
-            if(id) {
-                if(!studentProgress[id]) {
-                    let sNick = (studentDB[id] && studentDB[id].stealthNick) ? studentDB[id].stealthNick : null;
-                    let sAva = (studentDB[id] && studentDB[id].stealthAva) ? studentDB[id].stealthAva : null;
-                    studentProgress[id] = { name: row[2], firstScore: score, lastScore: score, stealthNick: sNick, stealthAva: sAva };
-                } else {
-                    studentProgress[id].lastScore = score;
-                }
-            }
-        });
-        
-        let improvementList = [];
-        for(let id in studentProgress) {
-            let p = studentProgress[id]; let diff = p.lastScore - p.firstScore;
-            if(diff > 0) improvementList.push({ ...p, diff: diff });
-        }
-        
-        let sortedImprove = improvementList.sort((a,b) => b.diff - a.diff).slice(0, 5);
-        if(sortedImprove.length === 0) cImprove.innerHTML = `<div style="text-align:center; padding:20px;">Chưa có bứt phá nào xuất hiện...</div>`;
-        else {
-            let h6 = ""; sortedImprove.forEach((item, i) => {
-                let nick = item.stealthNick || item.name; let ava = item.stealthAva || '🐟'; let medal = i === 0 ? '🚀' : (i === 1 ? '🔥' : `#${i+1}`);
-                h6 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}<br><span style="font-size:10px; color:var(--text-muted);">Từ ${item.firstScore} lên ${item.lastScore}</span></span></div><div style="color:var(--accent-red); font-weight:900; font-size:18px;">+${item.diff.toFixed(1)} đ</div></div>`;
-            }); cImprove.innerHTML = h6;
-        }
+    // TAB 3: HẢO HÁN CẦN MẪN (Practice Streak)
+    let cStreak = document.getElementById('contentLBStreak');
+    let practiceCounts = {};
+    allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Tự Luyện]')) { practiceCounts[row[1]] = (practiceCounts[row[1]] || 0) + 1; } });
+    let sortedStreak = Object.entries(practiceCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    if(sortedStreak.length === 0) cStreak.innerHTML = `<div style="text-align:center; padding:20px;">Lớp lười quá, chưa ai Tự Luyện...</div>`;
+    else {
+        let h3 = ""; sortedStreak.forEach((item, i) => {
+            let count = item[1]; let title = count >= 100 ? 'Trùm Cày Cuốc 👑' : (count >= 50 ? 'Hảo Hán ⚔️' : 'Tập Sự 🎒');
+            let uData = studentDB[item[0]]; let nick = uData?.stealthNick || uData?.name || item[0]; let ava = uData?.stealthAva || '🦊';
+            h3 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">#${i+1} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}<br><span style="font-size:10px; color:var(--text-muted);">${title}</span></span></div><div style="color:var(--accent-green); font-weight:900; font-size:18px;">${count} Lần</div></div>`;
+        }); cStreak.innerHTML = h3;
+    }
 
-        let cStreak = document.getElementById('contentLBStreak');
-        let practiceCounts = {};
-        allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Tự Luyện]')) { practiceCounts[row[1]] = (practiceCounts[row[1]] || 0) + 1; } });
-        let sortedStreak = Object.entries(practiceCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        if(sortedStreak.length === 0) cStreak.innerHTML = `<div style="text-align:center; padding:20px;">Lớp lười quá, chưa ai Tự Luyện...</div>`;
-        else {
-            let h3 = ""; sortedStreak.forEach((item, i) => {
-                let count = item[1]; let title = count >= 100 ? 'Trùm Cày Cuốc 👑' : (count >= 50 ? 'Hảo Hán ⚔️' : 'Tập Sự 🎒');
-                let uData = studentDB[item[0]]; let nick = (uData && uData.stealthNick) ? uData.stealthNick : ((uData && uData.name) ? uData.name : item[0]); let ava = (uData && uData.stealthAva) ? uData.stealthAva : '🦊';
-                h3 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">#${i+1} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}<br><span style="font-size:10px; color:var(--text-muted);">${title}</span></span></div><div style="color:var(--accent-green); font-weight:900; font-size:18px;">${count} Lần</div></div>`;
-            }); cStreak.innerHTML = h3;
-        }
+    // TAB 4: THỢ SĂN COMBO (Lấy Max Combo từ cột 11)
+    let cCombo = document.getElementById('contentLBCombo');
+    let maxCombos = {}; allLogsCache.forEach((row) => { let id = row[1], combo = parseInt(row[11]) || 0; if(id && (!maxCombos[id] || combo > maxCombos[id].combo)) maxCombos[id] = { name: row[2], combo: combo, stealthNick: studentDB[id]?.stealthNick, stealthAva: studentDB[id]?.stealthAva }; });
+    let sortedCombo = Object.entries(maxCombos).sort((a,b) => b[1].combo - a[1].combo).slice(0, 5);
+    if(sortedCombo.length === 0 || sortedCombo[0][1].combo === 0) cCombo.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai lập chuỗi Combo...</div>`; 
+    else {
+        let h4 = ""; sortedCombo.forEach((item, i) => { if(item[1].combo === 0) return; let nick = item[1].stealthNick || item[1].name; let ava = item[1].stealthAva || '🦊'; let medal = i === 0 ? '🔥' : (i === 1 ? '⚡' : `#${i+1}`); h4 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-blue); font-weight:900; font-size:18px;">${item[1].combo} Hits</div></div>`; }); cCombo.innerHTML = h4;
+    }
 
-        let cCombo = document.getElementById('contentLBCombo');
-        let maxCombos = {}; 
-        allLogsCache.forEach((row) => { 
-            let id = row[1], combo = parseInt(row[11]) || 0; 
-            if(id) {
-                let sNick = (studentDB[id] && studentDB[id].stealthNick) ? studentDB[id].stealthNick : null;
-                let sAva = (studentDB[id] && studentDB[id].stealthAva) ? studentDB[id].stealthAva : null;
-                if(!maxCombos[id] || combo > maxCombos[id].combo) maxCombos[id] = { name: row[2], combo: combo, stealthNick: sNick, stealthAva: sAva }; 
-            }
-        });
-        let sortedCombo = Object.entries(maxCombos).sort((a,b) => b[1].combo - a[1].combo).slice(0, 5);
-        if(sortedCombo.length === 0 || sortedCombo[0][1].combo === 0) cCombo.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai lập chuỗi Combo...</div>`; 
-        else {
-            let h4 = ""; sortedCombo.forEach((item, i) => { if(item[1].combo === 0) return; let nick = item[1].stealthNick || item[1].name; let ava = item[1].stealthAva || '🦊'; let medal = i === 0 ? '🔥' : (i === 1 ? '⚡' : `#${i+1}`); h4 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-blue); font-weight:900; font-size:18px;">${item[1].combo} Hits</div></div>`; }); cCombo.innerHTML = h4;
-        }
-
-        let cRedeem = document.getElementById('contentLBRedeem');
-        let totalFixed = {}; 
-        allLogsCache.forEach((row) => { 
-            let id = row[1], fix = parseInt(row[12]) || 0; 
-            if(id) {
-                let sNick = (studentDB[id] && studentDB[id].stealthNick) ? studentDB[id].stealthNick : null;
-                let sAva = (studentDB[id] && studentDB[id].stealthAva) ? studentDB[id].stealthAva : null;
-                totalFixed[id] = { name: row[2], fix: (totalFixed[id]?totalFixed[id].fix:0) + fix, stealthNick: sNick, stealthAva: sAva }; 
-            }
-        });
-        let sortedFixed = Object.entries(totalFixed).sort((a,b) => b[1].fix - a[1].fix).slice(0, 5);
-        if(sortedFixed.length === 0 || sortedFixed[0][1].fix === 0) cRedeem.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai phục thù lỗi sai...</div>`; 
-        else {
-            let h5 = ""; sortedFixed.forEach((item, i) => { if(item[1].fix === 0) return; let nick = item[1].stealthNick || item[1].name; let ava = item[1].stealthAva || '🦊'; let medal = i === 0 ? '🛠️' : (i === 1 ? '💡' : `#${i+1}`); h5 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-purple); font-weight:900; font-size:18px;">+${item[1].fix} Lỗi</div></div>`; }); cRedeem.innerHTML = h5;
-        }
-    } catch(e) { console.error(e); document.getElementById('contentLBStealth').innerHTML = "Có lỗi xử lý dữ liệu."; }
+    // TAB 5: HỦY DIỆT LỖI SAI (Cộng dồn cột 12)
+    let cRedeem = document.getElementById('contentLBRedeem');
+    let totalFixed = {}; allLogsCache.forEach((row) => { let id = row[1], fix = parseInt(row[12]) || 0; if(id) totalFixed[id] = { name: row[2], fix: (totalFixed[id]?totalFixed[id].fix:0) + fix, stealthNick: studentDB[id]?.stealthNick, stealthAva: studentDB[id]?.stealthAva }; });
+    let sortedFixed = Object.entries(totalFixed).sort((a,b) => b[1].fix - a[1].fix).slice(0, 5);
+    if(sortedFixed.length === 0 || sortedFixed[0][1].fix === 0) cRedeem.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai phục thù lỗi sai...</div>`; 
+    else {
+        let h5 = ""; sortedFixed.forEach((item, i) => { if(item[1].fix === 0) return; let nick = item[1].stealthNick || item[1].name; let ava = item[1].stealthAva || '🦊'; let medal = i === 0 ? '🛠️' : (i === 1 ? '💡' : `#${i+1}`); h5 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal} ${ava}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-purple); font-weight:900; font-size:18px;">+${item[1].fix} Lỗi</div></div>`; }); cRedeem.innerHTML = h5;
+    }
 }
 
 function renderMatrixAttendance(type) {
@@ -1277,7 +1073,7 @@ function renderMatrixAttendance(type) {
     } else { for(let u=1; u<=maxUnit; u++) html += `<th style="background:var(--border-dark); color:white; border-right: 2px solid white;">UNIT ${u}</th>`; }
     html += `</tr></thead><tbody>`;
     for(let id in studentDB) {
-        if(id === "T11" || (id >= "T94" && id <= "T108")) continue; 
+        if(id === "T11") continue; 
         html += `<tr><td style="border-right: 4px solid var(--border-dark); position: sticky; left: 0; z-index: 1; background: white;"><b>${studentDB[id].name}</b></td>`;
         if (type === 'vocab') {
             for(let u=1; u<=maxUnit; u++) {
