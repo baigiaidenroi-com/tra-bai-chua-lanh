@@ -653,9 +653,16 @@ window.onload = async function() {
     fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { if(d.logs) { allLogsCache = d.logs; if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } } });
 };
 
-function renderPetSelector() { document.getElementById('petSelector').innerHTML = PETS.map((pet, i) => `<div class="pet-btn ${i === 0 ? 'selected' : ''}" onclick="selectPet(this, '${pet}')">${pet}</div>`).join(''); currentPet = PETS[0]; }
-function selectPet(el, pet) { document.querySelectorAll('.pet-btn').forEach(btn => btn.classList.remove('selected')); el.classList.add('selected'); currentPet = pet; }
-
+function renderPetSelector() { 
+    document.getElementById('petSelector').innerHTML = PETS.map((pet, i) => `<div class="pet-btn ${i === 0 ? 'selected' : ''}" title='${pet.name}' onclick="selectPet(this, ${i})">${pet.icon}</div>`).join(''); 
+    currentPet = PETS[0].icon; 
+    let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = PETS[0].name; 
+}
+function selectPet(el, index) { 
+    document.querySelectorAll('.pet-btn').forEach(btn => btn.classList.remove('selected')); el.classList.add('selected'); 
+    currentPet = PETS[index].icon; 
+    let nameDisplay = document.getElementById('petNameDisplay'); if(nameDisplay) nameDisplay.innerText = PETS[index].name; 
+}
 function login() {
     let id = document.getElementById('studentId').value.trim().toUpperCase();
     if(id === 'T11' || studentDB[id]) {
