@@ -563,12 +563,11 @@ const PETS = [
     { icon: '👻', name: 'Vô Thường "Ghi Sổ Đầu Bài"' },
     { icon: '🐢', name: 'Kim Quy "Nộp Bài Trễ"' }
 ];
-const STEALTH_AVATARS = ['👽','👻','🤖','🤡','💩','👺','👹','🎃','💀','😎','🥸','🤫'];
-const STEALTH_NICKS = ['Chúa Tể Từ Vựng', 'Kẻ Diệt Giới Từ', 'Độc Cô Cầu Bại', 'Chiến Thần Gõ Phím', 'Sát Thủ Ngữ Pháp', 'Giáo Sư Gánh Team', 'Đại Ca Học Đường', 'Bóng Ma Hành Lang', 'Kẻ Hủy Diệt Deadline', 'Hảo Hán Vô Danh', 'Trùm Cuối Khép Kín', 'Thánh Lật Thẻ', 'Cao Thủ Ngủ Gật', 'Ninja Báo Bài', 'Bậc Thầy Chữa Lành', 'Kẻ Cắp Ước Mơ', 'Chuyên Gia Tấu Hài', 'Thần Đồng Ngôn Ngữ', 'Kẻ Hủy Diệt Đề Thi'];
+
 
 let currentPet = '🦊';
 let screenHistory = [];
-let studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123", stealthNick: "Admin Ngầm", stealthAva: "👑" } };
+let studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123" } };
 let allLogsCache = [];
 let serverDeadlines = [];
 let currentStudentId = "", currentStudentName = "";
@@ -577,7 +576,7 @@ let questionsQueue = [], exactErrorDetails = [], allErrorsGlobal = [];
 
 let sessionMaxCombo = 0, currentCombo = 0, sessionFixedErrors = 0, sessionErrorWords = [];
 let pastStudentErrors = new Set();
-let selectedStealthAva = "";
+ 
 
 let tempTestParams = {}; let currentIsOfficial = false; let testStartTime = 0;
 let cheatWarnings = 0; let timeLeft = 0, timerInterval;
@@ -665,62 +664,18 @@ function login() {
     if(id === 'T11' || studentDB[id]) {
         currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến (Admin Test)" : studentDB[id].name;
         
-        // KIỂM TRA THÂN PHẬN ẨN DANH SAU KHI LOGIN
-        if(currentStudentId !== 'T11' && !studentDB[currentStudentId].stealthNick) {
-            renderStealthOptions();
-            document.getElementById('stealthModal').style.display = 'flex';
-        } else {
-            switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor();
-        }
+        // VÀO THẲNG MÀN HÌNH CHÍNH LUÔN, KHÔNG HỎI ẨN DANH NỮA
+        switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor();
     } else { 
-        // XỬ LÝ LỖI BẤM QUÁ NHANH KHI CHƯA TẢI XONG DỮ LIỆU
         if (Object.keys(studentDB).length <= 1) {
             showToast("⏳ App đang lấy dữ liệu từ Google Sheet, đợi 2-3 giây rồi bấm lại nhé!");
         } else {
-            showToast("🤴💢 TO GAN! Dám dùng lệnh bài 'pha kè' trà trộn Hoàng Cung? Người đâu, lôi ra Ngọ Môn... à nhầm, bắt nhập lại!"); 
+            showToast("🤴💢 TO GAN! Dám dùng lệnh bài 'pha kè' trà trộn Hoàng Cung? Người đâu, bắt nhập lại!"); 
             let inp = document.getElementById('studentId'); inp.style.borderColor = "var(--accent-red)"; setTimeout(() => inp.style.borderColor = "var(--border-dark)", 500); 
         }
     }
 }
 
-function renderStealthOptions() {
-    let usedAvas = Object.values(studentDB).map(s => s.stealthAva).filter(Boolean);
-    let usedNicks = Object.values(studentDB).map(s => s.stealthNick).filter(Boolean);
-
-    let avaHtml = STEALTH_AVATARS.map(ava => {
-        let disabled = usedAvas.includes(ava) ? 'opacity:0.3; cursor:not-allowed;' : 'cursor:pointer;';
-        let onclick = usedAvas.includes(ava) ? '' : `onclick="selectStealthAva(this, '${ava}')"`;
-        return `<div class="pet-btn" style="${disabled}" ${onclick}>${ava}</div>`;
-    }).join('');
-    document.getElementById('stealthAvatarContainer').innerHTML = avaHtml;
-
-    let nickHtml = `<option value="">-- Chọn danh xưng bựa bang --</option>`;
-    STEALTH_NICKS.forEach(nick => {
-        if(!usedNicks.includes(nick)) nickHtml += `<option value="${nick}">${nick}</option>`;
-    });
-    document.getElementById('stealthNickSelect').innerHTML = nickHtml;
-}
-
-function selectStealthAva(el, ava) {
-    document.getElementById('stealthAvatarContainer').querySelectorAll('.pet-btn').forEach(b => b.classList.remove('selected'));
-    el.classList.add('selected'); selectedStealthAva = ava;
-}
-
-function saveStealthProfile() {
-    let nick = document.getElementById('stealthNickSelect').value;
-    if(!selectedStealthAva || !nick) { showToast('Bạn phải chọn đủ Avatar và Danh xưng!'); return; }
-    
-    studentDB[currentStudentId].stealthAva = selectedStealthAva;
-    studentDB[currentStudentId].stealthNick = nick;
-    
-    closeModal('stealthModal'); switchScreen('dashboardScreen');
-    showToast('Tạo thân phận ẩn danh thành công!');
-    checkMissingTasks(currentStudentId); calcRivalAnchor();
-
-    if (getScriptUrl().startsWith("http")) {
-        fetch(getScriptUrl(), { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveStealth", studentId: currentStudentId, stealthNick: nick, stealthAva: selectedStealthAva }) }).catch(e=>{});
-    }
-}
 
 function checkMissingTasks(studentId) {
     if(serverDeadlines.length === 0 || allLogsCache.length === 0) return;
