@@ -838,21 +838,33 @@ function updateGoldUI() {
     }
 }
 
-// 4. TRÁI TIM ĐẬP NGẦM - Đồng bộ mỗi 10 giây không gây nghẽn mạng
+// 4. TRÁI TIM ĐẬP NGẦM - Đồng bộ DATA THẬT lên Google Sheets
 setInterval(() => {
     if(offlineQueue.length === 0 || isSyncing || !navigator.onLine) return;
+    let scriptUrl = getScriptUrl();
+    if(!scriptUrl) return; // Chưa có link API thì nghỉ
+
     isSyncing = true;
     let batch = [...offlineQueue]; // Lấy 1 bản copy của Hàng đợi
-    
-    console.log(`Đang đồng bộ ngầm ${batch.length} giao dịch lên Ngân Khố...`);
-    
-    // Tạm thời giả lập xử lý Backend thành công (Sẽ gắn API Google Sheets vào Giai đoạn sau)
-    setTimeout(() => {
-        // Lọc bỏ những giao dịch đã gửi thành công ra khỏi Hàng đợi
-        offlineQueue = offlineQueue.filter(item => !batch.some(b => b.id === item.id));
-        if(currentStudentId) localStorage.setItem('queue_' + currentStudentId, JSON.stringify(offlineQueue));
-        isSyncing = false;
-    }, 800);
+    console.log(`🚀 Đang bắn ${batch.length} giao dịch lên Google Sheets...`);
+
+    fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({ type: 'syncEconomy', batch: batch })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.result === 'success') {
+            console.log("✅ Ghi sổ Ngân Khố thành công!");
+            // Chỉ khi Sheets báo OK, mới xóa giao dịch đó khỏi máy học sinh
+            offlineQueue = offlineQueue.filter(item => !batch.some(b => b.id === item.id));
+            if(currentStudentId) localStorage.setItem('queue_' + currentStudentId, JSON.stringify(offlineQueue));
+        }
+    })
+    .catch(err => {
+        console.log("⏳ Lỗi mạng hoặc Sheets quá tải, giữ nguyên data chờ đợt sau: ", err);
+    })
+    .finally(() => { isSyncing = false; });
 }, 10000);
 
 // ----------------- GÓC NHÌN ADMIN: TRẠM KIỂM DUYỆT -----------------
