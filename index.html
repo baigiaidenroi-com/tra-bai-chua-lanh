@@ -411,14 +411,6 @@
 </div>
 
 <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">2. Chọn Tùy Tùng Theo Hầu:</label>
-                <div style="display: flex; gap: 10px; margin-bottom: 25px; justify-content: center;" id="gradeSelector">
-                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('6', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 6</button>
-                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('7', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 7</button>
-                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('8', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 8</button>
-                    <button type="button" class="btn btn-red class-btn" onclick="selectGrade('9', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 9</button>
-                </div>
-
-                <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">2. Chọn Tùy Tùng Theo Hầu:</label>
                 <div class="pet-selector" id="petSelector"></div>
                 
                 <div id="petNameDisplay" style="font-weight: 900; color: #b91c1c; margin-bottom: 25px; padding: 10px; border: 3px dashed var(--border-dark); background: rgba(0,0,0,0.05); border-radius: 8px; font-size: 15px;">Đang chọn...</div>
@@ -675,6 +667,8 @@ function selectGrade(grade, btnElement) {
 }
 
 
+    function getScriptUrl() {
+    let customUrl = localStorage.getItem("edtech_scriptUrl");
     if(customUrl && customUrl.trim() !== "") return customUrl;
     return SYSTEM_APIS[currentSelectedGrade] || SYSTEM_APIS["9"];
 }
@@ -747,17 +741,6 @@ function initEconomySystem() {
         if(wallet) wallet.style.display = 'none'; 
         return;
     }
-    // 1. Kéo data tạm ở máy để hiện UI tức thì (Không làm lag App)
-    userEconomy = JSON.parse(localStorage.getItem(getIsoKey('eco'))) || { gold: 0, streak: 0, lastLogin: 0 };
-    offlineQueue = JSON.parse(localStorage.getItem(getIsoKey('queue'))) || [];
-    
-    let wallet = document.getElementById('economyWalletBox');
-    if(wallet) wallet.style.display = 'flex';
-    updateGoldUI();
-
-    // 2. CHẠY NGẦM ĐỒNG BỘ TỪ SERVER VỀ (Bất tử hóa Data khi đổi máy)
-    syncEconomyFromServer();
-}
     // 1. Kéo data tạm ở máy để hiện UI tức thì (Không làm lag App)
     userEconomy = JSON.parse(localStorage.getItem(getIsoKey('eco'))) || { gold: 0, streak: 0, lastLogin: 0 };
     offlineQueue = JSON.parse(localStorage.getItem(getIsoKey('queue'))) || [];
