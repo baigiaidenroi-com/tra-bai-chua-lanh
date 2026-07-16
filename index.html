@@ -403,6 +403,14 @@
                 <img src="https://i.postimg.cc/mZXvnGSS/bai-giai-den-roi-cham-com-slogan.png" alt="Thánh Chỉ Slogan" style="width: 100%; max-width: 350px; border: 3px solid var(--border-dark); border-radius: 8px; box-shadow: 4px 4px 0px var(--border-dark); margin-bottom: 25px; background: white;">
 
                 <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">1. CHỌN KHỐI LỚP CỦA BẠN:</label>
+<div style="display: flex; gap: 10px; margin-bottom: 25px; justify-content: center;" id="gradeSelector">
+    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('6', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 6</button>
+    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('7', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 7</button>
+    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('8', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 8</button>
+    <button type="button" class="btn btn-red class-btn" onclick="selectGrade('9', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 9</button>
+</div>
+
+<label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">2. Chọn Tùy Tùng Theo Hầu:</label>
                 <div style="display: flex; gap: 10px; margin-bottom: 25px; justify-content: center;" id="gradeSelector">
                     <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('6', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 6</button>
                     <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('7', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 7</button>
@@ -416,7 +424,7 @@
                 <div id="petNameDisplay" style="font-weight: 900; color: #b91c1c; margin-bottom: 25px; padding: 10px; border: 3px dashed var(--border-dark); background: rgba(0,0,0,0.05); border-radius: 8px; font-size: 15px;">Đang chọn...</div>
                 
                 <h3 style="margin: 0 0 15px 0; text-transform: uppercase; border-top: 4px dashed var(--border-dark); padding-top: 25px; color: #b91c1c; font-size: 15px; line-height: 1.5;">
-                    2. ĐỆ TRÌNH LỆNH BÀI LÊN ĐÂY<br>ĐỂ ĐƯỢC CẤP QUYỀN VÀO THƯ PHÒNG!
+                    3. ĐỆ TRÌNH LỆNH BÀI LÊN ĐÂY<br>ĐỂ ĐƯỢC CẤP QUYỀN VÀO THƯ PHÒNG!
                 </h3>
                 
                <input type="text" id="studentId" class="input-brutal" placeholder="Nhập Lệnh Bài (VD: 91)..." style="font-size: 20px; text-transform: uppercase; letter-spacing: 2px; border-color: #b91c1c; border-width: 4px;" onkeypress="if(event.key === 'Enter') login()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly');">
