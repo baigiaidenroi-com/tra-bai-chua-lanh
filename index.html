@@ -689,8 +689,6 @@ async function selectGrade(grade, btnElement) {
 }
 
 function getScriptUrl() {
-    let customUrl = localStorage.getItem("edtech_scriptUrl");
-    if(customUrl && customUrl.trim() !== "") return customUrl;
     return SYSTEM_APIS[currentSelectedGrade] || SYSTEM_APIS["9"];
 }
 
