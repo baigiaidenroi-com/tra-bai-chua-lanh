@@ -403,6 +403,14 @@
             </div>
         </div>
 
+<div id="economyWalletBox" style="background: var(--accent-yellow); border: 4px solid var(--border-dark); border-radius: 12px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 6px 6px 0px var(--border-dark); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 12px; font-weight: 900; color: var(--border-dark); text-transform: uppercase;"><i class="fa-solid fa-vault"></i> KHO BẠC HOÀNG GIA</span>
+                <span style="font-size: 28px; font-weight: 900; color: var(--border-dark); text-shadow: 2px 2px 0px white;"><span id="uiGoldDisplay">0</span> <i class="fa-solid fa-coins fa-bounce" style="color: #d97706;"></i></span>
+            </div>
+            <button class="btn btn-dark" style="padding: 10px 15px; font-size: 12px; border-color: white; border-width: 2px;" onclick="showToast('Tính năng Đổi Thưởng đang thiết lập!')"><i class="fa-solid fa-gift fa-shake" style="color: var(--accent-yellow);"></i> ĐỔI THƯỞNG</button>
+        </div>
+
         <div id="rivalAnchorBox" style="background: white; border: 3px solid var(--border-dark); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: var(--shadow-hard); display:none;">
             <h4 style="margin: 0 0 10px 0; color: var(--accent-blue); text-transform: uppercase; font-size: 14px; border-bottom: 2px dashed var(--border-dark); padding-bottom: 8px;"><i class="fa-solid fa-crosshairs fa-spin"></i> ĐỐI THỦ TRUYỀN KIẾP</h4>
             <div id="rivalList" style="display: flex; flex-direction: column; gap: 8px;"></div>
@@ -635,6 +643,99 @@ let deadlineIntervals = [];
 
 let parentChartInst = null, pRadarChartInst = null;
 
+// ================= KHUNG SƯỜN KINH TẾ & OFFLINE QUEUE =================
+let userEconomy = { gold: 0, streak: 0, lastLogin: 0 };
+let offlineQueue = [];
+let isSyncing = false;
+
+function initEconomySystem() {
+    if(!currentStudentId || currentStudentId === 'T11') {
+        let wallet = document.getElementById('economyWalletBox');
+        if(wallet) wallet.style.display = 'none'; // Ẩn ví nếu là Admin
+        return;
+    }
+    userEconomy = JSON.parse(localStorage.getItem('eco_' + currentStudentId)) || { gold: 0, streak: 0, lastLogin: 0 };
+    offlineQueue = JSON.parse(localStorage.getItem('queue_' + currentStudentId)) || [];
+    
+    let wallet = document.getElementById('economyWalletBox');
+    if(wallet) wallet.style.display = 'flex'; // Hiện ví cho Học sinh
+    
+    updateGoldUI();
+    console.log("💰 Hệ thống Kinh tế đã sẵn sàng. Vàng: " + userEconomy.gold);
+}
+
+function addEconomyLog(actionName, goldChange) {
+    if(!currentStudentId || currentStudentId === 'T11') return;
+    
+    userEconomy.gold += goldChange;
+    localStorage.setItem('eco_' + currentStudentId, JSON.stringify(userEconomy));
+    
+    let logItem = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+        time: new Date().toLocaleString('vi-VN'),
+        studentId: currentStudentId,
+        action: actionName,
+        goldDiff: goldChange
+    };
+    offlineQueue.push(logItem);
+    localStorage.setItem('queue_' + currentStudentId, JSON.stringify(offlineQueue));
+    
+    updateGoldUI();
+    console.log(`Giao dịch ngầm: [${actionName}] | Biến động: ${goldChange} Vàng`);
+}
+
+function updateGoldUI() {
+    let goldEl = document.getElementById('uiGoldDisplay');
+    if(!goldEl) return;
+    let currentVal = parseInt(goldEl.innerText.replace(/,/g, '')) || 0;
+    let targetVal = userEconomy.gold;
+    
+    if (currentVal === targetVal) {
+        goldEl.innerText = currentVal.toLocaleString('vi-VN');
+        return;
+    }
+    
+    // Hiệu ứng đếm số mượt mà (Odometer effect)
+    let step = targetVal > currentVal ? Math.max(1, Math.ceil((targetVal - currentVal) / 10)) : Math.min(-1, Math.floor((targetVal - currentVal) / 10));
+    let timer = setInterval(() => {
+        currentVal += step;
+        if ((step > 0 && currentVal >= targetVal) || (step < 0 && currentVal <= targetVal)) {
+            currentVal = targetVal;
+            clearInterval(timer);
+        }
+        goldEl.innerText = currentVal.toLocaleString('vi-VN');
+    }, 30);
+    
+    // Hiệu ứng giật nảy và chớp sáng cái Ví
+    let walletBox = document.getElementById('economyWalletBox');
+    if(walletBox && targetVal > currentVal) {
+        walletBox.style.transform = 'scale(1.03)';
+        walletBox.style.backgroundColor = '#fef08a'; // Chớp sáng vàng chanh
+        setTimeout(() => { 
+            walletBox.style.transform = 'scale(1)'; 
+            walletBox.style.backgroundColor = 'var(--accent-yellow)'; 
+        }, 200);
+    }
+}
+
+// 4. TRÁI TIM ĐẬP NGẦM - Đồng bộ mỗi 10 giây không gây nghẽn mạng
+setInterval(() => {
+    if(offlineQueue.length === 0 || isSyncing || !navigator.onLine) return;
+    isSyncing = true;
+    let batch = [...offlineQueue]; // Lấy 1 bản copy của Hàng đợi
+    
+    console.log(`Đang đồng bộ ngầm ${batch.length} giao dịch lên Ngân Khố...`);
+    
+    // Tạm thời giả lập xử lý Backend thành công (Sẽ gắn API Google Sheets vào Giai đoạn sau)
+    setTimeout(() => {
+        // Lọc bỏ những giao dịch đã gửi thành công ra khỏi Hàng đợi
+        offlineQueue = offlineQueue.filter(item => !batch.some(b => b.id === item.id));
+        if(currentStudentId) localStorage.setItem('queue_' + currentStudentId, JSON.stringify(offlineQueue));
+        isSyncing = false;
+    }, 800);
+}, 10000);
+// ==============================================================================
+
 function getScriptUrl() { return GLOBAL_SCRIPT_URL || localStorage.getItem("edtech_scriptUrl") || ""; }
 
 function saveSystemSettings() { let scriptUrl = document.getElementById("settingScriptUrl").value.trim(); if(scriptUrl) localStorage.setItem("edtech_scriptUrl", scriptUrl); closeModal('adminSettingsModal'); showToast("Đã lưu Link Hệ Thống!"); setTimeout(() => location.reload(), 1000); }
@@ -717,7 +818,7 @@ function login() {
         document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
         document.getElementById('dashAvatar').innerText = currentPet; 
         
-        switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor(); applyRoleUI();
+        initEconomySystem(); switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor(); applyRoleUI();
     } else { 
         if (Object.keys(studentDB).length <= 1) {
             showToast("⏳ App đang lấy dữ liệu, đợi 2-3 giây rồi bấm lại nhé!");
@@ -1035,6 +1136,22 @@ function finishSession(score, typeName, cheatMsg) {
     let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, fullTitle, unitTitle, score.toString(), (totalQuestionsCount - exactErrorDetails.length).toString(), exactErrorDetails.length.toString(), totalQuestionsCount.toString(), cheatMsg, durStr, sessionMaxCombo, sessionFixedErrors, sessionErrorWords.join(',') ];
     allLogsCache.push(localLog);
     if(score >= 8) confetti({particleCount: 150, spread: 80});
+
+// ===== CỘNG VÀNG VÀO KHO BẠC =====
+    if (!cheatMsg.includes("Bị hủy") && currentStudentId !== 'T11') {
+        let correctCount = totalQuestionsCount - exactErrorDetails.length;
+        let baseGold = correctCount * 10;
+        let comboGold = sessionMaxCombo >= 5 ? sessionMaxCombo * 2 : 0; // Thưởng thêm nếu combo > 5
+        let totalGoldEarned = baseGold + comboGold;
+        
+        if (totalGoldEarned > 0) {
+            addEconomyLog(`Hoàn thành ${typeName}`, totalGoldEarned);
+            setTimeout(() => {
+                showToast(`🎉 THƯỞNG NÓNG: +${totalGoldEarned} Vàng (Gồm ${baseGold} cơ bản + ${comboGold} Combo)`);
+            }, 1000);
+        }
+    }
+    // =================================
 
     if (getScriptUrl().startsWith("http")) {
         fetch(getScriptUrl(), { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: cheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: sessionFixedErrors, errorWords: sessionErrorWords.join(',') }) }).then(() => checkMissingTasks(currentStudentId)).catch(e=>{});
