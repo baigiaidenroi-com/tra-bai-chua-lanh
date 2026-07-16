@@ -758,6 +758,17 @@ function initEconomySystem() {
     // 2. CHẠY NGẦM ĐỒNG BỘ TỪ SERVER VỀ (Bất tử hóa Data khi đổi máy)
     syncEconomyFromServer();
 }
+    // 1. Kéo data tạm ở máy để hiện UI tức thì (Không làm lag App)
+    userEconomy = JSON.parse(localStorage.getItem(getIsoKey('eco'))) || { gold: 0, streak: 0, lastLogin: 0 };
+    offlineQueue = JSON.parse(localStorage.getItem(getIsoKey('queue'))) || [];
+    
+    let wallet = document.getElementById('economyWalletBox');
+    if(wallet) wallet.style.display = 'flex';
+    updateGoldUI();
+
+    // 2. CHẠY NGẦM ĐỒNG BỘ TỪ SERVER VỀ (Bất tử hóa Data khi đổi máy)
+    syncEconomyFromServer();
+}
 
 function syncEconomyFromServer() {
     let scriptUrl = getScriptUrl();
