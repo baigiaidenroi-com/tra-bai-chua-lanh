@@ -1061,7 +1061,7 @@ function rejectRedeem(reqId, studentId, goldDiff) {
 
 // ==============================================================================
 
-function getScriptUrl() { return GLOBAL_SCRIPT_URL || localStorage.getItem("edtech_scriptUrl") || ""; }
+
 
 function saveSystemSettings() { let scriptUrl = document.getElementById("settingScriptUrl").value.trim(); if(scriptUrl) localStorage.setItem("edtech_scriptUrl", scriptUrl); closeModal('adminSettingsModal'); showToast("Đã lưu Link Hệ Thống!"); setTimeout(() => location.reload(), 1000); }
 function showToast(msg) { const toast = document.getElementById('toastMsg'); toast.querySelector('span').innerText = msg; toast.style.top = '20px'; setTimeout(() => { toast.style.top = '-100px'; }, 3000); }
