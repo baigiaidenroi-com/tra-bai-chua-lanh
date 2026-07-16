@@ -441,7 +441,7 @@
                 <span style="font-size: 12px; font-weight: 900; color: var(--border-dark); text-transform: uppercase;"><i class="fa-solid fa-vault"></i> KHO BẠC HOÀNG GIA</span>
                 <span style="font-size: 28px; font-weight: 900; color: var(--border-dark); text-shadow: 2px 2px 0px white;"><span id="uiGoldDisplay">0</span> <i class="fa-solid fa-coins fa-bounce" style="color: #d97706;"></i></span>
             </div>
-            <button class="btn btn-dark" style="padding: 10px 15px; font-size: 12px; border-color: white; border-width: 2px;" onclick="openRedeemModal()"><i class="fa-solid fa-gift fa-shake" style="color: var(--accent-yellow);"></i> ĐỔI THƯỞNG</button>
+            <button class="btn btn-dark" style="padding: 10px 15px; font-size: 12px; border-color: var(--text-muted); border-width: 2px; filter: grayscale(1); opacity: 0.8;" onclick="showToast('Hoàng Thượng đang đi lấy Bổng Lộc. Quầy sẽ mở vào Tuần Sau! Hãy tích Vàng đi!')"><i class="fa-solid fa-lock"></i> ĐỔI THƯỞNG</button>
         </div>
 
         <div id="rivalAnchorBox" style="background: white; border: 3px solid var(--border-dark); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: var(--shadow-hard); display:none;">
@@ -483,7 +483,7 @@
         </div>
 
         <div class="grid-2" style="margin-bottom: 20px;">
-            <button class="btn btn-yellow" style="font-size:12px; padding: 15px;" onclick="openLeaderboard()"><i class="fa-solid fa-trophy"></i> BẢNG PHONG THẦN</button>
+            <button class="btn btn-yellow" style="font-size:12px; padding: 15px; filter: grayscale(1); opacity: 0.7; box-shadow: none; border-style: dashed;" onclick="showToast('Bảng Phong Thần đang được đúc. Mở phong ấn vào cuối tuần này!')"><i class="fa-solid fa-lock"></i> BẢNG PHONG THẦN</button>
             <button class="btn btn-purple" id="btnAttendanceDashboard" style="font-size:12px; padding: 15px;" onclick="openAttendanceModal()"><i class="fa-solid fa-list-check"></i> ĐIỂM DANH</button>
         </div>
 
@@ -491,9 +491,9 @@
             <button class="btn btn-dark" id="btnAdminDashboard" style="font-size:12px; grid-column: span 2;" onclick="document.getElementById('adminLoginModal').style.display='flex'"><i class="fa-solid fa-shield-halved"></i> QUẢN TRỊ</button>
         </div>
         
-        <button class="btn" style="width: 100%; margin-top: 20px; padding: 18px; font-size: 14px; background: #fff; color: #111; border-color: var(--accent-red); box-shadow: 4px 4px 0px var(--accent-red);" onclick="openGossipFeed()">
-            <i class="fa-solid fa-fire fa-shake" style="color: var(--accent-red);"></i> BẢNG TIN THỊ PHI HOÀNG CUNG
-        </button>
+        <button class="btn" style="width: 100%; margin-top: 20px; padding: 18px; font-size: 14px; background: #f8fafc; color: var(--text-muted); border-color: var(--text-muted); border-style: dashed; box-shadow: none;" onclick="showToast('Cẩm Y Vệ đang thu thập tình báo... Chờ đến Thứ 7 để hít drama nhé!')">
+    <i class="fa-solid fa-lock"></i> BẢNG TIN THỊ PHI (Sắp mở)
+</button>
     </div>
 
     <div class="modal-overlay" id="gossipModal" style="z-index: 10005;">
@@ -553,6 +553,7 @@
     </div>
 
     <div id="vocabLearnScreen" class="screen">
+<div style="width:100%; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 2px dashed var(--border-dark);"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none;" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> THOÁT</button></div>
         <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 20px;">
             <div style="font-weight: 900; font-size: 16px; color: var(--border-dark); background: white; padding: 5px 20px; border: 3px solid var(--border-dark); border-radius: 20px; margin-bottom: 20px; box-shadow: 2px 2px 0px var(--border-dark);" id="fcProgress">Thẻ 1 / 10</div>
             <div class="flashcard-container">
@@ -574,6 +575,7 @@
     </div>
 
     <div id="vocabTestScreen" class="screen">
+<div style="width:100%; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 2px dashed var(--border-dark);"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="goBack()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button></div>
         <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center;">
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 20px;"><div id="vtProgress" style="font-weight: 900; font-size: 16px; border-bottom: 3px solid var(--border-dark);">Câu 1/10</div><div class="timer-brutal" id="vtTimer">15</div></div>
             <div style="width: 100%; border: 4px solid var(--border-dark); padding: 30px 15px; text-align: center; border-radius: 12px; box-shadow: var(--shadow-hard); background: white;">
@@ -587,6 +589,7 @@
     </div>
 
     <div id="grammarTestScreen" class="screen scrollable-area">
+<div style="width:100%; display: flex; justify-content: space-between; margin-bottom: 15px;"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="goBack()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button></div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark); padding-bottom: 15px; margin-bottom: 20px;"><h2 style="margin: 0; text-transform: uppercase; font-size: 16px; color: var(--accent-green);"><i class="fa-solid fa-vial"></i> Test Ngữ Pháp</h2><div style="font-size: 16px; font-weight: 900; background: var(--accent-green); padding: 5px 15px; border: 3px solid var(--border-dark); border-radius: 8px; box-shadow: 2px 2px 0px var(--border-dark);" id="grammarProgress">1/3</div></div>
         <div style="background: white; border: 4px solid var(--border-dark); padding: 30px 20px; box-shadow: var(--shadow-hard); text-align: center; border-radius: 12px;">
             <h3 style="margin-top: 0; font-size: 18px; line-height: 1.6; color: var(--border-dark);" id="grammarQuestionText">Đang tải câu hỏi...</h3><div id="grammarInputArea" style="margin-top: 25px; display: flex; flex-direction: column; gap: 15px;"></div><button class="btn btn-dark" id="btnGrammarSubmit" style="width: 100%; margin-top: 25px; padding: 18px; font-size: 16px;" onclick="checkGrammarAnswer()">CHỐT ĐÁP ÁN</button>
@@ -1364,7 +1367,7 @@ function checkVocabAnswer(isTimeout) {
 }
 
 function evaluateVocabTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
-function renderGrammarQuestion() { if(currentQIndex >= questionsQueue.length) { evaluateGrammarTest(); return; } let qData = questionsQueue[currentQIndex]; document.getElementById('grammarProgress').innerText = `${currentQIndex + 1}/${questionsQueue.length}`; document.getElementById('grammarQuestionText').innerHTML = qData.q.replace("_____", "<b>_____</b>"); document.getElementById('grammarInputArea').innerHTML = `<input type="text" id="grammarInput" class="input-brutal" placeholder="Nhập đáp án..." onkeypress="if(event.key === 'Enter') checkGrammarAnswer()">`; document.getElementById('grammarFeedback').innerHTML = ""; document.getElementById('grammarInput').focus(); }
+function renderGrammarQuestion() { if(currentQIndex >= questionsQueue.length) { evaluateGrammarTest(); return; } let qData = questionsQueue[currentQIndex]; document.getElementById('grammarProgress').innerText = `${currentQIndex + 1}/${questionsQueue.length}`; document.getElementById('grammarQuestionText').innerHTML = qData.q.replace("_____", "<b>_____</b>"); document.getElementById('grammarInputArea').innerHTML = `<input type="text" id="grammarInput" class="input-brutal" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Nhập đáp án..." onkeypress="if(event.key === 'Enter') checkGrammarAnswer()">`; document.getElementById('grammarFeedback').innerHTML = ""; document.getElementById('grammarInput').focus(); }
 function checkGrammarAnswer() { let qData = questionsQueue[currentQIndex], userTyped = document.getElementById('grammarInput').value; if(!userTyped) { showToast("Vui lòng nhập đáp án!"); return; } if(normalizeText(userTyped) === normalizeText(qData.ans)) { document.getElementById('grammarFeedback').innerHTML = `<h3 style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> ĐÚNG!</h3>`; currentQIndex++; setTimeout(renderGrammarQuestion, 1000); } else { let errHtml = `Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${userTyped}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án chuẩn phải là: <span style="color:var(--accent-green); font-weight:bold;">${qData.ans}</span>`; exactErrorDetails.push({ q: qData.q, htmlDetails: errHtml }); document.getElementById('grammarFeedback').innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">SAI RỒI!</h3><p>Đáp án đúng: <b>${qData.ans}</b></p><button class="btn btn-dark" style="width: 100%; margin-top: 10px;" onclick="currentQIndex++; renderGrammarQuestion();">TIẾP TỤC</button></div>`; } }
 function evaluateGrammarTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
 
