@@ -42,7 +42,7 @@
             background-color: var(--bg-color); 
             background-image: radial-gradient(var(--text-muted) 1.5px, transparent 1.5px);
             background-size: 24px 24px;
-            color: var(--text-dark); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; overflow: hidden; 
+            color: var(--text-dark); margin: 0; padding: 0; display: flex; align-items: flex-start; justify-content: center; width: 100%; height: 100%; overflow: hidden; 
         }
         
         .app-container { 
@@ -50,8 +50,8 @@
         }
         @media (min-width: 850px) { 
             .app-container { 
-                max-width: 850px; height: 95vh; min-height: 700px; border-radius: 16px; 
-                border: 4px solid var(--border-dark); box-shadow: var(--shadow-hard-large); 
+                max-width: 850px; height: 95vh; border-radius: 16px; 
+                border: 4px solid var(--border-dark); box-shadow: var(--shadow-hard-large); margin-top: 2.5vh;
             } 
         }
 
@@ -329,7 +329,7 @@
             <button class="btn btn-blue" style="padding: 10px 15px; font-size: 12px;" onclick="renderMatrixAttendance('vocab')">TỪ VỰNG & WF & PREP</button>
             <button class="btn btn-green" style="padding: 10px 15px; font-size: 12px; opacity: 0.5;" onclick="showHumorousLock()">NGỮ PHÁP <i class="fa-solid fa-lock"></i></button>
         </div>
-        <div style="overflow-x: auto; max-height: 60vh; border-top: 4px solid var(--border-dark);">
+        <div style="overflow: auto; max-height: 60vh; border-top: 4px solid var(--border-dark); position: relative;">
             <table class="admin-table" id="matrixTable" style="margin: 0; border: none;"></table>
         </div>
     </div>
@@ -381,15 +381,18 @@
     </div>
 
     <div id="dashboardScreen" class="screen scrollable-area">
-        <div class="top-bar">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div id="dashAvatar" style="width: 60px; height: 60px; border: 3px solid var(--border-dark); border-radius: 50%; background: var(--surface-color); display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: var(--shadow-hard);">🦊</div>
+        <div class="top-bar" style="flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px; flex: 1; min-width: 250px;">
+                <div id="dashAvatar" style="width: 60px; height: 60px; border: 3px solid var(--border-dark); border-radius: 50%; background: var(--surface-color); display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: var(--shadow-hard); flex-shrink: 0;">🦊</div>
                 <div>
                     <div id="dashName" style="font-weight: 900; font-size: 18px; text-transform: uppercase;"></div>
                     <div style="font-size: 12px; color: var(--accent-red); font-weight: bold; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--accent-red); display: inline-block; margin-top: 4px;"><i class="fa-solid fa-fire"></i> Sẵn sàng</div>
                 </div>
             </div>
-            <button class="btn btn-outline" style="padding: 10px; border-color: var(--accent-red); color: var(--accent-red);" onclick="switchScreen('loginScreen')"><i class="fa-solid fa-right-from-bracket"></i></button>
+            <div style="display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex: 1;">
+                <button class="btn" style="font-size:12px; padding: 10px 15px; background: rgba(16,185,129,0.1); border-color: var(--accent-green); color: var(--accent-green);" onclick="document.getElementById('parentLoginModal').style.display='flex'"><i class="fa-solid fa-family"></i> CỔNG PHỤ HUYNH</button>
+                <button class="btn btn-outline" style="padding: 10px; border-color: var(--accent-red); color: var(--accent-red);" onclick="switchScreen('loginScreen')"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
         </div>
 
         <div id="rivalAnchorBox" style="background: white; border: 3px solid var(--border-dark); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: var(--shadow-hard); display:none;">
@@ -436,8 +439,7 @@
         </div>
 
         <div class="grid-2">
-            <button class="btn" style="font-size:12px; background: rgba(16,185,129,0.1); border-color: var(--accent-green); color: var(--accent-green);" onclick="document.getElementById('parentLoginModal').style.display='flex'"><i class="fa-solid fa-family"></i> C. PHỤ HUYNH</button>
-            <button class="btn btn-dark" id="btnAdminDashboard" style="font-size:12px;" onclick="document.getElementById('adminLoginModal').style.display='flex'"><i class="fa-solid fa-shield-halved"></i> QUẢN TRỊ</button>
+            <button class="btn btn-dark" id="btnAdminDashboard" style="font-size:12px; grid-column: span 2;" onclick="document.getElementById('adminLoginModal').style.display='flex'"><i class="fa-solid fa-shield-halved"></i> QUẢN TRỊ</button>
         </div>
     </div>
 
@@ -1272,14 +1274,15 @@ function renderSlackerMatrix() {
         return;
     }
 
-    // 2. Vẽ Header (Chỉ vẽ những Unit chưa xong)
-    let headers = `<thead><tr><th rowspan="2" style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; z-index: 3;">HỌC SINH</th>`;
-    displayUnits.forEach(u => { headers += `<th colspan="6" style="background:var(--border-dark); color:white; border-right: 4px solid white;">UNIT ${u}</th>`; });
+    // 2. Vẽ Header (Chỉ vẽ những Unit chưa xong) [ĐÃ FIX ĐÓNG BĂNG NGANG DỌC 100%]
+    let headers = `<thead><tr><th rowspan="2" style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; top: 0; z-index: 11;">HỌC SINH</th>`;
+    displayUnits.forEach(u => { headers += `<th colspan="6" style="background:var(--border-dark); color:white; border-right: 4px solid white; position: sticky; top: 0; z-index: 10;">UNIT ${u}</th>`; });
     headers += `</tr><tr>`;
     displayUnits.forEach(u => {
         tasksDef.forEach((t, i) => {
             let border = (i === 1 || i === 3) ? "border-right: 2px dashed rgba(255,255,255,0.2);" : (i === 5 ? "border-right: 4px solid white;" : "");
-            headers += `<th style="background:#1e293b; color:${i<2?'#93c5fd':(i<4?'#86efac':'#fca5a5')}; padding:5px; font-size:11px; ${border}">${t.label}</th>`;
+            // Fix tọa độ top: 37px để dòng 2 không bị đè lên dòng 1 khi cuộn
+            headers += `<th style="background:#1e293b; color:${i<2?'#93c5fd':(i<4?'#86efac':'#fca5a5')}; padding:5px; font-size:11px; position: sticky; top: 37px; z-index: 10; ${border}">${t.label}</th>`;
         });
     });
     headers += `</tr></thead><tbody>`;
