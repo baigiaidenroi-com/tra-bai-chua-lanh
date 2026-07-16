@@ -647,7 +647,7 @@
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
 const SYSTEM_APIS = {
-    "6": https://script.google.com/macros/s/AKfycbwmoFatf1bqwyIcGFxO_4W7WmJ6A760oTwbP6DS9JX2GKmE76-jXSGqDHBpaSiEleKFLA/exec",
+    "6": "https://script.google.com/macros/s/AKfycbwmoFatf1bqwyIcGFxO_4W7WmJ6A760oTwbP6DS9JX2GKmE76-jXSGqDHBpaSiEleKFLA/exec",
     "7": "https://script.google.com/macros/s/AKfycby2ARFhJjZEacfZ9bRRKX490JAedzSHQN7Y6NdGYP5RcmhHB3nE3K2K7yqLYwNul6tD/exec",
     "8": "https://script.google.com/macros/s/AKfycbw6iZeol5LwOKObKZa0GI2Wgo4xL1hzHDMjBNk6q3FieGiFr2recevalc7o6dwHYAMO/exec",
     "9": "https://script.google.com/macros/s/AKfycby0M6WP3G_vP-hhUJz2IZskYYcL1zw5TyhIaQvE1CCSndt2NA8foX25URmWkMvs8cKv/exec"
@@ -666,8 +666,7 @@ function selectGrade(grade, btnElement) {
     }
 }
 
-
-    function getScriptUrl() {
+function getScriptUrl() {
     let customUrl = localStorage.getItem("edtech_scriptUrl");
     if(customUrl && customUrl.trim() !== "") return customUrl;
     return SYSTEM_APIS[currentSelectedGrade] || SYSTEM_APIS["9"];
