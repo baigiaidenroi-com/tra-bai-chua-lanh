@@ -1236,65 +1236,82 @@ function openAttendanceModal() {
 
 function renderSlackerMatrix() {
     let table = document.getElementById('matrixTable');
-    if (!serverDeadlines || serverDeadlines.length === 0) {
-        table.innerHTML = `<tr><td style="text-align:center; padding: 30px; font-weight:bold; color:var(--accent-green);">🎉 Tuyệt vời! Hiện tại Thầy chưa giao báo bài nào!</td></tr>`;
+    let tasksDef = [
+        { id: "wf1", cat: "Thi Word Form", part: "P1", label: "WF1" },
+        { id: "wf2", cat: "Thi Word Form", part: "P2", label: "WF2" },
+        { id: "tv1", cat: "Thi Từ Vựng", part: "P1", label: "TV1" },
+        { id: "tv2", cat: "Thi Từ Vựng", part: "P2", label: "TV2" },
+        { id: "pr1", cat: "Thi Giới từ", part: "P1", label: "PR1" },
+        { id: "pr2", cat: "Thi Giới từ", part: "P2", label: "PR2" }
+    ];
+
+    // 1. Quét tìm các Unit chưa hoàn thành (Ai cũng xong thì ẩn, có 1 người sót thì giữ)
+    let incompleteUnits = [];
+    for (let u = 1; u <= 12; u++) {
+        let unitHasSlacker = false;
+        for (let id in studentDB) {
+            if (id === "T11") continue;
+            let sLogs = allLogsCache.filter(r => r[1] === id);
+            for (let task of tasksDef) {
+                let isDone = sLogs.some(r => r[3] && r[4] && r[3].toString().includes(task.cat) && r[4].toString().includes(`Unit ${u} - ${task.part}`));
+                if (!isDone) { unitHasSlacker = true; break; }
+            }
+            if (unitHasSlacker) break;
+        }
+        if (unitHasSlacker) incompleteUnits.push(u);
+    }
+
+    // Chỉ lấy 3 Unit cũ nhất bị nợ bài
+    let displayUnits = incompleteUnits.slice(0, 3);
+
+    if (displayUnits.length === 0) {
+        table.innerHTML = `<tr><td style="text-align:center; padding: 40px; font-weight:900; color:var(--accent-green); line-height: 1.6; font-size:16px;">🎉 QUÁ ĐỈNH!<br>Tất cả tiểu chủ đã dọn sạch sành sanh Báo Bài!<br>Không còn ai phải đóng vai phụ!</td></tr>`;
         return;
     }
 
-    let displayTypeMapping = { "vocab": "VOCAB", "grammar": "GRAMMAR", "wordform": "WF", "prep": "PREP" };
-    let headers = `<thead><tr><th style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; z-index: 3;">HỌC SINH</th>`;
-    
-    // Tạo cột dựa trên lệnh Báo Bài hiện tại
-    serverDeadlines.forEach(dl => {
-        let name = (displayTypeMapping[dl.type] || dl.type) + `<br>U${dl.unit}` + (dl.part !== "0" ? ` P${dl.part}` : ``);
-        headers += `<th style="background:var(--border-dark); color:white; padding:5px; border-right: 2px dashed rgba(255,255,255,0.2); font-size:11px;">${name}</th>`;
+    // 2. Vẽ Header (Chỉ vẽ những Unit chưa xong)
+    let headers = `<thead><tr><th rowspan="2" style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; z-index: 3;">HỌC SINH</th>`;
+    displayUnits.forEach(u => { headers += `<th colspan="6" style="background:var(--border-dark); color:white; border-right: 4px solid white;">UNIT ${u}</th>`; });
+    headers += `</tr><tr>`;
+    displayUnits.forEach(u => {
+        tasksDef.forEach((t, i) => {
+            let border = (i === 1 || i === 3) ? "border-right: 2px dashed rgba(255,255,255,0.2);" : (i === 5 ? "border-right: 4px solid white;" : "");
+            headers += `<th style="background:#1e293b; color:${i<2?'#93c5fd':(i<4?'#86efac':'#fca5a5')}; padding:5px; font-size:11px; ${border}">${t.label}</th>`;
+        });
     });
     headers += `</tr></thead><tbody>`;
 
-    let hasSlackers = false;
+    // 3. Vẽ Body (Gạch chéo ai thiếu, Tick xanh ai đủ. Đủ Full 3 Unit tự động biến mất)
     let rowsHtml = "";
-    let logTypeMapping = { "vocab": "Từ Vựng", "grammar": "Ngữ Pháp", "wordform": "Word Form", "prep": "Giới từ" };
-
-    // Dò từng học sinh xem có thiếu bài nào không
     for (let id in studentDB) {
         if (id === "T11") continue;
         let sLogs = allLogsCache.filter(r => r[1] === id);
-        let missedSomething = false;
-        
-        let studentRowHtml = `<tr><td style="border-right: 4px solid var(--border-dark); position: sticky; left: 0; z-index: 1; background: white; font-weight: bold; font-size:13px; text-transform:uppercase;">${studentDB[id].name}</td>`;
-        
-        serverDeadlines.forEach(dl => {
-            let catName = "Thi " + (logTypeMapping[dl.type] || dl.type);
-            let unitText = "Unit " + dl.unit + (dl.part !== "0" ? " - P" + dl.part : "");
-            let isDone = sLogs.some(row => row[3] && row[4] && row[3].toString().includes(catName) && row[4].toString() === unitText);
-            
-            if (!isDone) missedSomething = true;
-            
-            if (isDone) {
-                studentRowHtml += `<td style="color:var(--accent-green); font-size: 16px; background: rgba(46, 213, 115, 0.1); border-right: 2px dashed var(--border-dark); text-align:center;">✅</td>`;
-            } else {
-                studentRowHtml += `<td style="color:var(--accent-red); font-size: 16px; background: rgba(239, 68, 68, 0.1); border-right: 2px dashed var(--border-dark); text-align:center;">❌</td>`;
-            }
-        });
-        studentRowHtml += `</tr>`;
+        let studentMissedInView = false;
+        let cellsHtml = "";
 
-        // CHỈ học sinh nào THIẾU bài (missedSomething) mới bị ném vào Bảng Vai Phụ
-        if (missedSomething) {
-            rowsHtml += studentRowHtml;
-            hasSlackers = true;
+        displayUnits.forEach(u => {
+            tasksDef.forEach((task, i) => {
+                let border = (i === 1 || i === 3) ? "border-right: 2px dashed var(--border-dark);" : (i === 5 ? "border-right: 4px solid var(--border-dark);" : "");
+                let isDone = sLogs.some(r => r[3] && r[4] && r[3].toString().includes(task.cat) && r[4].toString().includes(`Unit ${u} - ${task.part}`));
+                
+                if (!isDone) studentMissedInView = true; // Phát hiện có nợ bài
+                
+                if (isDone) cellsHtml += `<td style="color:var(--accent-green); font-size: 16px; background: rgba(46, 213, 115, 0.1); text-align:center; ${border}">✅</td>`;
+                else cellsHtml += `<td style="color:var(--accent-red); font-size: 16px; background: rgba(239, 68, 68, 0.1); text-align:center; ${border}">❌</td>`;
+            });
+        });
+
+        // Ai thiếu bài mới bị bêu tên lên Bảng
+        if (studentMissedInView) {
+            rowsHtml += `<tr><td style="border-right: 4px solid var(--border-dark); position: sticky; left: 0; z-index: 1; background: white; font-weight: bold; font-size:13px; text-transform:uppercase;">${studentDB[id].name}</td>${cellsHtml}</tr>`;
         }
     }
 
-    if (!hasSlackers) {
-        table.innerHTML = `<tr><td style="text-align:center; padding: 30px; font-weight:900; color:var(--accent-green); line-height: 1.5;">🎉 QUÁ ĐỈNH!<br>Cả lớp đã làm sạch sành sanh Báo bài!<br>Không ai phải làm vai phụ!</td></tr>`;
-    } else {
-        // TẠO KHOẢNG TRỐNG 45px DƯỚI CÙNG ĐỂ THANH SCROLL KHÔNG ĐÈ TÊN
-        rowsHtml += `<tr><td colspan="${serverDeadlines.length + 1}" style="height: 45px; background: white; border: none;"></td></tr>`;
-        table.innerHTML = headers + rowsHtml + `</tbody>`;
-    }
+    // Khoảng trống 45px chống đè Scrollbar cho dòng cuối cùng
+    rowsHtml += `<tr><td colspan="${displayUnits.length * 6 + 1}" style="height: 45px; background: white; border: none;"></td></tr>`;
+    
+    table.innerHTML = headers + rowsHtml + `</tbody>`;
 }
-// ==============================================================================
-
 
 // ==================== BỘ NÃO HỘP KÝ ỨC (FIXED) ====================
 function getMemoryBox() {
