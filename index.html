@@ -1409,7 +1409,7 @@ function checkVocabAnswer(isTimeout) {
                 else {
                     isAllCorrect = false; uObj.inp.style.borderColor = "var(--accent-red)"; if(isTimeout) uObj.inp.classList.add('timeout');
                     let availIdx = origTargets.findIndex((_, idx) => !matchedIndices.includes(idx)), correctSuggestion = availIdx !== -1 ? origTargets[availIdx] : origTargets.join(' / '); if(availIdx !== -1) matchedIndices.push(availIdx); 
-                    specificErrors.push(`[${type.toUpperCase()}] Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${isTimeout ? "(Hết giờ)" : (uObj.origAnswer \vert{}\vert{} "(Trống)")}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${correctSuggestion}</span>`);
+                    specificErrors.push(`[${type.toUpperCase()}] Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${isTimeout ? "(Hết giờ)" : (uObj.origAnswer || "(Trống)")}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${correctSuggestion}</span>`);
                 }
             });
         }
@@ -1418,7 +1418,7 @@ function checkVocabAnswer(isTimeout) {
             let answer = normalizeText(inp.value), target = normalizeText(inp.getAttribute('data-ans').replace(/\*/g, '')), origTarget = inp.getAttribute('data-ans').split('(')[0].trim().replace(/\*/g, '');
             if(isTimeout) { inp.classList.add('timeout'); isAllCorrect = false; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">(Hết giờ)</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); } 
             else if(answer === target) { inp.style.borderColor = "var(--accent-green)"; } 
-            else { isAllCorrect = false; inp.style.borderColor = "var(--accent-red)"; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${inp.value \vert{}\vert{} "(Trống)"}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); }
+            else { isAllCorrect = false; inp.style.borderColor = "var(--accent-red)"; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${inp.value || "(Trống)"}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); }
         });
     }
 
@@ -1427,7 +1427,6 @@ function checkVocabAnswer(isTimeout) {
 
     if(isAllCorrect && !isTimeout) {
         currentCombo++; if(currentCombo > sessionMaxCombo) sessionMaxCombo = currentCombo;
-        // MÀNG LỌC ÂN XÁ TỨC THÌ
         if(pastStudentErrors.has(cleanWordKey)) { 
             sessionFixedErrors++; pastStudentErrors.delete(cleanWordKey); 
             let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
@@ -1438,7 +1437,6 @@ function checkVocabAnswer(isTimeout) {
         questionsQueue.shift(); btnSubmit.innerHTML = 'TIẾP TỤC'; btnSubmit.className = "btn btn-green"; btnSubmit.onclick = renderTypingTest;
     } else {
         currentCombo = 0; 
-        // LƯU THEO CẤU TRÚC MỚI (VN::EN::MEANING)
         let enStr = q.en || ""; let meanStr = q.meaning || "";
         sessionErrorWords.push(cleanWordKey + "::" + enStr + "::" + meanStr);
         let errHtml = specificErrors.join("<br>"); if(!exactErrorDetails.some(e => e.q === q.vn)) exactErrorDetails.push({ q: cleanWordKey, htmlDetails: errHtml });
