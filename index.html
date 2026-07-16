@@ -325,7 +325,7 @@
             <h2 style="margin: 0; color: var(--accent-purple); text-transform: uppercase;"><i class="fa-solid fa-list-check"></i> ĐIỂM DANH BÀI TẬP</h2>
             <i class="fa-solid fa-times close-modal" style="position: static;" onclick="closeModal('attendanceModal')"></i>
         </div>
-        <div style="padding: 15px; display: flex; justify-content: center; gap: 10px;">
+        <div id="attendanceFilterBtns" style="padding: 15px; display: flex; justify-content: center; gap: 10px;">
             <button class="btn btn-blue" style="padding: 10px 15px; font-size: 12px;" onclick="renderMatrixAttendance('vocab')">TỪ VỰNG & WF & PREP</button>
             <button class="btn btn-green" style="padding: 10px 15px; font-size: 12px; opacity: 0.5;" onclick="showHumorousLock()">NGỮ PHÁP <i class="fa-solid fa-lock"></i></button>
         </div>
@@ -432,12 +432,12 @@
 
         <div class="grid-2" style="margin-bottom: 20px;">
             <button class="btn btn-yellow" style="font-size:12px; padding: 15px;" onclick="openLeaderboard()"><i class="fa-solid fa-trophy"></i> BẢNG PHONG THẦN</button>
-            <button class="btn btn-purple" style="font-size:12px; padding: 15px;" onclick="document.getElementById('attendanceModal').style.display='flex'; renderMatrixAttendance('vocab');"><i class="fa-solid fa-list-check"></i> ĐIỂM DANH</button>
+            <button class="btn btn-purple" style="font-size:12px; padding: 15px;" onclick="openAttendanceModal()"><i class="fa-solid fa-list-check"></i> ĐIỂM DANH</button>
         </div>
 
         <div class="grid-2">
             <button class="btn" style="font-size:12px; background: rgba(16,185,129,0.1); border-color: var(--accent-green); color: var(--accent-green);" onclick="document.getElementById('parentLoginModal').style.display='flex'"><i class="fa-solid fa-family"></i> C. PHỤ HUYNH</button>
-            <button class="btn btn-dark" style="font-size:12px;" onclick="document.getElementById('adminLoginModal').style.display='flex'"><i class="fa-solid fa-shield-halved"></i> QUẢN TRỊ</button>
+            <button class="btn btn-dark" id="btnAdminDashboard" style="font-size:12px;" onclick="document.getElementById('adminLoginModal').style.display='flex'"><i class="fa-solid fa-shield-halved"></i> QUẢN TRỊ</button>
         </div>
     </div>
 
@@ -542,7 +542,7 @@
     <div id="parentScreen" class="screen scrollable-area">
         <div class="top-bar"><h2 style="margin: 0; color: var(--accent-blue); text-transform: uppercase; font-size: 16px;"><i class="fa-solid fa-chart-line"></i> HỒ SƠ CỦA CON</h2><button class="btn btn-outline" style="padding: 10px;" onclick="goHome()"><i class="fa-solid fa-times"></i></button></div>
         <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border: 3px solid var(--border-dark); box-shadow: var(--shadow-hard);"><div id="parentAvatarImg" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--border-dark); background: var(--surface-color); display: flex; align-items: center; justify-content: center; font-size: 35px;">🦊</div><div><div style="font-weight: 900; font-size: 18px; text-transform: uppercase;" id="parentStudentName">...</div><div style="color: var(--text-muted); font-size: 12px; font-weight: bold;">Thông tin liên kết minh bạch</div></div></div>
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;"><button class="btn btn-blue" style="flex:1; padding: 10px; font-size: 12px;" onclick="document.getElementById('pLineChart').style.display='block'; document.getElementById('pRadarChart').style.display='none';">Lịch sử Điểm</button><button class="btn btn-green" style="flex:1; padding: 10px; font-size: 12px;" onclick="document.getElementById('pLineChart').style.display='none'; document.getElementById('pRadarChart').style.display='block';">Phân tích Kỹ năng</button></div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;"><button class="btn btn-blue" style="flex:1; padding: 10px; font-size: 12px;" onclick="document.getElementById('pLineChart').style.display='block'; document.getElementById('pRadarChart').style.display='none';">Lịch sử Điểm</button><button class="btn btn-green" id="btnParentRadar" style="flex:1; padding: 10px; font-size: 12px;" onclick="document.getElementById('pLineChart').style.display='none'; document.getElementById('pRadarChart').style.display='block';">Phân tích Kỹ năng</button></div>
         <div id="pLineChart" class="chart-container"><p style="font-size: 11px; color:var(--text-muted); text-align:center; font-style:italic; margin: 0 0 10px 0;">*Biểu đồ so sánh chéo 3 môn theo tiến trình</p><canvas id="parentHistoryChart"></canvas></div>
         <div id="pRadarChart" class="chart-container" style="display:none;"><canvas id="parentRadarChart"></canvas></div>
         <div style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 15px 0; color:var(--accent-red); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-film"></i> NHẬT KÝ THĂNG TRẦM</h4><div id="parentTimelineBox" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div></div>
@@ -692,7 +692,7 @@ function login() {
         document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
         document.getElementById('dashAvatar').innerText = currentPet; 
         
-        switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor();
+        switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor(); applyRoleUI();
     } else { 
         if (Object.keys(studentDB).length <= 1) {
             showToast("⏳ App đang lấy dữ liệu, đợi 2-3 giây rồi bấm lại nhé!");
@@ -1186,6 +1186,100 @@ function checkAdminLogin() { if(document.getElementById('adminPassInput').value 
 </div>
 
 <script>
+
+
+// ==================== HỆ THỐNG PHÂN QUYỀN & VAI PHỤ MỜ NHẠT ====================
+function applyRoleUI() {
+    let isAdmin = (currentStudentId === 'T11');
+    let btnAdmin = document.getElementById('btnAdminDashboard');
+    if(btnAdmin) btnAdmin.style.display = isAdmin ? 'flex' : 'none';
+    
+    let btnRadar = document.getElementById('btnParentRadar');
+    if(btnRadar) btnRadar.style.display = isAdmin ? 'block' : 'none';
+}
+
+function openAttendanceModal() {
+    document.getElementById('attendanceModal').style.display = 'flex';
+    let isAdmin = (currentStudentId === 'T11');
+    
+    let titleEl = document.getElementById('attendanceModalTitle');
+    let filterBtns = document.getElementById('attendanceFilterBtns');
+    
+    if (isAdmin) {
+        titleEl.innerHTML = '<i class="fa-solid fa-list-check"></i> ĐIỂM DANH BÀI TẬP';
+        titleEl.style.fontSize = '18px';
+        filterBtns.style.display = 'flex';
+        renderMatrixAttendance('vocab'); // Admin xem bảng tổng bình thường
+    } else {
+        titleEl.innerHTML = '<i class="fa-solid fa-mask"></i> BẢNG VAI PHỤ MỜ NHẠT<br><span style="font-size:12px; color:var(--text-muted);">Ngày ngày người khác lên ngôi...</span>';
+        titleEl.style.fontSize = '16px';
+        filterBtns.style.display = 'none'; // Ẩn luôn 2 nút lọc
+        renderSlackerMatrix(); // Học sinh xem bảng phong sát
+    }
+}
+
+function renderSlackerMatrix() {
+    let table = document.getElementById('matrixTable');
+    if (!serverDeadlines || serverDeadlines.length === 0) {
+        table.innerHTML = `<tr><td style="text-align:center; padding: 30px; font-weight:bold; color:var(--accent-green);">🎉 Tuyệt vời! Hiện tại Thầy chưa giao báo bài nào!</td></tr>`;
+        return;
+    }
+
+    let displayTypeMapping = { "vocab": "VOCAB", "grammar": "GRAMMAR", "wordform": "WF", "prep": "PREP" };
+    let headers = `<thead><tr><th style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; z-index: 3;">HỌC SINH</th>`;
+    
+    // Tạo cột dựa trên lệnh Báo Bài hiện tại
+    serverDeadlines.forEach(dl => {
+        let name = (displayTypeMapping[dl.type] || dl.type) + `<br>U${dl.unit}` + (dl.part !== "0" ? ` P${dl.part}` : ``);
+        headers += `<th style="background:var(--border-dark); color:white; padding:5px; border-right: 2px dashed rgba(255,255,255,0.2); font-size:11px;">${name}</th>`;
+    });
+    headers += `</tr></thead><tbody>`;
+
+    let hasSlackers = false;
+    let rowsHtml = "";
+    let logTypeMapping = { "vocab": "Từ Vựng", "grammar": "Ngữ Pháp", "wordform": "Word Form", "prep": "Giới từ" };
+
+    // Dò từng học sinh xem có thiếu bài nào không
+    for (let id in studentDB) {
+        if (id === "T11") continue;
+        let sLogs = allLogsCache.filter(r => r[1] === id);
+        let missedSomething = false;
+        
+        let studentRowHtml = `<tr><td style="border-right: 4px solid var(--border-dark); position: sticky; left: 0; z-index: 1; background: white; font-weight: bold; font-size:13px; text-transform:uppercase;">${studentDB[id].name}</td>`;
+        
+        serverDeadlines.forEach(dl => {
+            let catName = "Thi " + (logTypeMapping[dl.type] || dl.type);
+            let unitText = "Unit " + dl.unit + (dl.part !== "0" ? " - P" + dl.part : "");
+            let isDone = sLogs.some(row => row[3] && row[4] && row[3].toString().includes(catName) && row[4].toString() === unitText);
+            
+            if (!isDone) missedSomething = true;
+            
+            if (isDone) {
+                studentRowHtml += `<td style="color:var(--accent-green); font-size: 16px; background: rgba(46, 213, 115, 0.1); border-right: 2px dashed var(--border-dark); text-align:center;">✅</td>`;
+            } else {
+                studentRowHtml += `<td style="color:var(--accent-red); font-size: 16px; background: rgba(239, 68, 68, 0.1); border-right: 2px dashed var(--border-dark); text-align:center;">❌</td>`;
+            }
+        });
+        studentRowHtml += `</tr>`;
+
+        // CHỈ học sinh nào THIẾU bài (missedSomething) mới bị ném vào Bảng Vai Phụ
+        if (missedSomething) {
+            rowsHtml += studentRowHtml;
+            hasSlackers = true;
+        }
+    }
+
+    if (!hasSlackers) {
+        table.innerHTML = `<tr><td style="text-align:center; padding: 30px; font-weight:900; color:var(--accent-green); line-height: 1.5;">🎉 QUÁ ĐỈNH!<br>Cả lớp đã làm sạch sành sanh Báo bài!<br>Không ai phải làm vai phụ!</td></tr>`;
+    } else {
+        // TẠO KHOẢNG TRỐNG 45px DƯỚI CÙNG ĐỂ THANH SCROLL KHÔNG ĐÈ TÊN
+        rowsHtml += `<tr><td colspan="${serverDeadlines.length + 1}" style="height: 45px; background: white; border: none;"></td></tr>`;
+        table.innerHTML = headers + rowsHtml + `</tbody>`;
+    }
+}
+// ==============================================================================
+
+
 // ==================== BỘ NÃO HỘP KÝ ỨC (FIXED) ====================
 function getMemoryBox() {
     return JSON.parse(localStorage.getItem('membox_' + currentStudentId)) || { vocab: [], prep: [], wordform: [] };
