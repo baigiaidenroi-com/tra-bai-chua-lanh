@@ -620,7 +620,7 @@ function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function switchScreen(id, isBack = false) {
     if (!isBack) { let cs = document.querySelector('.active-screen'); if (cs && cs.id !== 'loginScreen' && !cs.id.includes('Test') && !cs.id.includes('Learn')) screenHistory.push(cs.id); }
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen')); 
-    let t = document.getElementById(id); if(t) t.classList.add('active-screen'); else { showToast("Màn hình đang bảo trì!"); goHome(); }
+    let t = document.getElementById(id); if(t) t.classList.add('active-screen'); else { alert("TUI ĐANG TÌM MÀN HÌNH CÓ TÊN LÀ: " + id); goHome(); }
 }
 function goBack() { if (screenHistory.length > 0) switchScreen(screenHistory.pop(), true); else goHome(); }
 function goHome() { clearInterval(timerInterval); screenHistory = []; if(currentStudentId !== "") { switchScreen('dashboardScreen'); calcRivalAnchor(); } else switchScreen('loginScreen'); }
