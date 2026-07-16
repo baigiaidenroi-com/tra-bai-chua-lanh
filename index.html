@@ -583,7 +583,7 @@
     </div>
 
     <div id="vocabTestScreen" class="screen">
-<div style="width:100%; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 2px dashed var(--border-dark);"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="goBack()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button></div>
+<div style="width:100%; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 2px dashed var(--border-dark);"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button></div>
         <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center;">
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 20px;"><div id="vtProgress" style="font-weight: 900; font-size: 16px; border-bottom: 3px solid var(--border-dark);">Câu 1/10</div><div class="timer-brutal" id="vtTimer">15</div></div>
             <div style="width: 100%; border: 4px solid var(--border-dark); padding: 30px 15px; text-align: center; border-radius: 12px; box-shadow: var(--shadow-hard); background: white;">
@@ -597,7 +597,7 @@
     </div>
 
     <div id="grammarTestScreen" class="screen scrollable-area">
-<div style="width:100%; display: flex; justify-content: space-between; margin-bottom: 15px;"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="goBack()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button></div>
+<div style="width:100%; display: flex; justify-content: space-between; margin-bottom: 15px;"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button></div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark); padding-bottom: 15px; margin-bottom: 20px;"><h2 style="margin: 0; text-transform: uppercase; font-size: 16px; color: var(--accent-green);"><i class="fa-solid fa-vial"></i> Test Ngữ Pháp</h2><div style="font-size: 16px; font-weight: 900; background: var(--accent-green); padding: 5px 15px; border: 3px solid var(--border-dark); border-radius: 8px; box-shadow: 2px 2px 0px var(--border-dark);" id="grammarProgress">1/3</div></div>
         <div style="background: white; border: 4px solid var(--border-dark); padding: 30px 20px; box-shadow: var(--shadow-hard); text-align: center; border-radius: 12px;">
             <h3 style="margin-top: 0; font-size: 18px; line-height: 1.6; color: var(--border-dark);" id="grammarQuestionText">Đang tải câu hỏi...</h3><div id="grammarInputArea" style="margin-top: 25px; display: flex; flex-direction: column; gap: 15px;"></div><button class="btn btn-dark" id="btnGrammarSubmit" style="width: 100%; margin-top: 25px; padding: 18px; font-size: 16px;" onclick="checkGrammarAnswer()">CHỐT ĐÁP ÁN</button>
@@ -1384,12 +1384,20 @@ function renderTypingTest() {
 }
 
 function checkVocabAnswer(isTimeout) {
-    clearInterval(timerInterval); let q = questionsQueue[0]; let inputs = document.querySelectorAll('#vtInputArea input'); let isAllCorrect = true, specificErrors = [];
+    if(questionsQueue.length === 0) return; // CHỐNG SPAM ENTER BƯỚC 1
+    
+    // CHỐNG SPAM ENTER BƯỚC 2: Khóa ô nhập liệu ngay lập tức
+    let inputs = document.querySelectorAll('#vtInputArea input');
+    inputs.forEach(inp => {
+        inp.setAttribute('readonly', 'true');
+        inp.onkeypress = null; 
+    });
+
+    clearInterval(timerInterval); let q = questionsQueue[0]; let isAllCorrect = true, specificErrors = [];
     if (q.type === 'wordform') {
         let expectedGroups = {}, userGroups = {};
         q.en.split('|').forEach(p => { let parts = p.split(':'), type = parts.length > 1 ? parts[0].trim().toLowerCase() : 'word', target = normalizeText(parts[1] || p).replace(/\*/g, ''); if(!expectedGroups[type]) expectedGroups[type] = []; expectedGroups[type].push(target); if(!expectedGroups[type + "_orig"]) expectedGroups[type + "_orig"] = []; expectedGroups[type + "_orig"].push((parts[1] || p).replace(/\*/g, '').trim()); });
         inputs.forEach(inp => { 
-            // Đọc loại từ chính xác khi HTML bị bọc trong div Tiếng Việt
             let typeLabel = inp.previousElementSibling.querySelector('.wf-type-label');
             let typeSpan = typeLabel ? typeLabel.innerText.toLowerCase() : inp.previousElementSibling.innerText.toLowerCase();
             let answer = normalizeText(inp.value); 
@@ -1422,7 +1430,16 @@ function checkVocabAnswer(isTimeout) {
 
     if(isAllCorrect && !isTimeout) {
         currentCombo++; if(currentCombo > sessionMaxCombo) sessionMaxCombo = currentCombo;
-        if(pastStudentErrors.has(cleanWordKey)) { sessionFixedErrors++; pastStudentErrors.delete(cleanWordKey); }
+        
+        // MÀNG LỌC PHỤC THÙ TỨC THÌ (LƯU VÀO TRÍ NHỚ MÁY)
+        if(pastStudentErrors.has(cleanWordKey)) { 
+            sessionFixedErrors++; 
+            pastStudentErrors.delete(cleanWordKey); 
+            let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
+            if(!redeemed.includes(cleanWordKey)) redeemed.push(cleanWordKey);
+            localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(redeemed));
+        }
+
         feedback.innerHTML = `<div style="background:#dcfce7; border:3px solid var(--accent-green); padding:15px; border-radius:8px; font-weight:bold; color:#166534;"><i class="fa-solid fa-check"></i> Tuyệt vời! Combo: ${currentCombo} 🔥</div>`;
         questionsQueue.shift(); btnSubmit.innerHTML = 'TIẾP TỤC'; btnSubmit.className = "btn btn-green"; btnSubmit.onclick = renderTypingTest;
     } else {
@@ -1630,6 +1647,25 @@ function renderMatrixAttendance(type) {
 }
 
 function checkAdminLogin() { if(document.getElementById('adminPassInput').value === 'admin') { closeModal('adminLoginModal'); document.getElementById('adminPassInput').value = ""; switchScreen('adminScreen'); loadPendingRedeems(); } else showToast("Sai mật khẩu Admin!"); }
+
+// ==================== LỆNH ĐẦU HÀNG TỰ NGUYỆN ====================
+function surrenderTest() {
+    let pass = confirm("Bạn có việc bận muốn Đầu Hàng? Các câu CHƯA LÀM sẽ bị tính là sai (nhưng KHÔNG bị đưa vào Sổ Đen)!");
+    if(!pass) return;
+    
+    questionsQueue.forEach(q => {
+        if(currentType === 'grammar') {
+            exactErrorDetails.push({ q: q.q, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do Đầu Hàng)</span>` });
+        } else {
+            let cleanWordKey = q.vn.replace(/\*/g, '').trim();
+            exactErrorDetails.push({ q: cleanWordKey, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do Đầu Hàng)</span>` });
+            // TUYỆT ĐỐI KHÔNG PUSH VÀO sessionErrorWords -> Sổ Đen tha mạng!
+        }
+    });
+    questionsQueue = []; // Dọn sạch hàng đợi
+    if(currentType === 'grammar') evaluateGrammarTest();
+    else evaluateVocabTest();
+}
 
 </script>
 <div class="modal-overlay" id="blackbookModal" style="display: none;">
@@ -1895,17 +1931,20 @@ function openBlackbook() {
     document.getElementById('blackbookModal').style.display = 'flex';
     let container = document.getElementById('blackbookList');
     
-    // Quét lục tung lịch sử của học sinh hiện tại để gom từ sai
     let currentErrors = new Set();
     allLogsCache.forEach(row => {
         if (row[1] === currentStudentId && row[13]) {
             let errWords = row[13].toString().split(',');
             errWords.forEach(w => {
                 let wd = w.trim();
-                if(wd) currentErrors.add(wd); // Dùng Set để lọc trùng, sai 10 lần cũng chỉ hiện 1
+                if(wd) currentErrors.add(wd);
             });
         }
     });
+
+    // MÀNG LỌC ĐÁ TỪ ĐÃ PHỤC THÙ KHỎI SỔ ĐEN (REAL-TIME)
+    let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
+    redeemed.forEach(w => currentErrors.delete(w));
 
     let errorArr = Array.from(currentErrors);
     
