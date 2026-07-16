@@ -886,6 +886,7 @@ function renderFlashcardMode() {
     
     document.getElementById('fcEn').innerHTML = enText; document.getElementById('fcPos').innerHTML = posHtml; document.getElementById('fcPos').style.display = "inline-block";
     let btnNext = document.getElementById('btnVocabNext'); if(currentQIndex === questionsQueue.length - 1) { btnNext.innerHTML = 'KẾT THÚC'; btnNext.className = "btn btn-green"; } else { btnNext.innerHTML = 'TIẾP TỤC'; btnNext.className = "btn btn-yellow"; }
+updateHeartUI();
 }
 
 function flipCard() { let el = document.getElementById('flashcardEl'); el.classList.toggle('is-flipped'); if (el.classList.contains('is-flipped')) setTimeout(() => speakCurrentWord(null), 300); }
@@ -1198,7 +1199,22 @@ function saveMemoryBox(box) {
         }
     }, 2000);
 }
-
+function updateHeartUI() {
+    if(!questionsQueue || questionsQueue.length === 0) return;
+    let q = questionsQueue[currentQIndex];
+    let box = getMemoryBox();
+    let type = currentType || 'vocab';
+    let btn = document.getElementById('fcMemoryBtn');
+    
+    if(btn) {
+        let isSaved = box[type] && box[type].some(item => item.vn === q.vn);
+        if(isSaved) {
+            btn.classList.add('saved'); 
+        } else {
+            btn.classList.remove('saved'); 
+        }
+    }
+}
 function toggleMemoryWord(event) {
     event.stopPropagation(); // CÂU THẦN CHÚ CHẶN LẬT THẺ
     event.preventDefault();
