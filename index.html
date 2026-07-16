@@ -432,7 +432,7 @@
 
         <div class="grid-2" style="margin-bottom: 20px;">
             <button class="btn btn-yellow" style="font-size:12px; padding: 15px;" onclick="openLeaderboard()"><i class="fa-solid fa-trophy"></i> BẢNG PHONG THẦN</button>
-            <button class="btn btn-purple" style="font-size:12px; padding: 15px;" onclick="openAttendanceModal()"><i class="fa-solid fa-list-check"></i> ĐIỂM DANH</button>
+            <button class="btn btn-purple" id="btnAttendanceDashboard" style="font-size:12px; padding: 15px;" onclick="openAttendanceModal()"><i class="fa-solid fa-list-check"></i> ĐIỂM DANH</button>
         </div>
 
         <div class="grid-2">
@@ -1191,11 +1191,26 @@ function checkAdminLogin() { if(document.getElementById('adminPassInput').value 
 // ==================== HỆ THỐNG PHÂN QUYỀN & VAI PHỤ MỜ NHẠT ====================
 function applyRoleUI() {
     let isAdmin = (currentStudentId === 'T11');
+    
+    // Ẩn/hiện Quản Trị
     let btnAdmin = document.getElementById('btnAdminDashboard');
     if(btnAdmin) btnAdmin.style.display = isAdmin ? 'flex' : 'none';
     
+    // Ẩn/hiện Phân Tích Kỹ Năng (Cổng Phụ Huynh)
     let btnRadar = document.getElementById('btnParentRadar');
     if(btnRadar) btnRadar.style.display = isAdmin ? 'block' : 'none';
+
+    // ĐỔI TÊN NÚT ĐIỂM DANH THÀNH "BẢNG VAI PHỤ" CHO HỌC SINH
+    let btnAtt = document.getElementById('btnAttendanceDashboard');
+    if(btnAtt) {
+        if(isAdmin) {
+            btnAtt.innerHTML = '<i class="fa-solid fa-list-check"></i> ĐIỂM DANH';
+            btnAtt.className = "btn btn-purple";
+        } else {
+            btnAtt.innerHTML = '<i class="fa-solid fa-mask"></i> BẢNG VAI PHỤ';
+            btnAtt.className = "btn btn-dark"; // Chuyển nút sang màu đen cho ngầu
+        }
+    }
 }
 
 function openAttendanceModal() {
@@ -1211,7 +1226,8 @@ function openAttendanceModal() {
         filterBtns.style.display = 'flex';
         renderMatrixAttendance('vocab'); // Admin xem bảng tổng bình thường
     } else {
-        titleEl.innerHTML = '<i class="fa-solid fa-mask"></i> BẢNG VAI PHỤ MỜ NHẠT<br><span style="font-size:12px; color:var(--text-muted);">Ngày ngày người khác lên ngôi...</span>';
+        // TIÊU ĐỀ GẮT CHO HỌC SINH
+        titleEl.innerHTML = '<i class="fa-solid fa-mask"></i> BẢNG VAI PHỤ MỜ NHẠT<br><span style="font-size:12px; color:var(--text-muted);">Ngày ngày nhìn người khác lên ngôi!</span>';
         titleEl.style.fontSize = '16px';
         filterBtns.style.display = 'none'; // Ẩn luôn 2 nút lọc
         renderSlackerMatrix(); // Học sinh xem bảng phong sát
