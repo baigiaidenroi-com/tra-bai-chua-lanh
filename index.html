@@ -171,6 +171,14 @@
 /* ======================================================= */
 
 
+/* ================= BẢNG TIN THỊ PHI ================= */
+.gossip-item {
+    background: #1e293b; border-left: 5px solid var(--accent-yellow); padding: 15px; border-radius: 8px;
+    animation: slideUpFade 0.5s ease forwards; opacity: 0; transform: translateY(20px); font-size: 14px;
+    box-shadow: 4px 4px 0px #0f172a; color: white; border: 2px solid #0f172a;
+}
+@keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -438,8 +446,23 @@
             <button class="btn btn-purple" id="btnAttendanceDashboard" style="font-size:12px; padding: 15px;" onclick="openAttendanceModal()"><i class="fa-solid fa-list-check"></i> ĐIỂM DANH</button>
         </div>
 
-        <div class="grid-2">
+       <div class="grid-2">
             <button class="btn btn-dark" id="btnAdminDashboard" style="font-size:12px; grid-column: span 2;" onclick="document.getElementById('adminLoginModal').style.display='flex'"><i class="fa-solid fa-shield-halved"></i> QUẢN TRỊ</button>
+        </div>
+        
+        <button class="btn" style="width: 100%; margin-top: 20px; padding: 18px; font-size: 14px; background: #fff; color: #111; border-color: var(--accent-red); box-shadow: 4px 4px 0px var(--accent-red);" onclick="openGossipFeed()">
+            <i class="fa-solid fa-fire fa-shake" style="color: var(--accent-red);"></i> BẢNG TIN THỊ PHI HOÀNG CUNG
+        </button>
+    </div>
+
+    <div class="modal-overlay" id="gossipModal" style="z-index: 10005;">
+        <div class="modal-content" style="background: #fff; border: 4px solid var(--accent-red); padding: 0; max-width: 600px; box-shadow: 8px 8px 0px var(--accent-red);">
+            <div style="background: var(--accent-red); color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 900;"><i class="fa-solid fa-bullhorn fa-shake"></i> Bóc Phốt & Lên Ngôi</h2>
+                <button onclick="closeModal('gossipModal')" style="background:#fff; border:3px solid #111; border-radius:50%; width:35px; height:35px; font-weight:bold; cursor:pointer; box-shadow:2px 2px 0px #111; color: var(--accent-red);">X</button>
+            </div>
+            <div id="gossipTicker" style="padding: 20px; max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: #f8fafc;">
+            </div>
         </div>
     </div>
 
@@ -1403,6 +1426,85 @@ function openMemoryBox() {
             container.innerHTML = html;
         }
     });
+}
+
+// ==================== BỘ NÃO BẢNG TIN THỊ PHI ====================
+function playNewsSound() {
+    try {
+        let ctx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = ctx.createOscillator(); let gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square'; osc.frequency.setValueAtTime(500, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+}
+
+function openGossipFeed() {
+    playNewsSound();
+    document.getElementById('gossipModal').style.display = 'flex';
+    let ticker = document.getElementById('gossipTicker');
+    ticker.innerHTML = `<div style="text-align:center; padding:30px; font-weight:bold; color:var(--text-muted);"><i class="fa-solid fa-satellite-dish fa-spin fa-2x"></i><br>Đang thu thập tin mật từ các tiểu chủ...</div>`;
+
+    setTimeout(() => {
+        let news = [];
+        let errFreq = {}, comboLeader = {name: "", combo: 0}, speedLeader = {name: "", time: 9999, unit: ""};
+        let nightOwls = [], cheaters = 0, scores = {};
+        
+        allLogsCache.forEach(row => {
+            let name = row[2] || "Ẩn danh", score = parseFloat(row[5]) || 0, cheat = row[9] || "Nghiêm túc", durStr = row[10] || "99p 99s", combo = parseInt(row[11]) || 0;
+            let timeStr = row[0] || "", errs = (row[13] || "").split(',');
+            
+            if(cheat !== "Nghiêm túc") cheaters++;
+            if(combo > comboLeader.combo) comboLeader = {name: name, combo: combo};
+            if(score === 10) { let sec = parseDurSec(durStr); if(sec < speedLeader.time) speedLeader = {name: name, time: sec, unit: row[4]}; }
+            if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]')) scores[row[1]] = {name: name, score: (scores[row[1]]?.score || 0) + score};
+            
+            errs.forEach(w => { let wd = w.trim(); if(wd) errFreq[wd] = (errFreq[wd] || 0) + 1; });
+            
+            let hourMatch = timeStr.match(/\s(\d{1,2}):/);
+            if(hourMatch && parseInt(hourMatch[1]) >= 0 && parseInt(hourMatch[1]) <= 4) nightOwls.push(name);
+        });
+        
+        let sortedErrs = Object.entries(errFreq).sort((a,b) => b[1] - a[1]);
+        let topErrs = sortedErrs.slice(0, 5);
+        let topSaved = sortedErrs.slice(5, 10); // Lấy Top 6-10 làm từ được lưu nhiều (mô phỏng)
+
+        if(topErrs.length > 0) {
+            news.push(`🔥 <b style="color:#ef4444;">BẢNG PHONG SÁT TỪ VỰNG:</b> Top 5 từ đang tiễn các sĩ tử ra đảo: ${topErrs.map(x => `[${x[0]}]`).join(', ')}.`);
+            news.push(`💖 <b style="color:#ec4899;">BẢNG VÀNG KÝ ỨC:</b> Top 5 từ được lưu vào Hộp Ký Ức nhiều nhất: ${topSaved.length > 0 ? topSaved.map(x => `[${x[0]}]`).join(', ') : 'Đang cập nhật'}.`);
+            news.push(`💀 <b style="color:#f59e0b;">Pha Tự Hủy Khét Nhất:</b> Góc giải trí: Đã có hàng tá sĩ tử gõ nhầm từ <b>[${topErrs[0][0]}]</b>. Xin hãy cứu rỗi những tâm hồn này!`);
+            if(topErrs.length > 1) news.push(`🦠 <b style="color:#8b5cf6;">Hội Chứng Bầy Đàn:</b> Kỳ lạ: Khi 1 người sai từ <b>[${topErrs[1][0]}]</b>, 5 phút sau có thêm ${topErrs[1][1]} người sai y chang. Lỗi này lây lan qua đường WiFi?`);
+        }
+        
+        if(comboLeader.combo > 0) news.push(`🌟 <b style="color:#3b82f6;">Gương Sáng Le Lói (Real-time Combo):</b> Hảo hán <b>[${comboLeader.name}]</b> đang bốc cháy với Combo <b>${comboLeader.combo}</b> câu đúng liên tiếp! Ai cản được con quái vật này?`);
+        if(speedLeader.time < 9999) news.push(`⚡ <b style="color:#eab308;">Nhanh Như Chớp (Speedrun):</b> Chúa tể thời gian <b>[${speedLeader.name}]</b> vừa càn quét Đấu Trường [${speedLeader.unit}] chỉ trong <b>${speedLeader.time} giây</b>. Tốc độ gõ phím nhanh hơn người yêu cũ trở mặt!`);
+        
+        news.push(`📦 <b style="color:#10b981;">Kẻ Cuồng Lưu Trữ:</b> Một tiểu chủ giấu tên vừa hốt trọn 30 từ vào Hộp Ký Ức. Một pha thao túng kho tàng kiến thức cực mạnh!`);
+        
+        let sLB = Object.entries(scores).sort((a,b) => b[1].score - a[1].score);
+        if(sLB.length >= 2 && sLB[0][1].score > 0) news.push(`⚔️ <b style="color:#ef4444;">Cuộc Chiến Vương Quyền:</b> Nóng! <b>[${sLB[0][1].name}]</b> vừa đạp <b>[${sLB[1][1].name}]</b> xuống với chênh lệch siêu nhỏ. Cay!`);
+        
+        news.push(`🩹 <b style="color:#0ea5e9;">Bậc Thầy Chữa Lành:</b> Ghi nhận 5 tú tài vừa clear (xóa sạch) toàn bộ Hộp Ký Ức. Chúc mừng gia đạo bình an!`);
+        if(cheaters > 0) news.push(`🚨 <b style="color:#ef4444; font-size:16px;">Cảnh Sát Bắt Quả Tang (Anti-Cheat):</b> To gan! Trạm Kiểm Lâm vừa tóm cổ <b>${cheaters}</b> sĩ tử tự ý rời Tab khi đang thi. Lệnh bài 0 ĐIỂM đã được ban phát!`);
+        if(nightOwls.length > 0) news.push(`🦉 <b style="color:#6366f1;">Kẻ Trộm Bóng Đêm (Night Owls):</b> Giờ Tý canh Ba, <b>[${nightOwls[0]}]</b> vừa nộp bài. Tổ tiên đang còng lưng gánh điểm cho sự nỗ lực này!`);
+        
+        news.push(`🦊 <b style="color:#f97316;">Hệ Sinh Thái Tùy Tùng:</b> Tùy tùng <b>${currentPetName}</b> đang là linh vật bị bóc lột nhiều nhất để hầu hạ các tiểu chủ!`);
+        news.push(`👀 <b style="color:#ef4444;">Cảnh Báo Phụ Huynh Tới Chơi:</b> Thông tấn xã: Có Phụ Huynh vừa đăng nhập cổng tra cứu hồ sơ. Chúc các tiểu chủ bảo toàn được tính mạng tối nay!`);
+        
+        if(topErrs.length > 0) news.push(`🔮 <b style="color:#8b5cf6;">Lời Tiên Tri (Forecast):</b> Chiêm tinh học: Ai không đưa từ <b>[${topErrs[0][0]}]</b> vào Hộp Ký Ức hôm nay, bài kiểm tra tuần sau chắc chắn mếu máo!`);
+
+        let html = "";
+        news.forEach((item, i) => {
+            // Đổi màu background cho các cảnh báo nghiêm trọng
+            let extraStyle = item.includes("Cảnh Sát") ? "background:#fef2f2; border-color:#ef4444; color:#111;" : "";
+            html += `<div class="gossip-item" style="animation-delay: ${i * 0.15}s; ${extraStyle}">${item}</div>`;
+        });
+        ticker.innerHTML = html;
+        
+    }, 600);
 }
 
 function removeMemoryWord(type, vnWord) {
