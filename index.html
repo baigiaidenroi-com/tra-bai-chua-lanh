@@ -402,7 +402,15 @@
                 
                 <img src="https://i.postimg.cc/mZXvnGSS/bai-giai-den-roi-cham-com-slogan.png" alt="Thánh Chỉ Slogan" style="width: 100%; max-width: 350px; border: 3px solid var(--border-dark); border-radius: 8px; box-shadow: 4px 4px 0px var(--border-dark); margin-bottom: 25px; background: white;">
 
-                <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">1. Chọn Tùy Tùng Theo Hầu:</label>
+                <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">1. CHỌN KHỐI LỚP CỦA BẠN:</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 25px; justify-content: center;" id="gradeSelector">
+                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('6', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 6</button>
+                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('7', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 7</button>
+                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('8', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 8</button>
+                    <button type="button" class="btn btn-red class-btn" onclick="selectGrade('9', this)" style="flex:1; padding: 12px; font-size: 14px;">LỚP 9</button>
+                </div>
+
+                <label style="font-weight: 900; display: block; margin-bottom: 15px; color: var(--border-dark); text-transform: uppercase;">2. Chọn Tùy Tùng Theo Hầu:</label>
                 <div class="pet-selector" id="petSelector"></div>
                 
                 <div id="petNameDisplay" style="font-weight: 900; color: #b91c1c; margin-bottom: 25px; padding: 10px; border: 3px dashed var(--border-dark); background: rgba(0,0,0,0.05); border-radius: 8px; font-size: 15px;">Đang chọn...</div>
@@ -432,7 +440,7 @@
             </div>
             <div style="display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex: 1;">
                 <button class="btn" style="font-size:12px; padding: 10px 15px; background: rgba(16,185,129,0.1); border-color: var(--accent-green); color: var(--accent-green);" onclick="document.getElementById('parentLoginModal').style.display='flex'"><i class="fa-solid fa-family"></i> CỔNG PHỤ HUYNH</button>
-                <button class="btn btn-outline" style="padding: 10px; border-color: var(--accent-red); color: var(--accent-red);" onclick="switchScreen('loginScreen')"><i class="fa-solid fa-right-from-bracket"></i></button>
+                <button class="btn btn-outline" style="padding: 10px; border-color: var(--accent-red); color: var(--accent-red);" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
         </div>
 
@@ -637,7 +645,42 @@
 <script>
 // ==========================================
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
-const GLOBAL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0M6WP3G_vP-hhUJz2IZskYYcL1zw5TyhIaQvE1CCSndt2NA8foX25URmWkMvs8cKv/exec"
+// ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
+const SYSTEM_APIS = {
+    "6": https://script.google.com/macros/s/AKfycbwmoFatf1bqwyIcGFxO_4W7WmJ6A760oTwbP6DS9JX2GKmE76-jXSGqDHBpaSiEleKFLA/exec",
+    "7": "https://script.google.com/macros/s/AKfycby2ARFhJjZEacfZ9bRRKX490JAedzSHQN7Y6NdGYP5RcmhHB3nE3K2K7yqLYwNul6tD/exec",
+    "8": "https://script.google.com/macros/s/AKfycbw6iZeol5LwOKObKZa0GI2Wgo4xL1hzHDMjBNk6q3FieGiFr2recevalc7o6dwHYAMO/exec",
+    "9": "https://script.google.com/macros/s/AKfycby0M6WP3G_vP-hhUJz2IZskYYcL1zw5TyhIaQvE1CCSndt2NA8foX25URmWkMvs8cKv/exec"
+};
+
+let currentSelectedGrade = localStorage.getItem('user_grade') || "9";
+
+function selectGrade(grade, btnElement) {
+    currentSelectedGrade = grade;
+    localStorage.setItem('user_grade', grade);
+    document.querySelectorAll('.class-btn').forEach(btn => {
+        btn.classList.remove('btn-red'); btn.classList.add('btn-outline');
+    });
+    if(btnElement) {
+        btnElement.classList.remove('btn-outline'); btnElement.classList.add('btn-red');
+    }
+}
+
+
+    if(customUrl && customUrl.trim() !== "") return customUrl;
+    return SYSTEM_APIS[currentSelectedGrade] || SYSTEM_APIS["9"];
+}
+
+// Hàm lấy Key lưu trữ độc lập cho từng khối (Chống anh em học chung máy bị đè Data)
+function getIsoKey(prefix) { return prefix + "_G" + currentSelectedGrade + "_" + currentStudentId; }
+
+// Reset toàn bộ App khi Đăng Xuất (Tuyệt chiêu chống dính Data)
+function logout() {
+    currentStudentId = ""; 
+    document.body.innerHTML = "<div style='text-align:center; margin-top:50px; font-weight:bold; font-size: 20px;'>Đang dọn dẹp thư phòng...</div>";
+    window.location.reload(); 
+}
+// =================================================================
 // ==========================================
 
 const PETS = [
@@ -697,8 +740,8 @@ function initEconomySystem() {
         return;
     }
     // 1. Kéo data tạm ở máy để hiện UI tức thì (Không làm lag App)
-    userEconomy = JSON.parse(localStorage.getItem('eco_' + currentStudentId)) || { gold: 0, streak: 0, lastLogin: 0 };
-    offlineQueue = JSON.parse(localStorage.getItem('queue_' + currentStudentId)) || [];
+    userEconomy = JSON.parse(localStorage.getItem(getIsoKey('eco'))) || { gold: 0, streak: 0, lastLogin: 0 };
+    offlineQueue = JSON.parse(localStorage.getItem(getIsoKey('queue'))) || [];
     
     let wallet = document.getElementById('economyWalletBox');
     if(wallet) wallet.style.display = 'flex';
@@ -722,7 +765,7 @@ function syncEconomyFromServer() {
             // Server chính là Chân Lý. Ghi đè số Vàng Server trả về vào máy hiện tại
             if (userEconomy.gold !== data.gold) {
                 userEconomy.gold = data.gold;
-                localStorage.setItem('eco_' + currentStudentId, JSON.stringify(userEconomy));
+                localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
                 updateGoldUI(); // Hiệu ứng nhảy số nếu Vàng thay đổi
                 console.log("🔄 Đã đồng bộ Vàng chuẩn từ Ngân Khố Server: " + data.gold);
             } else {
@@ -737,7 +780,7 @@ function addEconomyLog(actionName, goldChange) {
     if(!currentStudentId || currentStudentId === 'T11') return;
     
     userEconomy.gold += goldChange;
-    localStorage.setItem('eco_' + currentStudentId, JSON.stringify(userEconomy));
+    localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
     
     let logItem = {
         id: Date.now().toString(36) + Math.random().toString(36).substring(2),
@@ -747,7 +790,7 @@ function addEconomyLog(actionName, goldChange) {
         goldDiff: goldChange
     };
     offlineQueue.push(logItem);
-    localStorage.setItem('queue_' + currentStudentId, JSON.stringify(offlineQueue));
+    localStorage.setItem(getIsoKey('queue'), JSON.stringify(offlineQueue));
     
     updateGoldUI();
     console.log(`Giao dịch ngầm: [${actionName}] | Biến động: ${goldChange} Vàng`);
@@ -888,7 +931,7 @@ setInterval(() => {
             console.log("✅ Ghi sổ Ngân Khố thành công!");
             // Chỉ khi Sheets báo OK, mới xóa giao dịch đó khỏi máy học sinh
             offlineQueue = offlineQueue.filter(item => !batch.some(b => b.id === item.id));
-            if(currentStudentId) localStorage.setItem('queue_' + currentStudentId, JSON.stringify(offlineQueue));
+            if(currentStudentId) localStorage.setItem(getIsoKey('queue'), JSON.stringify(offlineQueue));
         }
     })
     .catch(err => {
@@ -1054,7 +1097,7 @@ function executeForceSubmit() { closeModal('forceSubmitModal'); clearInterval(ti
 window.onload = async function() { 
     renderPetSelector(); document.getElementById('settingScriptUrl').value = getScriptUrl();
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
-    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass });
+    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox });
     if(data.deadlines) serverDeadlines = data.deadlines;
     fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { if(d.logs) { allLogsCache = d.logs; if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } } });
 };
@@ -1073,7 +1116,10 @@ function login() {
     let id = document.getElementById('studentId').value.trim().toUpperCase();
     if(id === 'T11' || studentDB[id]) {
         currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến (Admin Test)" : studentDB[id].name;
-        
+        // ĐỒNG BỘ HỘP KÝ ỨC TỪ SERVER XUỐNG MÁY MỚI
+        if (studentDB[id] && studentDB[id].memoryBox) {
+            localStorage.setItem(getIsoKey('membox'), studentDB[id].memoryBox);
+        }
         document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
         document.getElementById('dashAvatar').innerText = currentPet; 
         
@@ -1720,12 +1766,12 @@ function renderSlackerMatrix() {
 
 // ==================== BỘ NÃO HỘP KÝ ỨC (FIXED) ====================
 function getMemoryBox() {
-    return JSON.parse(localStorage.getItem('membox_' + currentStudentId)) || { vocab: [], prep: [], wordform: [] };
+    return JSON.parse(localStorage.getItem(getIsoKey('membox'))) || { vocab: [], prep: [], wordform: [] };
 }
 
 let syncMemoryTimeout = null;
 function saveMemoryBox(box) {
-    localStorage.setItem('membox_' + currentStudentId, JSON.stringify(box));
+    localStorage.setItem(getIsoKey('membox'), JSON.stringify(box));
     clearTimeout(syncMemoryTimeout);
     syncMemoryTimeout = setTimeout(() => {
         if(getScriptUrl().startsWith("http")) {
