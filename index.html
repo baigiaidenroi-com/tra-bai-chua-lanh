@@ -690,17 +690,44 @@ let isSyncing = false;
 function initEconomySystem() {
     if(!currentStudentId || currentStudentId === 'T11') {
         let wallet = document.getElementById('economyWalletBox');
-        if(wallet) wallet.style.display = 'none'; // Ẩn ví nếu là Admin
+        if(wallet) wallet.style.display = 'none'; 
         return;
     }
+    // 1. Kéo data tạm ở máy để hiện UI tức thì (Không làm lag App)
     userEconomy = JSON.parse(localStorage.getItem('eco_' + currentStudentId)) || { gold: 0, streak: 0, lastLogin: 0 };
     offlineQueue = JSON.parse(localStorage.getItem('queue_' + currentStudentId)) || [];
     
     let wallet = document.getElementById('economyWalletBox');
-    if(wallet) wallet.style.display = 'flex'; // Hiện ví cho Học sinh
-    
+    if(wallet) wallet.style.display = 'flex';
     updateGoldUI();
-    console.log("💰 Hệ thống Kinh tế đã sẵn sàng. Vàng: " + userEconomy.gold);
+
+    // 2. CHẠY NGẦM ĐỒNG BỘ TỪ SERVER VỀ (Bất tử hóa Data khi đổi máy)
+    syncEconomyFromServer();
+}
+
+function syncEconomyFromServer() {
+    let scriptUrl = getScriptUrl();
+    if(!scriptUrl) return;
+    
+    fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({ type: 'getStudentEconomy', studentId: currentStudentId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.result === 'success') {
+            // Server chính là Chân Lý. Ghi đè số Vàng Server trả về vào máy hiện tại
+            if (userEconomy.gold !== data.gold) {
+                userEconomy.gold = data.gold;
+                localStorage.setItem('eco_' + currentStudentId, JSON.stringify(userEconomy));
+                updateGoldUI(); // Hiệu ứng nhảy số nếu Vàng thay đổi
+                console.log("🔄 Đã đồng bộ Vàng chuẩn từ Ngân Khố Server: " + data.gold);
+            } else {
+                console.log("✅ Data Vàng trên máy đã đồng bộ chuẩn với Server.");
+            }
+        }
+    })
+    .catch(err => console.log("⏳ Chưa thể kết nối Ngân Khố, xài tạm Vàng offline."));
 }
 
 function addEconomyLog(actionName, goldChange) {
