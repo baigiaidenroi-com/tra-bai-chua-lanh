@@ -655,7 +655,7 @@ const SYSTEM_APIS = {
 
 let currentSelectedGrade = localStorage.getItem('user_grade') || "9";
 
-function selectGrade(grade, btnElement) {
+async function selectGrade(grade, btnElement) {
     currentSelectedGrade = grade;
     localStorage.setItem('user_grade', grade);
     document.querySelectorAll('.class-btn').forEach(btn => {
@@ -663,6 +663,28 @@ function selectGrade(grade, btnElement) {
     });
     if(btnElement) {
         btnElement.classList.remove('btn-outline'); btnElement.classList.add('btn-red');
+    }
+    
+    // BƯỚC NÂNG CẤP: BÁO HIỆU ĐANG TẢI & KÉO DATA LỚP MỚI VỀ
+    let idInput = document.getElementById('studentId');
+    if(idInput) {
+        idInput.value = "";
+        idInput.placeholder = "Đang tải tệp Lớp " + grade + " (Chờ 2 giây)...";
+        idInput.setAttribute('readonly', 'true');
+    }
+    
+    // Xóa sạch danh sách cũ, chỉ chừa lại Thầy Tiến
+    studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123" } }; 
+    
+    // Ra lệnh gọi Google Sheets tải danh sách mới
+    let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
+    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox });
+    if(data.deadlines) serverDeadlines = data.deadlines;
+    
+    // Tải xong thì mở khóa ô nhập ID
+    if(idInput) {
+        idInput.placeholder = "Nhập Lệnh Bài (VD: 91)...";
+        idInput.removeAttribute('readonly');
     }
 }
 
