@@ -651,6 +651,23 @@
 </div>
 
 <script>
+// Hàm biến đổi chuỗi "23h59p T2 (21/7)" thành thời gian chuẩn của máy tính
+function parseCustomDeadline(dlStr) {
+    if (!dlStr) return null;
+    let match = dlStr.match(/(\d+)h(\d+)p.*\((\d+)\/(\d+)\)/);
+    
+    if (match) {
+        let hour = parseInt(match[1]);
+        let minute = parseInt(match[2]);
+        let date = parseInt(match[3]);
+        let month = parseInt(match[4]) - 1; // Tháng trong JS tính từ 0 (0 = Tháng 1)
+        let year = new Date().getFullYear();
+        
+        return new Date(year, month, date, hour, minute, 0).getTime();
+    }
+    return null; 
+}
+
 // ==========================================
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
@@ -1794,7 +1811,34 @@ function surrenderTest() {
 </div>
 
 <script>
+// --- HÀM TIỆN ÍCH XỬ LÝ DEADLINE ---
+function parseCustomDeadline(dlStr) {
+    if (!dlStr) return null;
+    let match = dlStr.match(/(\d+)h(\d+)p.*\((\d+)\/(\d+)\)/);
+    if (match) {
+        let hour = parseInt(match[1]);
+        let minute = parseInt(match[2]);
+        let date = parseInt(match[3]);
+        let month = parseInt(match[4]) - 1; 
+        let year = new Date().getFullYear();
+        return new Date(year, month, date, hour, minute, 0).getTime();
+    }
+    return null; 
+}
 
+function kiemTraTinhTrangDeadline(danhSachDeadlines) {
+    if (!danhSachDeadlines || danhSachDeadlines.length === 0) return;
+    let thoiGianHienTai = new Date().getTime();
+    console.log("🔍 Đang kiểm tra thánh chỉ...");
+    for (let i = 0; i < danhSachDeadlines.length; i++) {
+        let nhiemVu = danhSachDeadlines[i];
+        let thoiGianHanChot = parseCustomDeadline(nhiemVu.deadlineStr);
+        if (thoiGianHanChot !== null && thoiGianHienTai > thoiGianHanChot) {
+            console.log("❌ TRỄ HẠN: " + nhiemVu.type.toUpperCase() + " Unit " + nhiemVu.unit);
+            // Bạn có thể thêm lệnh xử lý phạt ở đây nếu muốn
+        }
+    }
+}
 
 // ==================== HỆ THỐNG PHÂN QUYỀN & VAI PHỤ MỜ NHẠT ====================
 function applyRoleUI() {
