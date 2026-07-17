@@ -1961,6 +1961,40 @@ function syncBlackbookToServer() {
         }
     }, 2000);
 }
+// ================= TẢI DỮ LIỆU TỪ SERVER XUỐNG THIẾT BỊ MỚI =================
+function syncDataFromServerToDevice() {
+    if (!currentStudentId || currentStudentId === 'T11') return;
+    
+    // Sử dụng hàm fetchWithFallback có sẵn của bạn để đảm bảo an toàn mạng đường truyền
+    fetchWithFallback(getScriptUrl(), "getUserData", { memoryBoxData: null, blackbookData: null }, `&studentId=${currentStudentId}`)
+    .then(data => {
+        if (data) {
+            let needRefresh = false;
+            
+            // 1. Cập nhật Hộp Ký Ức xuống Local Storage thiết bị mới
+            if (data.memoryBoxData) {
+                let memBoxStr = typeof data.memoryBoxData === 'string' ? data.memoryBoxData : JSON.stringify(data.memoryBoxData);
+                localStorage.setItem(getIsoKey('membox'), memBoxStr);
+                needRefresh = true;
+            }
+            
+            // 2. Cập nhật Sổ Đen (Hình Bộ) & Danh sách từ đã Phục Thù thành công
+            if (data.blackbookData) {
+                let payload = typeof data.blackbookData === 'string' ? JSON.parse(data.blackbookData) : data.blackbookData;
+                if (payload.errors) localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(payload.errors));
+                if (payload.fixed) localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(payload.fixed));
+                needRefresh = true;
+            }
+            
+            // Nếu có dữ liệu mới được tải xuống, cập nhật lại giao diện ngay lập tức
+            if (needRefresh) {
+                showToast("🔄 Đã đồng bộ Hộp Ký Ức & Sổ Đen từ máy chủ xuống thiết bị!");
+                if (document.getElementById('memoryBoxModal').style.display === 'flex') openMemoryBox();
+                if (document.getElementById('blackbookModal').style.display === 'flex') openBlackbook();
+            }
+        }
+    }).catch(err => console.log("Lỗi tải dữ liệu từ server: ", err));
+}
 function updateHeartUI() {
     if(!questionsQueue || questionsQueue.length === 0) return;
     let q = questionsQueue[currentQIndex];
@@ -2007,6 +2041,11 @@ function openMemoryBox() {
     document.getElementById('memoryBoxModal').style.display = 'flex';
     let box = getMemoryBox();
     
+    // BỔ SUNG: Nếu là thiết bị mới (dữ liệu local trống), tự động kéo từ Server xuống
+    if (!box.vocab.length && !box.prep.length && !box.wordform.length) {
+        syncDataFromServerToDevice();
+    }
+    
     ['vocab', 'prep', 'wordform'].forEach(type => {
         let containerId = type === 'vocab' ? 'memVocab' : (type === 'prep' ? 'memPrep' : 'memWordform');
         let container = document.getElementById(containerId);
@@ -2040,6 +2079,12 @@ let globalBlackbookMap = new Map(); // Biến toàn cục giữ data để làm 
 function openBlackbook() {
     document.getElementById('blackbookModal').style.display = 'flex';
     let container = document.getElementById('blackbookList');
+    
+    // BỔ SUNG: Nếu thiết bị mới chưa có bộ nhớ đệm Sổ Đen, tiến hành đồng bộ từ Server
+    let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+    if (localBB.length === 0) {
+        syncDataFromServerToDevice();
+    }
     
     globalBlackbookMap.clear();
     
