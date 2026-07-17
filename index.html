@@ -805,6 +805,30 @@ function syncEconomyFromServer() {
     .catch(err => console.log("⏳ Chưa thể kết nối Ngân Khố, xài tạm Vàng offline."));
 }
 
+// --- BẮT ĐẦU CHÈN CODE: ĐỒNG BỘ DATA LÊN SERVER ---
+function syncCloudData(actionType, syncData) {
+    if(!currentStudentId || currentStudentId === 'T11') return;
+    let scriptUrl = getScriptUrl();
+    if(!scriptUrl) return;
+    
+    fetch(scriptUrl, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify({ 
+            type: actionType, // 'updateMemoryBox' hoặc 'updateBlackbook'
+            studentId: currentStudentId,
+            data: syncData
+        })
+    })
+    .then(res => res.json())
+    .then(data => console.log("☁️ Đã đồng bộ " + actionType + " lên Server!"))
+    .catch(err => console.log("⏳ Lỗi đồng bộ Server..."));
+}
+// --- KẾT THÚC CHÈN CODE ---
+
 function addEconomyLog(actionName, goldChange) {
     if(!currentStudentId || currentStudentId === 'T11') return;
     
@@ -1970,6 +1994,10 @@ function toggleMemoryWord(event) {
         showToast("💖 Đã lưu thành công!");
     }
     saveMemoryBox(box);
+// Bắn mảng Hộp Ký Ức mới nhất lên Server
+    if (studentDB[currentStudentId] && studentDB[currentStudentId].memoryBox) {
+        syncCloudData('updateMemoryBox', studentDB[currentStudentId].memoryBox);
+    }
 }
 
 function openMemoryBox() {
@@ -2233,6 +2261,23 @@ function switchMemoryTab(tabId, el) {
     let modal = document.getElementById('memoryBoxModal');
     modal.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
     document.getElementById(tabId).style.display = 'block';
+}
+
+// ================= HỆ THỐNG ĐỒNG BỘ KÝ ỨC & SỔ ĐEN LÊN SERVER =================
+function syncDataToServer(actionType, dataArray) {
+    if(!currentStudentId || currentStudentId === 'T11') return; // Bỏ qua Admin
+    let scriptUrl = getScriptUrl();
+    if(!scriptUrl) return;
+
+    fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+            type: actionType, // Sẽ là 'updateMemoryBox' hoặc 'updateBlackbook'
+            studentId: currentStudentId,
+            dataContent: JSON.stringify(dataArray) // Gói gọn data thành chuỗi để gửi
+        })
+    }).then(res => console.log(`[Thành công] Đã đồng bộ ${actionType} lên Thiên Đình!`))
+      .catch(err => console.log(`[Thất bại] Lỗi truyền tin: `, err));
 }
 </script>
 </body>
