@@ -1155,9 +1155,9 @@ function login() {
         initEconomySystem(); switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor(); applyRoleUI();
     } else { 
         if (Object.keys(studentDB).length <= 1) {
-            showToast("⏳ App đang lấy dữ liệu, đợi 2-3 giây rồi bấm lại nhé!");
+            showToast("⏳ Bẩm đại nhân, nô tài đang chạy vắt chân lên cổ truyền tin, người đợi 2-3 giây rồi bấm lại nhé!");
         } else {
-            showToast("🤴💢 TO GAN! Dám dùng lệnh bài 'pha kè' trà trộn Hoàng Cung? Bắt nhập lại!"); 
+            showToast("🤴💢 TO GAN! Dám dùng lệnh bài 'pha kè' trà trộn Hoàng Cung? Nhập lại!"); 
             let inp = document.getElementById('studentId'); inp.style.borderColor = "var(--accent-red)"; setTimeout(() => inp.style.borderColor = "var(--border-dark)", 500); 
         }
     }
@@ -1243,13 +1243,13 @@ function calcRivalAnchor() {
         let bNick = studentDB[bot.id]?.name || bot.id;
         // Đã làm tròn 1 chữ số cho Top dưới
         html += `<div style="display:flex; justify-content:space-between; padding:5px; border:2px dashed var(--border-dark); border-radius:6px; opacity:0.8;"><span style="font-size:12px;">🔽 Top ${myIdx+2}: ${bNick}</span><span style="font-weight:bold; color:var(--border-dark); font-size:13px;">${bot.score.toFixed(1)} đ</span></div>`;
-        if(!msg) msg = `Cẩn thận! Bạn [${bNick}] đang phả hơi nóng ngay sau lưng kìa!`;
+        if(!msg) msg = `Cẩn thận! Bạn [${bNick}] đang phả hơi nóng ngay sau gáy kìa!`;
     }
     
     document.getElementById('rivalList').innerHTML = html; document.getElementById('rivalGaze').innerText = msg || "Bạn đang là Độc Cô Cầu Bại, tiến lên Top 1!"; document.getElementById('rivalAnchorBox').style.display = 'block';
 }
 
-function openBaoBai() { switchScreen('baoBaiScreen'); document.getElementById('baoBaiContent').innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang tải lệnh...</div>'; fetchWithFallback(getScriptUrl(), "getBaoBai", { content: "Chưa có thông báo nào." }).then(data => { document.getElementById('baoBaiContent').innerText = data.content; }); }
+function openBaoBai() { switchScreen('baoBaiScreen'); document.getElementById('baoBaiContent').innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang truyền thánh chỉ...</div>'; fetchWithFallback(getScriptUrl(), "getBaoBai", { content: "Chưa có thông báo nào." }).then(data => { document.getElementById('baoBaiContent').innerText = data.content; }); }
 function openDauTruong() { switchScreen('dauTruongMenuScreen'); }
 
 function openUnitGrid(type, action) {
@@ -1289,7 +1289,7 @@ function startPracticeMode() { let cacheKey = 'cooldown_' + currentStudentId + '
 function shuffleArray(array) { let cur = array.length, ran; while (cur > 0) { ran = Math.floor(Math.random() * cur); cur--; [array[cur], array[ran]] = [array[ran], array[cur]]; } return array; }
 
 async function startFlow(unit, part = 0) {
-    currentUnit = unit; currentPart = part; showToast("Đang kết nối Server...");
+    currentUnit = unit; currentPart = part; showToast("Đang phá kết giới...");
     let isGrammar = currentType === 'grammar', apiMode = isGrammar ? 'getBank' : 'getTraBai';
     const MOCK_VOCAB = [{ baseWord: "Nghệ nhân*", answers: "artisan", type: "vocab" }, { baseWord: "HISTORY", answers: "adj:historic* | adj:historical | adv:historically", type: "wordform" }, { baseWord: "Famous*", answers: "for", type: "prep" }, { baseWord: "Balance*", answers: "n:balance | adj:balanced", type: "wordform" }];
     let mockFallback = MOCK_VOCAB.filter(q => q.type === currentType);
@@ -1530,14 +1530,14 @@ document.getElementById('parentStudentName').innerHTML = `${sName} <div style="f
 
     vocabRowsDesc.forEach((row, index) => {
         let timeStr = row[0], category = row[3] ? row[3].toString().replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "") : "", unitInfo = row[4] ? row[4].toString() : "", score = row[5] ? parseFloat(row[5]) : 0, cCount = row[6] ? row[6].toString() : "0", wCount = row[7] ? row[7].toString() : "0", durStr = row[10] ? row[10].toString() : "--";
-        totalVocabScore += score; vocabCount++; let badge = index === 0 ? `<span class="badge-new">NEW ✨</span>` : "";
-        vocabHtml += `<tr><td style="text-align:left;"><b>${unitInfo}</b> ${badge}<br><small>${category}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
+        totalVocabScore += score; vocabCount++; let badge = index === 0 ? `<div class="badge-new" style="display: inline-block; font-size: 8px; padding: 2px 5px; margin: 3px 0; vertical-align: baseline;">NEW ✨</div>` : "";
+        vocabHtml += `<tr><td style="text-align:left; line-height: 1.4;"><b>${unitInfo}</b><br>${badge}<br><small>${category}</small></td><td style="font-size:11px;">${timeStr}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
     });
     document.getElementById('parentVocabLogsBody').innerHTML = vocabHtml || `<tr><td colspan="6" style="color:var(--text-muted);">Chưa thi Từ Vựng.</td></tr>`;
     if(grammarCount === 0) document.getElementById('grammarParentContainer').style.display = 'none'; else { document.getElementById('grammarParentContainer').style.display = 'block'; document.getElementById('parentGrammarLogsBody').innerHTML = grammarHtml; }
 
     let recBox = document.getElementById('parentRecommendationBox'), avgVocab = vocabCount > 0 ? (totalVocabScore / vocabCount) : 10, avgGrammar = grammarCount > 0 ? (totalGrammarScore / grammarCount) : 10, proposal = "";
-    if(avgVocab < 7) proposal += "⚠️ <b>Từ vựng:</b> Phụ huynh nên đốc thúc con vào mục 'Trại Huấn Luyện' mỗi ngày 10 phút.<br>"; else proposal += "✅ <b>Từ vựng:</b> Nhớ từ và dạng từ rất tốt. Duy trì nhé!<br>";
+    if(avgVocab < 7) proposal += "⚠️ <b>Từ vựng:</b> Thái Thượng Hoàng và Mẫu Hậu đốc thúc con vào mục TÀNG KINH CÁC, ôn tập lại bài mỗi ngày, và xử lý hết số tội phạm Từ Vựng Không Thuộc trong HÌNH BỘ nhé!<br>"; else proposal += "✅ <b>Từ vựng:</b> Nhớ từ và dạng từ rất tốt. Duy trì nhé!<br>";
     if(grammarCount > 0) { if(avgGrammar < 7) proposal += "⚠️ <b>Ngữ pháp:</b> Đang bị hổng cấu trúc. Cần xem lại vở."; else proposal += "✅ <b>Ngữ pháp:</b> Nắm chắc quy tắc câu. Tốt!"; }
     recBox.innerHTML = proposal;
 
