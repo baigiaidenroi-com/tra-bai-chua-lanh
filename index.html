@@ -383,13 +383,58 @@
 
 <div class="app-container">
     <div class="header">
-        <div class="header-main">
-            <i class="fa-solid fa-house home-btn" onclick="goHome()" title="Về sảnh" style="position:static;"></i>
-            <div style="text-align: center; display: flex; flex-direction: column; flex: 1; padding: 0 5px;">
-                <h1 style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 1px;">TRẢ BÀI CHỮA LÀNH</h1>
-                <div style="font-size: 10px; color: var(--accent-yellow); font-style: italic;">Dò từ không quạu, gia đạo bình an</div>
-            </div>
+       <!-- CSS ĐIỀU KHIỂN HIỂN THỊ (Nên copy để phía trên cùng hoặc trong thẻ <head>) -->
+<style>
+    .healing-title-container {
+        text-align: left; /* Laptop mặc định canh trái */
+        display: flex; 
+        flex-direction: column; 
+        flex: 1; 
+        padding: 0 5px;
+    }
+    .healing-title {
+        margin: 0; 
+        font-size: 15px; 
+        font-weight: 900; 
+        letter-spacing: 1px;
+    }
+    .healing-slogan {
+        font-size: 10px; 
+        color: var(--accent-yellow); 
+        font-style: italic;
+    }
+    /* Dấu gạch nối chia 2 vế trên Laptop */
+    .slogan-p1::after {
+        content: " - ";
+    }
+
+    /* ÉP KHUÔN CHO ĐIỆN THOẠI (Màn hình dưới 768px) */
+    @media (max-width: 768px) {
+        .healing-title-container {
+            text-align: center !important; /* Đẩy text ra giữa */
+        }
+        .slogan-p1::after {
+            content: ""; /* Giấu dấu gạch nối đi */
+        }
+        .slogan-p1, .slogan-p2 {
+            display: block; /* Chẻ slogan thành 2 dòng */
+            margin-top: 2px;
+        }
+    }
+</style>
+
+<!-- PHẦN HTML GIAO DIỆN -->
+<div class="header-main">
+    <i class="fa-solid fa-house home-btn" onclick="goHome()" title="Về sảnh" style="position:static;"></i>
+    
+    <div class="healing-title-container">
+        <h1 class="healing-title">TRẢ BÀI CHỮA LÀNH</h1>
+        <div class="healing-slogan">
+            <span class="slogan-p1">Dò từ không quạu</span>
+            <span class="slogan-p2">gia đạo bình an</span>
         </div>
+    </div>
+</div>
         <div class="header-sub">
             <div style="text-align: right;"><span style="color: var(--surface-color);">MR.TIẾN</span><br><span style="color: var(--accent-yellow);">BAIGIAIDENROI.COM</span></div>
             <i class="fa-solid fa-moon theme-toggle" onclick="toggleTheme()" title="Chế độ Tối" style="position:static;"></i>
