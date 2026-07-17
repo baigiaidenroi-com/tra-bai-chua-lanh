@@ -2081,7 +2081,7 @@ function openBlackbook() {
     let container = document.getElementById('blackbookList');
     
     // BỔ SUNG: Nếu thiết bị mới chưa có bộ nhớ đệm Sổ Đen, tiến hành đồng bộ từ Server
-    let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+    localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
     if (localBB.length === 0) {
         syncDataFromServerToDevice();
     }
