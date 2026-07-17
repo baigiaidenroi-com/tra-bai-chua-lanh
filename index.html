@@ -434,7 +434,7 @@
                 <div id="dashAvatar" style="width: 60px; height: 60px; border: 3px solid var(--border-dark); border-radius: 50%; background: var(--surface-color); display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: var(--shadow-hard); flex-shrink: 0;">🦊</div>
                 <div>
                     <div id="dashName" style="font-weight: 900; font-size: 18px; text-transform: uppercase;"></div>
-                    <div style="font-size: 12px; color: var(--accent-red); font-weight: bold; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--accent-red); display: inline-block; margin-top: 4px;"><i class="fa-solid fa-fire"></i> Sẵn sàng</div>
+                    <div style="font-size: 12px; color: var(--accent-red); font-weight: bold; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--accent-red); display: inline-block; margin-top: 4px;"><i class="fa-solid fa-fire"></i> Long thể an khang</div>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex: 1;">
@@ -448,44 +448,44 @@
                 <span style="font-size: 12px; font-weight: 900; color: var(--border-dark); text-transform: uppercase;"><i class="fa-solid fa-vault"></i> KHO BẠC HOÀNG GIA</span>
                 <span style="font-size: 28px; font-weight: 900; color: var(--border-dark); text-shadow: 2px 2px 0px white;"><span id="uiGoldDisplay">0</span> <i class="fa-solid fa-coins fa-bounce" style="color: #d97706;"></i></span>
             </div>
-            <button class="btn btn-dark" style="padding: 10px 15px; font-size: 12px; border-color: var(--text-muted); border-width: 2px; filter: grayscale(1); opacity: 0.8;" onclick="showToast('Hoàng Thượng đang đi lấy Bổng Lộc. Quầy sẽ mở vào Tuần Sau! Hãy tích Vàng đi!')"><i class="fa-solid fa-lock"></i> ĐỔI THƯỞNG</button>
+            <button class="btn btn-dark" style="padding: 10px 15px; font-size: 12px; border-color: var(--text-muted); border-width: 2px; filter: grayscale(1); opacity: 0.8;" onclick="showToast('Hoàng Thượng đang đi lấy Bổng Lộc. Quầy sẽ mở vào Tuần Sau! Hãy tích Vàng đi!')"><i class="fa-solid fa-lock"></i> XIN CẤP BỔNG LỘC</button>
         </div>
 
         <div id="rivalAnchorBox" style="background: white; border: 3px solid var(--border-dark); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: var(--shadow-hard); display:none;">
-            <h4 style="margin: 0 0 10px 0; color: var(--accent-blue); text-transform: uppercase; font-size: 14px; border-bottom: 2px dashed var(--border-dark); padding-bottom: 8px;"><i class="fa-solid fa-crosshairs fa-spin"></i> ĐỐI THỦ TRUYỀN KIẾP</h4>
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-blue); text-transform: uppercase; font-size: 14px; border-bottom: 2px dashed var(--border-dark); padding-bottom: 8px;"><i class="fa-solid fa-crosshairs fa-spin"></i> CÁI GAI TRONG MẮT BẢN CUNG</h4>
             <div id="rivalList" style="display: flex; flex-direction: column; gap: 8px;"></div>
             <p id="rivalGaze" style="font-size: 13px; font-weight: 900; color: var(--accent-red); margin: 12px 0 0 0; text-align: center;"></p>
         </div>
 
        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; margin-top: 15px;">
     <button class="btn" style="width:100%; margin:0; background:var(--surface-color); border: 3px solid var(--border-dark); font-weight:900; box-shadow: 4px 4px 0px var(--border-dark);" onclick="openBaoBai()">
-        <i class="fa-solid fa-bullhorn"></i> BÁO BÀI
+        <i class="fa-solid fa-bullhorn"></i> TRUYỀN THÁNH Ý (Báo Bài)
     </button>
     <button class="btn" style="width:100%; margin:0; background:#fbcfe8; border: 3px solid var(--border-dark); color:#111; font-weight:900; box-shadow: 4px 4px 0px var(--border-dark);" onclick="openMemoryBox()">
-        <i class="fa-solid fa-box-open fa-bounce"></i> HỘP KÝ ỨC
+        <i class="fa-solid fa-box-open fa-bounce"></i> HỘP KÝ ỨC (Lưu từ vựng tiểu chủ "yêu chiều")
     </button>
     <button class="btn btn-dark" style="width:100%; margin:0; font-weight:900; border-color: var(--accent-red); box-shadow: 4px 4px 0px var(--accent-red); color: white;" onclick="openBlackbook()">
-        <i class="fa-solid fa-skull fa-shake" style="color: var(--accent-red);"></i> SỔ ĐEN (LỖI SAI)
+        <i class="fa-solid fa-skull fa-shake" style="color: var(--accent-red);"></i> HÌNH BỘ (Thực thi công lý, "trừng phạt" từ vựng sai)
     </button>
 </div>
         <div id="deadlineStatusBox" style="display:none; background:#fff5f5; border:4px dashed var(--accent-red); border-radius:12px; padding:20px; margin-bottom:20px; box-shadow: 6px 6px 0px var(--accent-red); animation: pulseAlertUI 1.5s infinite alternate;">
             <h3 style="margin:0 0 15px 0; color:var(--accent-red); text-transform:uppercase; font-size:18px; text-align:center; border-bottom:2px dashed var(--accent-red); padding-bottom:10px;">
-                <i class="fa-solid fa-triangle-exclamation fa-beat"></i> NHIỆM VỤ KHẨN CHƯA LÀM!
+                <i class="fa-solid fa-triangle-exclamation fa-beat"></i> QUÂN TÌNH CẤP BÁO! THẤT THỦ ĐẾN NƠI!
             </h3>
             <div id="deadlineStatusList" style="font-size:14px; font-weight:900; color:var(--border-dark); line-height:1.8; text-align:left;"></div>
         </div>
         
         <button class="btn btn-blue" style="width: 100%; margin-bottom: 20px; padding: 15px; font-size: 14px;" onclick="document.getElementById('manualModal').style.display='flex'">
-            <i class="fa-solid fa-book-open-reader"></i> HƯỚNG DẪN SỬ DỤNG APP (NEW)
+            <i class="fa-solid fa-book-open-reader"></i> BÍ TỊCH SINH TỒN THÂM CUNG
         </button>
 
         <div class="grid-2" style="margin-bottom: 15px;">
             <div class="card-brutal" style="background: rgba(30,144,255,0.1); border-color: var(--accent-blue);" onclick="openDauTruong()">
-                <i class="fa-solid fa-chess-knight card-icon" style="color: var(--accent-blue);"></i><h4 style="margin: 0; color: var(--accent-blue); font-size: 14px;">ĐẤU TRƯỜNG<br>TỪ VỰNG</h4>
+                <i class="fa-solid fa-chess-knight card-icon" style="color: var(--accent-blue);"></i><h4 style="margin: 0; color: var(--accent-blue); font-size: 14px;">VÕ LÂM TRANH BÁ<br>(Từ Vựng)</h4>
             </div>
             <div class="card-brutal" style="background: rgba(46,213,115,0.1); border-color: var(--accent-green); opacity: 0.6; cursor: not-allowed;" onclick="showHumorousLock()">
-                <i class="fa-solid fa-lock card-icon" style="color: var(--accent-green);"></i><h4 style="margin: 0; color: var(--accent-green); font-size: 14px;">TEST<br>NGỮ PHÁP</h4>
-                <span style="background: var(--border-dark); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; position: absolute; top: 10px; right: 10px; font-weight:bold;">ĐANG BẢO TRÌ</span>
+                <i class="fa-solid fa-lock card-icon" style="color: var(--accent-green);"></i><h4 style="margin: 0; color: var(--accent-green); font-size: 14px;">LUẬN KIẾM ĐẠI HỘI<br>(Ngữ Pháp)</h4>
+                <span style="background: var(--border-dark); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; position: absolute; top: 10px; right: 10px; font-weight:bold;">ĐANG BẾ QUAN TOẢ CẢNG</span>
             </div>
         </div>
 
@@ -499,7 +499,7 @@
         </div>
         
         <button class="btn" style="width: 100%; margin-top: 20px; padding: 18px; font-size: 14px; background: #f8fafc; color: var(--text-muted); border-color: var(--text-muted); border-style: dashed; box-shadow: none;" onclick="showToast('Cẩm Y Vệ đang thu thập tình báo... Chờ đến Thứ 7 để hít drama nhé!')">
-    <i class="fa-solid fa-lock"></i> BẢNG TIN THỊ PHI (Sắp mở)
+    <i class="fa-solid fa-lock"></i> BẢNG TIN THỊ PHI (Cẩm Y Vệ đang hóng)
 </button>
     </div>
 
@@ -517,19 +517,19 @@
     <div id="baoBaiScreen" class="screen scrollable-area">
         <div style="display: flex; flex-direction: column; height: 100%;">
             <div class="top-bar" style="flex-shrink: 0;">
-                <h2 style="margin: 0; color: var(--accent-red); text-transform: uppercase;"><i class="fa-solid fa-bullhorn"></i> Lệnh từ Thầy</h2>
+                <button class="btn btn-blue" style="width: 100%; margin-top: 20px; flex-shrink: 0;" onclick="goBack()">ĐÃ RÕ NHIỆM VỤ!</button>
                 <button class="btn btn-outline" style="padding: 10px;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
             </div>
             <div style="flex-grow: 1; display: flex; flex-direction: column;">
                 <div id="baoBaiContent" style="background: var(--surface-color); border: 4px dashed var(--border-dark); padding: 25px; border-radius: 8px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; height: auto; min-height: fit-content; flex-grow: 1;">Đang tải dữ liệu...</div>
             </div>
-            <button class="btn btn-blue" style="width: 100%; margin-top: 20px; flex-shrink: 0;" onclick="goBack()">ĐÃ RÕ NHIỆM VỤ!</button>
+            <button class="btn btn-blue" style="width: 100%; margin-top: 20px; flex-shrink: 0;" onclick="goBack()">TA ĐÃ HIỂU CỚ SỰ!</button>
         </div>
     </div>
 
     <div id="dauTruongMenuScreen" class="screen scrollable-area">
         <div class="top-bar">
-            <h2 style="margin: 0; color: var(--accent-blue); text-transform: uppercase;"><i class="fa-solid fa-chess-knight"></i> Đấu Trường</h2>
+            <h2 style="margin: 0; color: var(--accent-blue); text-transform: uppercase;"><i class="fa-solid fa-chess-knight"></i> Sa Trường Huyết Quản</h2>
             <button class="btn btn-outline" style="padding: 10px;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
         </div>
 
