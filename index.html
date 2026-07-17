@@ -1301,7 +1301,12 @@ async function startFlow(unit, part = 0) {
 function setupSession(data, part = 0) {
     clearInterval(timerInterval); exactErrorDetails = []; cheatWarnings = 0; testStartTime = Date.now();
     sessionMaxCombo = 0; currentCombo = 0; sessionFixedErrors = 0; sessionErrorWords = [];
-    pastStudentErrors.clear(); allLogsCache.filter(r => r[1] === currentStudentId).forEach(r => { if(r[13]) r[13].toString().split(',').forEach(w => { let vn = w.split('::')[0].trim(); if(vn) pastStudentErrors.add(vn); }); });
+    pastStudentErrors.clear(); 
+    allLogsCache.filter(r => r[1] === currentStudentId).forEach(r => { if(r[13]) r[13].toString().split(',').forEach(w => { let vn = w.split('::')[0].trim(); if(vn) pastStudentErrors.add(vn); }); });
+    
+    // FIX SỔ ĐEN: Ghi nhận lỗi sai từ Local Storage để tính điểm Phục Thù
+    let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+    localBB.forEach(w => { let vn = w.split('::')[0].trim(); if(vn) pastStudentErrors.add(vn); });
     
     // Đã thêm trường meaning để hứng dữ liệu Tiếng Việt từ Apps Script
     let formattedData = data.map(q => { 
@@ -1481,6 +1486,15 @@ function finishSession(score, typeName, cheatMsg) {
 
     let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, fullTitle, unitTitle, score.toString(), (totalQuestionsCount - exactErrorDetails.length).toString(), exactErrorDetails.length.toString(), totalQuestionsCount.toString(), cheatMsg, durStr, sessionMaxCombo, sessionFixedErrors, sessionErrorWords.join(',') ];
     allLogsCache.push(localLog);
+    
+    // --- FIX SỔ ĐEN: LƯU TỪ SAI VÀO LOCAL STORAGE ĐỂ KHÔNG BỊ MẤT KHI F5 ---
+    if (sessionErrorWords.length > 0) {
+        let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        sessionErrorWords.forEach(w => { if(!localBB.includes(w)) localBB.push(w); });
+        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(localBB));
+    }
+    // -----------------------------------------------------------------------
+
     if(score >= 8) confetti({particleCount: 150, spread: 80});
 
 // ===== CỘNG VÀNG VÀO KHO BẠC =====
@@ -1960,6 +1974,8 @@ function openBlackbook() {
     let container = document.getElementById('blackbookList');
     
     globalBlackbookMap.clear();
+    
+    // 1. Kéo dữ liệu từ Server 
     allLogsCache.forEach(row => {
         if (row[1] === currentStudentId && row[13]) {
             let errWords = row[13].toString().split(',');
@@ -1969,6 +1985,15 @@ function openBlackbook() {
                     globalBlackbookMap.set(vn, { vn: vn, en: parts[1] ? parts[1].trim() : "", meaning: parts[2] ? parts[2].trim() : "" });
                 }
             });
+        }
+    });
+
+    // 2. FIX SỔ ĐEN: Đọc thêm dữ liệu Backup từ Local Storage
+    let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+    localBB.forEach(w => {
+        let parts = w.split('::'); let vn = parts[0].trim();
+        if(vn) {
+            globalBlackbookMap.set(vn, { vn: vn, en: parts[1] ? parts[1].trim() : "", meaning: parts[2] ? parts[2].trim() : "" });
         }
     });
 
