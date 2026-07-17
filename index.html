@@ -585,7 +585,7 @@
 
         <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 15px;">
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="font-weight: bold; text-align: center; padding: 10px; border: 3px solid var(--accent-yellow); background: rgba(251,191,36,0.1); border-radius: 8px; color: var(--accent-yellow);">TÀNG KINH CÁC <br><span style="font-size: 10px; color: var(--text-muted);">(Lật thẻ lĩnh ngộ võ công)</span></div>
+                <div style="font-weight: bold; text-align: center; padding: 10px; border: 3px solid var(--accent-yellow); background: rgba(251,191,36,0.1); border-radius: 8px; color: var(--accent-yellow);">TÀNG KINH CÁC <br><span style="font-size: 10px; color: var(--text-muted);">(Lật thẻ FLASH CARD lĩnh ngộ võ công)</span></div>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                     <button class="btn btn-outline" style="border-color: var(--accent-yellow); font-size: 12px; padding: 10px 5px;" onclick="openUnitGrid('wordform', 'learn')">WORD FORM</button>
                     <button class="btn btn-outline" style="border-color: var(--accent-yellow); font-size: 12px; padding: 10px 5px;" onclick="openUnitGrid('vocab', 'learn')">VOCAB</button>
@@ -1866,7 +1866,7 @@ function surrenderTest() {
         </div>
         
         <div style="padding: 20px;">
-            <p style="font-size: 14px; color: #475569; font-weight: bold; margin-top: 0;">Kho tàng lưu trữ các từ vựng khó / tâm đắc nhất.</p>
+            <p style="font-size: 14px; color: #475569; font-weight: bold; margin-top: 0;">Kho tàng lưu trữ các từ vựng khó / tâm đắc của Tiểu Chủ.</p>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
                 <button class="tab-btn active neo-tab" onclick="switchMemoryTab('memVocab', this)">VOCAB</button>
@@ -2167,7 +2167,7 @@ function openMemoryBox() {
         let list = box[type] || [];
         
         if(list.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted); border: 3px dashed #cbd5e1; border-radius: 8px; font-weight:bold;"><i class="fa-solid fa-ghost fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>Hộp đang trống rỗng...</div>`;
+            container.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted); border: 3px dashed #cbd5e1; border-radius: 8px; font-weight:bold;"><i class="fa-solid fa-ghost fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>FLASHCARDS thiếu chủ thả TYM trong TÀNG KINH CÁC, sẽ ở đây...</div>`;
         } else {
             let html = `<div style="display:flex; flex-direction:column; gap:12px;">`;
             list.forEach(q => {
