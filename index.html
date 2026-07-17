@@ -658,7 +658,7 @@ const SYSTEM_APIS = {
     "6": "https://script.google.com/macros/s/AKfycbwmoFatf1bqwyIcGFxO_4W7WmJ6A760oTwbP6DS9JX2GKmE76-jXSGqDHBpaSiEleKFLA/exec",
     "7": "https://script.google.com/macros/s/AKfycby2ARFhJjZEacfZ9bRRKX490JAedzSHQN7Y6NdGYP5RcmhHB3nE3K2K7yqLYwNul6tD/exec",
     "8": "https://script.google.com/macros/s/AKfycbw6iZeol5LwOKObKZa0GI2Wgo4xL1hzHDMjBNk6q3FieGiFr2recevalc7o6dwHYAMO/exec",
-    "9": "https://script.google.com/macros/s/AKfycby0M6WP3G_vP-hhUJz2IZskYYcL1zw5TyhIaQvE1CCSndt2NA8foX25URmWkMvs8cKv/exec"
+    "9": https://script.google.com/macros/s/AKfycbyo85vBBIEqfj_fMfgYS0PTi4o10cme6Gsz6PThvkBjd7saVZ53ECI43yXokADHEDyI/exec"
 };
 
 let currentSelectedGrade = localStorage.getItem('user_grade') || "9";
@@ -1150,7 +1150,7 @@ function executeForceSubmit() { closeModal('forceSubmitModal'); clearInterval(ti
 window.onload = async function() { 
     renderPetSelector(); document.getElementById('settingScriptUrl').value = getScriptUrl();
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
-    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox });
+    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook });
     if(data.deadlines) serverDeadlines = data.deadlines;
     fetchWithFallback(getScriptUrl(), "getLeaderboard", { logs: [] }).then(d => { if(d.logs) { allLogsCache = d.logs; if(currentStudentId !== "") { checkMissingTasks(currentStudentId); calcRivalAnchor(); } } });
 };
@@ -1170,6 +1170,12 @@ function login() {
     if(id === 'T11' || studentDB[id]) {
         currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến (Admin Test)" : studentDB[id].name;
         // ĐỒNG BỘ HỘP KÝ ỨC TỪ SERVER XUỐNG MÁY MỚI
+        if (studentDB[id] && studentDB[id].memoryBox) {
+            try {
+                let memData = typeof studentDB[id].memoryBox === 'string' ? JSON.parse(studentDB[id].memoryBox) : studentDB[id].memoryBox;
+                localStorage.setItem(getIsoKey('membox'), JSON.stringify(memData));
+            } catch(e) { console.log("Lỗi parse Hộp Ký Ức từ server"); }
+        }
         // ĐỒNG BỘ SỔ ĐEN TỪ SERVER XUỐNG MÁY MỚI
         if (studentDB[id] && studentDB[id].blackbook) {
             try {
@@ -1994,10 +2000,7 @@ function toggleMemoryWord(event) {
         showToast("💖 Đã lưu thành công!");
     }
     saveMemoryBox(box);
-// Bắn mảng Hộp Ký Ức mới nhất lên Server
-    if (studentDB[currentStudentId] && studentDB[currentStudentId].memoryBox) {
-        syncCloudData('updateMemoryBox', studentDB[currentStudentId].memoryBox);
-    }
+// Bắn mảng Hộp Ký Ức mới nhất lên Server đã được gọi ngầm trong hàm saveMemoryBox() phía trên.
 }
 
 function openMemoryBox() {
@@ -2278,6 +2281,44 @@ function syncDataToServer(actionType, dataArray) {
         })
     }).then(res => console.log(`[Thành công] Đã đồng bộ ${actionType} lên Thiên Đình!`))
       .catch(err => console.log(`[Thất bại] Lỗi truyền tin: `, err));
+}
+
+function showGoldNotification(amount) {
+    // Tạo một thẻ div chứa thông báo
+    const notif = document.createElement('div');
+    notif.innerText = `+${amount} Vàng 🌟`;
+    
+    // Thêm CSS trực tiếp để tạo kiểu dáng và vị trí nổi bật
+    Object.assign(notif.style, {
+        position: 'fixed',
+        top: '30%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        backgroundColor: '#FFD700', // Nền màu vàng
+        color: '#D2691E', // Chữ màu nâu cam
+        padding: '10px 25px',
+        borderRadius: '30px',
+        fontWeight: '900',
+        fontSize: '28px',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+        zIndex: '9999',
+        opacity: '1',
+        pointerEvents: 'none', // Không cản trở click chuột
+        transition: 'all 1s ease-out'
+    });
+
+    document.body.appendChild(notif);
+
+    // Kích hoạt hiệu ứng bay lên và mờ dần sau một khoảnh khắc nhỏ
+    setTimeout(() => {
+        notif.style.top = '20%';
+        notif.style.opacity = '0';
+    }, 50);
+
+    // Xóa phần tử khỏi DOM sau khi hiệu ứng kết thúc (1.05 giây)
+    setTimeout(() => {
+        notif.remove();
+    }, 1100);
 }
 </script>
 </body>
