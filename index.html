@@ -2237,10 +2237,8 @@ function startRevengeMode() {
         type: q.en.includes('|') ? 'wordform' : (q.en.includes(' ') ? 'prep' : 'vocab')
     }));
     
-    setupSession(formattedData, 0); showToast("🔥 CHẾ ĐỘ PHỤC THÙ KÍCH HOẠT!");
-    setTimeout(() => { 
-    document.getElementById('vtSubHint').innerHTML = `<span style="background: var(--accent-red); color: var(--surface-color); padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 900; letter-spacing: 1px; border: 2px solid var(--border-dark); box-shadow: 2px 2px 0px var(--border-dark); text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-fire fa-bounce"></i> PHỤC THÙ TẬP THỂ</span>`; 
-}, 200);
+    setupSession(formattedData, 0); 
+    showToast("🔥 CHẾ ĐỘ PHỤC THÙ KÍCH HOẠT!");
 }
 
 // ==================== BỘ NÃO BẢNG TIN THỊ PHI ====================
