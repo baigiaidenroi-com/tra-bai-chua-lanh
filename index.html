@@ -1146,8 +1146,13 @@ function login() {
     if(id === 'T11' || studentDB[id]) {
         currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến (Admin Test)" : studentDB[id].name;
         // ĐỒNG BỘ HỘP KÝ ỨC TỪ SERVER XUỐNG MÁY MỚI
-        if (studentDB[id] && studentDB[id].memoryBox) {
-            localStorage.setItem(getIsoKey('membox'), studentDB[id].memoryBox);
+        // ĐỒNG BỘ SỔ ĐEN TỪ SERVER XUỐNG MÁY MỚI
+        if (studentDB[id] && studentDB[id].blackbook) {
+            try {
+                let bbData = JSON.parse(studentDB[id].blackbook);
+                localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bbData.errors || []));
+                localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(bbData.fixed || []));
+            } catch(e) { console.log("Lỗi parse Sổ Đen từ server"); }
         }
         document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
         document.getElementById('dashAvatar').innerText = currentPet; 
@@ -1439,13 +1444,18 @@ function checkVocabAnswer(isTimeout) {
     let cleanWordKey = q.vn.replace(/\*/g, '').trim();
 
     if(isAllCorrect && !isTimeout) {
-        currentCombo++; if(currentCombo > sessionMaxCombo) sessionMaxCombo = currentCombo;
-        if(pastStudentErrors.has(cleanWordKey)) { 
-            sessionFixedErrors++; pastStudentErrors.delete(cleanWordKey); 
-            let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
-            if(!redeemed.includes(cleanWordKey)) redeemed.push(cleanWordKey);
-            localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(redeemed));
-        }
+            currentCombo++; if(currentCombo > sessionMaxCombo) sessionMaxCombo = currentCombo;
+            if(pastStudentErrors.has(cleanWordKey)) { 
+                sessionFixedErrors++; pastStudentErrors.delete(cleanWordKey); 
+                
+                // LƯU TỪ ĐÃ PHỤC THÙ VÀ BẮN LÊN GOOGLE SHEETS
+                let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
+                if(!redeemed.includes(cleanWordKey)) redeemed.push(cleanWordKey);
+                localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(redeemed));
+                
+                // GỌI HÀM ĐỒNG BỘ Ở ĐÂY
+                if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
+            }
         feedback.innerHTML = `<div style="background:#dcfce7; border:3px solid var(--accent-green); padding:15px; border-radius:8px; font-weight:bold; color:#166534;"><i class="fa-solid fa-check"></i> Tuyệt vời! Combo: ${currentCombo} 🔥</div>`;
         questionsQueue.shift(); btnSubmit.innerHTML = 'TIẾP TỤC'; btnSubmit.className = "btn btn-green"; btnSubmit.onclick = renderTypingTest;
     } else {
@@ -1487,11 +1497,14 @@ function finishSession(score, typeName, cheatMsg) {
     let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, fullTitle, unitTitle, score.toString(), (totalQuestionsCount - exactErrorDetails.length).toString(), exactErrorDetails.length.toString(), totalQuestionsCount.toString(), cheatMsg, durStr, sessionMaxCombo, sessionFixedErrors, sessionErrorWords.join(',') ];
     allLogsCache.push(localLog);
     
-    // --- FIX SỔ ĐEN: LƯU TỪ SAI VÀO LOCAL STORAGE ĐỂ KHÔNG BỊ MẤT KHI F5 ---
+   // --- FIX SỔ ĐEN: LƯU TỪ SAI VÀO LOCAL STORAGE ĐỂ KHÔNG BỊ MẤT KHI F5 ---
     if (sessionErrorWords.length > 0) {
         let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
         sessionErrorWords.forEach(w => { if(!localBB.includes(w)) localBB.push(w); });
         localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(localBB));
+        
+        // KÍCH HOẠT BẮN LÊN GOOGLE SHEETS
+        if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
     }
     // -----------------------------------------------------------------------
 
@@ -1667,7 +1680,7 @@ function checkAdminLogin() { if(document.getElementById('adminPassInput').value 
 
 // ==================== LỆNH ĐẦU HÀNG TỰ NGUYỆN ====================
 function surrenderTest() {
-    let pass = confirm("Bạn có việc bận muốn Đầu Hàng? Các câu CHƯA LÀM sẽ bị tính là sai (nhưng KHÔNG bị đưa vào Sổ Đen)!");
+    let pass = confirm("Tiểu chủ có việc bận sao mà muốn Đầu Hàng? Các câu CHƯA LÀM sẽ bị tính là sai (nhưng KHÔNG bị đưa vào HÌNH BỘ)!");
     if(!pass) return;
     
     questionsQueue.forEach(q => {
@@ -1689,7 +1702,7 @@ function surrenderTest() {
     <div class="modal-content" style="max-width: 600px; padding: 0; border: 4px solid #ef4444; border-radius: 12px; box-shadow: 8px 8px 0px #ef4444; overflow: hidden; background: #0f172a; display: flex; flex-direction: column; max-height: 90vh;">
         
         <div style="background: #000000; border-bottom: 4px solid #ef4444; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
-            <h2 style="margin: 0; color: #ef4444; font-weight: 900; font-size: 20px; text-transform: uppercase;"><i class="fa-solid fa-skull fa-shake"></i> SỔ ĐEN TỘI LỖI</h2>
+            <h2 style="margin: 0; color: #ef4444; font-weight: 900; font-size: 20px; text-transform: uppercase;"><i class="fa-solid fa-skull fa-shake"></i> HÌNH BỘ - NƠI THỰC THI CÔNG LÝ!</h2>
             <button onclick="closeModal('blackbookModal')" style="background:#0f172a; border:3px solid #ef4444; border-radius:50%; width:35px; height:35px; font-weight:bold; cursor:pointer; box-shadow:2px 2px 0px #ef4444; color: #ef4444; transition: 0.2s;">X</button>
         </div>
         
@@ -1702,7 +1715,7 @@ function surrenderTest() {
         
         <div style="padding: 15px; border-top: 4px solid #ef4444; background: #000; text-align: center; flex-shrink: 0;">
             <button class="btn btn-red" id="btnRevenge" style="width: 100%; font-size: 16px; padding: 15px;" onclick="startRevengeMode()">🔥 VÀO PHÒNG PHỤC THÙ (1 Lần/Ngày)</button>
-            <p style="color: #64748b; font-size: 11px; margin-top: 10px; margin-bottom: 0;">*Hệ thống sẽ gom toàn bộ các từ trong Sổ Đen thành 1 bài Test.</p>
+            <p style="color: #64748b; font-size: 11px; margin-top: 10px; margin-bottom: 0;">*Hệ thống sẽ gom toàn bộ các từ trong HÌNH BỘ thành 1 bài Test, để tiểu chủ phục thù!.</p>
         </div>
     </div>
 </div>
@@ -1891,6 +1904,30 @@ function saveMemoryBox(box) {
     syncMemoryTimeout = setTimeout(() => {
         if(getScriptUrl().startsWith("http")) {
             fetch(getScriptUrl(), { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveMemoryBox", studentId: currentStudentId, memoryData: JSON.stringify(box) }) }).catch(e => {});
+        }
+    }, 2000);
+}
+
+// ================= ĐỒNG BỘ SỔ ĐEN LÊN SERVER =================
+let syncBlackbookTimeout = null;
+function syncBlackbookToServer() {
+    let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+    let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
+    
+    clearTimeout(syncBlackbookTimeout);
+    syncBlackbookTimeout = setTimeout(() => {
+        if(getScriptUrl().startsWith("http") && currentStudentId) {
+            let payload = { errors: localBB, fixed: redeemed };
+            fetch(getScriptUrl(), { 
+                method: "POST", 
+                mode: "no-cors", 
+                headers: { "Content-Type": "text/plain" }, 
+                body: JSON.stringify({ 
+                    mode: "saveBlackbook", 
+                    studentId: currentStudentId, 
+                    blackbookData: JSON.stringify(payload) 
+                }) 
+            }).catch(e => console.log("Lỗi đồng bộ Sổ Đen: ", e));
         }
     }, 2000);
 }
