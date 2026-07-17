@@ -680,6 +680,32 @@ const SYSTEM_APIS = {
 
 let currentSelectedGrade = localStorage.getItem('user_grade') || "9";
 
+// Tự động kéo data mới nhất ngầm định ngay khi vừa mở App
+window.addEventListener('load', async () => {
+    let scriptUrl = getScriptUrl();
+    if(scriptUrl) {
+        let data = await fetchWithFallback(scriptUrl, "init", { students: [], deadlines: [] });
+        
+        // Cập nhật database học sinh
+        if(data.students) {
+            data.students.forEach(s => studentDB[s.id] = { 
+                name: s.name, 
+                pass: s.pass, 
+                memoryBox: s.memoryBox, 
+                blackbook: s.blackbook 
+            });
+        }
+        
+        // Cập nhật deadline và tự động vẽ lại Quân Tình Cấp Báo
+        if(data.deadlines) {
+            serverDeadlines = data.deadlines;
+            if (typeof checkDeadlines === "function") {
+                checkDeadlines(); 
+            }
+        }
+    }
+});
+
 async function selectGrade(grade, btnElement) {
     currentSelectedGrade = grade;
     localStorage.setItem('user_grade', grade);
