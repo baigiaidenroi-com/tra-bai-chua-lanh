@@ -686,7 +686,7 @@ async function selectGrade(grade, btnElement) {
     
     // Ra lệnh gọi Google Sheets tải danh sách mới
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
-    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox });
+    if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook });
     if(data.deadlines) serverDeadlines = data.deadlines;
     
     // Tải xong thì mở khóa ô nhập ID
