@@ -345,32 +345,32 @@
         </div>
         
    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 5px;">
-            <button class="tab-btn active" onclick="switchLBTab('lbTime', this)">PHONG THẦN<br>TỐC ĐỘ</button>
-            <button class="tab-btn" onclick="switchLBTab('lbStreak', this)">HẢO HÁN<br>CẦN MẪN</button>
+            <button class="tab-btn active" onclick="switchLBTab('lbHocBa', this)">HỌC BÁ<br>HOÀNG GIA</button>
+            <button class="tab-btn" onclick="switchLBTab('lbBoNao', this)">BỘ NÃO<br>HOÀN MỸ</button>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: -3px;">
-            <button class="tab-btn" onclick="switchLBTab('lbCombo', this)">CHIẾN THẦN<br>LIÊN KÍCH</button>
-            <button class="tab-btn" onclick="switchLBTab('lbRedeem', this)">KẺ PHÁ<br>VÒNG VÂY</button>
+            <button class="tab-btn" onclick="switchLBTab('lbKienTri', this)">HẢO HÁN<br>KIÊN TRÌ</button>
+            <button class="tab-btn" onclick="switchLBTab('lbChuaLanh', this)">BẬC THẦY<br>CHỮA LÀNH</button>
         </div>
 
-        
-        <div id="lbTime" class="tab-content" style="display:block;">
-            <p style="font-size:12px; color:var(--accent-red); text-align:center; font-weight:bold; margin-top:0;">*làm bài đúng nhanh nhất.</p>
-            <div id="contentLBTime">Đang tải...</div>
+        <div id="lbHocBa" class="tab-content" style="display:block; padding-bottom: 5px;">
+            <p style="font-size:11px; color:var(--text-muted); text-align:center; font-style:italic; margin:0 0 15px 0;">*Top Điểm Trung Bình của các bài [Thi Thật Lần 1].</p>
+            <div id="contentLBHocBa">Đang tải...</div>
         </div>
-        <div id="lbStreak" class="tab-content">
-            <p style="font-size:12px; color:var(--accent-green); text-align:center; font-weight:bold; margin-top:0;">*dân chơi hệ Cày cuốc.</p>
-            <div id="contentLBStreak">Đang tải...</div>
+        <div id="lbBoNao" class="tab-content" style="padding-bottom: 5px;">
+            <p style="font-size:11px; color:var(--text-muted); text-align:center; font-style:italic; margin:0 0 15px 0;">*Top Số lượng bài đạt 10/10 ngay ở [Thi Thật Lần 1].</p>
+            <div id="contentLBBoNao">Đang tải...</div>
         </div>
-        <div id="lbCombo" class="tab-content">
-            <p style="font-size:12px; color:var(--accent-blue); text-align:center; font-weight:bold; margin-top:0;">*không sai liên tục.</p>
-            <div id="contentLBCombo">Đang tải...</div>
+        <div id="lbKienTri" class="tab-content" style="padding-bottom: 5px;">
+            <p style="font-size:11px; color:var(--text-muted); text-align:center; font-style:italic; margin:0 0 15px 0;">*Top Tổng thời gian học hợp lệ. Đã loại trừ Auto-Spam.</p>
+            <div id="contentLBKienTri">Đang tải...</div>
         </div>
-        <div id="lbRedeem" class="tab-content">
-            <p style="font-size:12px; color:var(--accent-purple); text-align:center; font-weight:bold; margin-top:0;">*sửa sai xuất sắc.</p>
-            <div id="contentLBRedeem">Đang tải...</div>
+        <div id="lbChuaLanh" class="tab-content" style="padding-bottom: 5px;">
+            <p style="font-size:11px; color:var(--text-muted); text-align:center; font-style:italic; margin:0 0 15px 0;">*Top Tỷ lệ % xóa Sổ Đen. Dành cho tinh thần không bỏ cuộc.</p>
+            <div id="contentLBChuaLanh">Đang tải...</div>
         </div>
+        <div id="lbUpdateStatus" style="font-size:10px; color:var(--text-muted); text-align:center; margin-top:10px; font-weight: bold;"></div>
     </div>
 </div>
 
@@ -639,7 +639,10 @@
         <div class="modal-content" style="border-color: #22c55e; box-shadow: 8px 8px 0px #22c55e; max-width: 600px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark); padding-bottom: 10px; margin-bottom: 15px;">
                 <h2 style="margin: 0; color: #22c55e; text-transform: uppercase;"><i class="fa-solid fa-user-secret"></i> Trạm Chim Đưa Thư</h2>
-                <i class="fa-solid fa-times close-modal" style="position: static;" onclick="closeModal('matThuModal')"></i>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <button class="btn btn-outline" style="padding: 5px 10px; font-size: 11px; border-color: #22c55e; color: #22c55e; box-shadow: none;" onclick="refreshMatThu()"><i class="fa-solid fa-rotate"></i> BẤM VÀO XEM HỒI ÂM!</button>
+                    <i class="fa-solid fa-times close-modal" style="position: static;" onclick="closeModal('matThuModal')"></i>
+                </div>
             </div>
             
             <!-- Khu vực hiện lịch sử trả lời -->
@@ -652,10 +655,40 @@
         </div>
     </div>
     
-    <script>
+<script>
+    // --- BẮT ĐẦU LỆNH YÊU CẦU LOAD LẠI TIN NHẮN TỪ APP SCRIPT ---
+    function refreshMatThu() {
+        let btn = document.querySelector('button[onclick="refreshMatThu()"]');
+        if(btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG TÌM...'; btn.classList.add('btn-disabled'); }
+        
+        if (!getScriptUrl()) return;
+        
+        fetchWithFallback(getScriptUrl(), "getMatThuOnly", { inbox: [] }, `&studentId=${currentStudentId}`)
+        .then(data => {
+            if(data && data.inbox) {
+                renderStudentInbox(data.inbox);
+                openMatThuModal(); // Re-render lại bong bóng chat mới nhất
+                showToast("✅ Đã cập nhật tấu chương mới nhất từ Thái Phó!");
+            }
+        })
+        .catch(e => showToast("Lỗi mạng khi tải thư!"))
+        .finally(() => {
+            if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate"></i> BẤM VÀO ĐỂ UPDATE HỒI ÂM!'; btn.classList.remove('btn-disabled'); }
+        });
+    }
+    // --- KẾT THÚC LỆNH LOAD LẠI ---
+
     function sendMatThuToAdmin() {
         let msg = document.getElementById('matThuContent').value.trim();
         if (!msg) { showToast("Sĩ tử chưa viết tấu chương mà!"); return; }
+        
+        // --- BẮT ĐẦU: ANTI-SPAM (CHẶN 3 TIN CHƯA REP) ---
+        let unreadCount = studentInboxData.filter(x => !x.reply || x.reply.trim() === "").length;
+        if (unreadCount >= 3) {
+            showToast("🛑 Lệnh cấm: Ngươi đã gửi 3 tấu chương chưa được duyệt. Hãy kiên nhẫn chờ Thái Phó hồi âm trước khi gửi tiếp!");
+            return;
+        }
+        // --- KẾT THÚC: ANTI-SPAM ---
         
         let scriptUrl = getScriptUrl();
         if (!scriptUrl) return;
@@ -2178,6 +2211,7 @@ function shuffleArray(array) { let cur = array.length, ran; while (cur > 0) { ra
 
 async function startFlow(unit, part = 0) {
     currentUnit = unit; currentPart = part; showToast("Đang phá kết giới...");
+    window.isRevengeMode = false; window.isPhaoCuuSinh = false; // Tẩy não Hình Bộ
     let isGrammar = currentType === 'grammar', apiMode = isGrammar ? 'getBank' : 'getTraBai';
     const MOCK_VOCAB = [{ baseWord: "Nghệ nhân*", answers: "artisan", type: "vocab" }, { baseWord: "HISTORY", answers: "adj:historic* | adj:historical | adv:historically", type: "wordform" }, { baseWord: "Famous*", answers: "for", type: "prep" }, { baseWord: "Balance*", answers: "n:balance | adj:balanced", type: "wordform" }];
     let mockFallback = MOCK_VOCAB.filter(q => q.type === currentType);
@@ -2663,11 +2697,24 @@ function checkVocabAnswer(isTimeout) {
 
         // TÍNH VÀNG & GACHA VỆ SĨ
         if(currentStudentId !== 'T11') {
-            let baseReward = 100; // Luật: 100 Vàng/câu
+            let baseReward = 200; 
             let comboReward = 0;
-            if (currentCombo === 3) comboReward = 30;
-            else if (currentCombo === 5) comboReward = 50;
-            else if (currentCombo === 10) comboReward = 100;
+            
+            // --- BẮT ĐẦU: LẤY CÔNG CHUỘC TỘI ---
+            if (window.isRevengeMode) {
+                baseReward = window.isPhaoCuuSinh ? 75 : 150; // Phao cứu sinh bị giảm 50%
+                // Trong Hình Bộ không có Combo Bạo Kích
+            } else {
+                let cycleCombo = currentCombo % 10;
+                if (cycleCombo === 0 && currentCombo > 0) cycleCombo = 10; 
+                
+                if (cycleCombo === 3) comboReward = 20;
+                else if (cycleCombo === 5) comboReward = 50;
+                else if (cycleCombo === 8) comboReward = 50;
+                else if (cycleCombo === 9) comboReward = 100;
+                else if (cycleCombo === 10) comboReward = 300; 
+            }
+            // --- KẾT THÚC ---
 
             let totalRewardThisTurn = baseReward + comboReward;
             let variance = Math.max(1, Math.floor(totalRewardThisTurn * 0.05));
@@ -2725,7 +2772,7 @@ function checkVocabAnswer(isTimeout) {
         }
 
     } else {
-        // ==========================================
+     // ==========================================
         // PHẦN 3: XỬ LÝ LỖI SAI (CẮT COMBO)
         // ==========================================
         currentCombo = 0; 
@@ -2734,6 +2781,13 @@ function checkVocabAnswer(isTimeout) {
         let errHtml = specificErrors.join("<br>"); 
         exactErrorDetails.push({ q: cleanWordKey, htmlDetails: errHtml });
         
+        // --- BẮT ĐẦU: NGHIỆP QUẬT HÌNH BỘ ---
+        if (window.isRevengeMode && currentStudentId !== 'T11') {
+            addEconomyLog("🚨 NGHIỆP QUẬT: Lụi bừa trong Hình Bộ", -300);
+            errHtml += `<div style="margin-top: 10px; color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 10px; border-radius: 6px; border: 2px dashed #ef4444; animation: redAlert 0.5s infinite alternate;"><i class="fa-solid fa-bolt"></i> NGHIỆP QUẬT: Phạt -300 Vàng trừ thẳng vào Ví!</div>`;
+        }
+        // --- KẾT THÚC ---
+
         feedback.innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">${isTimeout ? 'HẾT GIỜ!' : 'SAI RỒI!'}</h3><div style="font-size: 14px; line-height: 1.6;">${errHtml}</div></div>`;
         
         questionsQueue.shift(); 
@@ -2806,8 +2860,32 @@ function finishSession(score, typeName, cheatMsg) {
         let cheatTag = ""; let spamTag = ""; let dailyCapTag = "";
         let isPunished = false;
 
-        if (attemptLogCount === 2) { tempFinalGold = Math.floor(tempFinalGold * 0.5); goldReasonHtml = "Giảm 50% do cày lại Lần 2"; } 
-        else if (attemptLogCount > 2) { tempFinalGold = 0; goldReasonHtml = "Lần 3+ không nhận Vàng"; isPunished = true; }
+        // KIẾN TRÚC MỚI: QUỸ KÉP & TỶ LỆ VÀNG LẦN 1, 2, 3
+        if (window.isRevengeMode) {
+            tempFinalGold = tempFinalGold; // Giữ nguyên phần thưởng Hình Bộ (Đã tính trong câu)
+            goldReasonHtml = window.isPhaoCuuSinh ? "Vớt vát 50% (Dùng Phao Cứu Sinh)" : "Thành công Lấy công chuộc tội";
+        }
+        else if (attemptLogCount === 1) { 
+            // Lần 1: 100% Vàng, KHÔNG CÓ TRẦN
+            tempFinalGold = tempFinalGold; 
+            goldReasonHtml = "Nhận 100% Vàng Học Thuật";
+        } 
+        else if (attemptLogCount === 2) {
+            // Lần 2: 30% Vàng (Cày cuốc)
+            tempFinalGold = Math.floor(tempFinalGold * 0.3); 
+            goldReasonHtml = "Nhận 30% Vàng (Cày lại Lần 2)"; 
+        } 
+        else if (attemptLogCount === 3) { 
+            // Lần 3: 10% Vàng (Khắc sâu)
+            tempFinalGold = Math.floor(tempFinalGold * 0.1); 
+            goldReasonHtml = "Nhận 10% Vàng (Cày lại Lần 3)"; 
+        } 
+        else { 
+            // Lần 4 trở đi: 0 Vàng (Khóa sổ)
+            tempFinalGold = 0; 
+            goldReasonHtml = "Lần 4+ không nhận Vàng"; 
+            isPunished = true; 
+        }
 
         if (cheatMsg.includes("Bị hủy") || cheatWarnings >= 3) {
             tempFinalGold = 0; cheatTag = " | 🚨 [PHẠT NẶNG] Rời Tab 3 lần (-200 Vàng)";
@@ -2840,16 +2918,28 @@ function finishSession(score, typeName, cheatMsg) {
         }
 
         let todayStr = new Date().toLocaleDateString('vi-VN');
-        if (userEconomy.lastPlayDate !== todayStr) { userEconomy.dailyGold = 0; userEconomy.lastPlayDate = todayStr; }
+        if (userEconomy.lastPlayDate !== todayStr) { 
+            userEconomy.dailyGold = 0; 
+            userEconomy.dailyFarmGold = 0; // Reset thêm quỹ Farm mới
+            userEconomy.lastPlayDate = todayStr; 
+        }
         userEconomy.dailyGold = parseInt(userEconomy.dailyGold) || 0;
+        userEconomy.dailyFarmGold = parseInt(userEconomy.dailyFarmGold) || 0;
 
+        // MỚI: KIỂM SOÁT MAX TRẦN CÀY CUỐC (1.000 Vàng/Ngày) CHỈ ÁP DỤNG CHO LẦN 2 & 3
         if (finalGold > 0) {
-            if (userEconomy.dailyGold + finalGold > 500) {
-                let allowedGold = Math.max(0, 500 - userEconomy.dailyGold);
-                finalGold = allowedGold;
-                if (allowedGold === 0) { dailyCapTag = " [Đạt trần 500 xu/ngày]"; goldReasonHtml = "Đạt trần 500 xu/ngày"; } 
-                else { dailyCapTag = ` [Tràn mốc 500/ngày, nhận ${allowedGold}]`; goldReasonHtml = `Chạm trần ngày, chỉ nhận ${allowedGold} Vàng`; }
-                petLogForUI = ""; 
+            if (attemptLogCount > 1) { // Chỉ khóa trần nếu là Farm
+                if (userEconomy.dailyFarmGold + finalGold > 1000) {
+                    let allowedGold = Math.max(0, 1000 - userEconomy.dailyFarmGold);
+                    finalGold = allowedGold;
+                    if (allowedGold === 0) { dailyCapTag = " [Đạt trần Farm 1.000 xu/ngày]"; goldReasonHtml = "Đạt trần Farm 1.000 xu/ngày"; } 
+                    else { dailyCapTag = ` [Tràn mốc Farm, nhận ${allowedGold}]`; goldReasonHtml = `Chạm trần Farm, chỉ nhận ${allowedGold} Vàng`; }
+                    petLogForUI = ""; 
+                }
+                if (finalGold > 0) userEconomy.dailyFarmGold += finalGold;
+            } else {
+                // Nếu là Lần 1 Học Thuật -> Vẫn ghi nhận vào dailyGold để sau này làm báo cáo, nhưng KHÔNG khóa chặn.
+                userEconomy.dailyGold += finalGold;
             }
         }
 
@@ -3127,62 +3217,61 @@ function switchLBTab(tabId, el) {
 
 function openLeaderboard() {
     document.getElementById('leaderboardModal').style.display = 'flex';
-    
-    // TỰ ĐỘNG DÒ TÌM VỊ TRÍ CỘT ĐỂ CHỐNG LỆCH 100%
-    let headers = allLogsCache[0] || [];
-    let idxScore = headers.indexOf("Điểm") > -1 ? headers.indexOf("Điểm") : 6;
-    let idxDur = headers.indexOf("Thời gian làm bài") > -1 ? headers.indexOf("Thời gian làm bài") : 11;
-    let idxCombo = headers.indexOf("Max Combo") > -1 ? headers.indexOf("Max Combo") : 12;
-    let idxFix = headers.indexOf("Lỗi đã sửa") > -1 ? headers.indexOf("Lỗi đã sửa") : 13;
+    let url = getScriptUrl();
+    if(!url) return;
 
-    let cTime = document.getElementById('contentLBTime');
-    let bestTimes = {};
-    allLogsCache.forEach(row => {
-        // Đã đổi sang lấy Index Điểm và Index Thời gian làm bài chính xác
-        if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]') && parseFloat(row[idxScore]) === 10) {
-            let sec = parseDurSec(row[idxDur]);
-            if(sec < 9999) { if(!bestTimes[row[1]] || sec < bestTimes[row[1]].sec) bestTimes[row[1]] = { name: row[2], sec: sec, str: row[idxDur] }; }
-        }
+    ['contentLBHocBa', 'contentLBBoNao', 'contentLBKienTri', 'contentLBChuaLanh'].forEach(id => {
+        document.getElementById(id).innerHTML = `<div style="text-align:center; padding:20px; color:var(--accent-blue);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Đang tải Thánh Chỉ từ Đám mây...</div>`;
     });
-    let sortedTime = Object.entries(bestTimes).sort((a,b) => a[1].sec - b[1].sec).slice(0, 5);
-    if(sortedTime.length === 0) cTime.innerHTML = `<div style="text-align:center; padding:20px;">Chưa có kỷ lục Tốc độ nào...</div>`;
-    else {
-        let h2 = ""; sortedTime.forEach((item, i) => {
-            let nick = studentDB[item[0]]?.name || item[1].name; let medal = i === 0 ? '⚡' : `#${i+1}`;
-            h2 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-red); font-weight:900; font-size:16px;">${item[1].str}</div></div>`;
-        }); cTime.innerHTML = h2;
-    }
 
-    let cStreak = document.getElementById('contentLBStreak');
-    let practiceCounts = {};
-    allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Tự Luyện]')) { practiceCounts[row[1]] = (practiceCounts[row[1]] || 0) + 1; } });
-    let sortedStreak = Object.entries(practiceCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-    if(sortedStreak.length === 0) cStreak.innerHTML = `<div style="text-align:center; padding:20px;">Lớp lười quá, chưa ai Tự Luyện...</div>`;
-    else {
-        let h3 = ""; sortedStreak.forEach((item, i) => {
-            let count = item[1]; let title = count >= 100 ? 'Trùm Cày Cuốc 👑' : (count >= 50 ? 'Hảo Hán ⚔️' : 'Tập Sự 🎒');
-            let nick = studentDB[item[0]]?.name || item[0];
-            h3 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">#${i+1}</span><span style="font-weight:900; font-size:14px;">${nick}<br><span style="font-size:10px; color:var(--text-muted);">${title}</span></span></div><div style="color:var(--accent-green); font-weight:900; font-size:18px;">${count} Lần</div></div>`;
-        }); cStreak.innerHTML = h3;
-    }
+    fetchWithFallback(url, "getLeaderboard", { error: "Lỗi kết nối" })
+    .then(data => {
+        if(data.error) {
+            document.getElementById('contentLBHocBa').innerHTML = `<div style="text-align:center; color:red; font-weight:bold; padding:20px;">${data.error}</div>`;
+            return;
+        }
 
-    let cCombo = document.getElementById('contentLBCombo');
-    // Đã đổi sang lấy Index Max Combo chính xác
-    let maxCombos = {}; allLogsCache.forEach((row) => { let id = row[1], combo = parseInt(row[idxCombo]) || 0; if(id && (!maxCombos[id] || combo > maxCombos[id].combo)) maxCombos[id] = { name: row[2], combo: combo }; });
-    let sortedCombo = Object.entries(maxCombos).sort((a,b) => b[1].combo - a[1].combo).slice(0, 5);
-    if(sortedCombo.length === 0 || sortedCombo[0][1].combo === 0) cCombo.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai lập chuỗi Combo...</div>`; 
-    else {
-        let h4 = ""; sortedCombo.forEach((item, i) => { if(item[1].combo === 0) return; let nick = studentDB[item[0]]?.name || item[1].name; let medal = i === 0 ? '🔥' : (i === 1 ? '⚡' : `#${i+1}`); h4 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-blue); font-weight:900; font-size:18px;">${item[1].combo} Hits</div></div>`; }); cCombo.innerHTML = h4;
-    }
+        // HÀM VẼ THẺ GIAO DIỆN (TÔN VINH TOP 1)
+        let formatCard = (item, i, valueHtml, color) => {
+            let isTop1 = i === 0;
+            let medal = isTop1 ? '👑' : `#${i+1}`;
+            let bg = isTop1 ? `background: linear-gradient(135deg, #fffbeb, #fef08a); border: 3px solid #eab308; box-shadow: 4px 4px 0px #eab308; transform: scale(1.02); margin-bottom: 15px; position: relative; z-index: 2;` : `background: white; border: 2px solid var(--border-dark); margin-bottom: 10px;`;
+            let nameStyle = isTop1 ? `color: #b45309; font-size: 16px; text-transform: uppercase; font-weight: 900;` : `color: var(--border-dark); font-size: 14px; font-weight: 900;`;
+            
+            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-radius:8px; ${bg}">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <span style="font-size: ${isTop1 ? '28px' : '20px'}; filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.2));">${medal}</span>
+                    <span style="${nameStyle}">${item.name}</span>
+                </div>
+                <div style="color:${color}; font-weight:900; font-size: ${isTop1 ? '24px' : '18px'}; text-shadow: ${isTop1 ? '1px 1px 0px #fff' : 'none'};">${valueHtml}</div>
+            </div>`;
+        };
 
-    let cRedeem = document.getElementById('contentLBRedeem');
-    // Đã đổi sang lấy Index Lỗi đã sửa chính xác
-    let totalFixed = {}; allLogsCache.forEach((row) => { let id = row[1], fix = parseInt(row[idxFix]) || 0; if(id) totalFixed[id] = { name: row[2], fix: (totalFixed[id]?totalFixed[id].fix:0) + fix }; });
-    let sortedFixed = Object.entries(totalFixed).sort((a,b) => b[1].fix - a[1].fix).slice(0, 5);
-    if(sortedFixed.length === 0 || sortedFixed[0][1].fix === 0) cRedeem.innerHTML = `<div style="text-align:center; padding:20px;">Chưa ai phục thù lỗi sai...</div>`; 
-    else {
-        let h5 = ""; sortedFixed.forEach((item, i) => { if(item[1].fix === 0) return; let nick = studentDB[item[0]]?.name || item[1].name; let medal = i === 0 ? '🛠️' : (i === 1 ? '💡' : `#${i+1}`); h5 += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:2px solid var(--border-dark); border-radius:8px; margin-bottom:10px; background:white;"><div style="display:flex; align-items:center; gap:15px;"><span style="font-size:20px;">${medal}</span><span style="font-weight:900; font-size:14px;">${nick}</span></div><div style="color:var(--accent-purple); font-weight:900; font-size:18px;">+${item[1].fix} Lỗi</div></div>`; }); cRedeem.innerHTML = h5;
-    }
+        // Render BXH 1: Học Bá
+        let h1 = ""; data.bxh1.forEach((x, i) => h1 += formatCard(x, i, `${x.avg.toFixed(2)} đ`, "#eab308"));
+        document.getElementById('contentLBHocBa').innerHTML = h1 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa đủ điều kiện xếp hạng.</div>";
+
+        // Render BXH 2: Bộ Não Hoàn Mỹ
+        let h2 = ""; data.bxh2.forEach((x, i) => h2 += formatCard(x, i, `${x.perfectCount} Bài`, "#3b82f6"));
+        document.getElementById('contentLBBoNao').innerHTML = h2 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa ai đạt 10/10 Lần 1.</div>";
+
+        // Render BXH 3: Hảo Hán Kiên Trì
+        let h3 = ""; data.bxh3.forEach((x, i) => {
+            let h = Math.floor(x.totalTime / 3600); let m = Math.floor((x.totalTime % 3600)/60);
+            let timeStr = h > 0 ? `${h}h ${m}p` : `${m}p`;
+            h3 += formatCard(x, i, timeStr, "#22c55e");
+        });
+        document.getElementById('contentLBKienTri').innerHTML = h3 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa có dữ liệu học tập.</div>";
+
+        // Render BXH 4: Bậc Thầy Chữa Lành
+        let h4 = ""; data.bxh4.forEach((x, i) => h4 += formatCard(x, i, `${(x.fixRatio*100).toFixed(1)}%`, "#ec4899"));
+        document.getElementById('contentLBChuaLanh').innerHTML = h4 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Cần 20 từ Sổ đen để lên hạng.</div>";
+
+        document.getElementById('lbUpdateStatus').innerText = `⚡ Dữ liệu cập nhật ngầm lần cuối: ${data.lastUpdate}`;
+    })
+    .catch(e => {
+        document.getElementById('contentLBHocBa').innerHTML = "<div style='color:red; text-align:center; font-weight:bold;'>Lỗi tải dữ liệu. Cáp quang đứt!</div>";
+    });
 }
 
 function renderMatrixAttendance(type) {
@@ -4166,6 +4255,23 @@ function startRevengeMode() {
         showToast("Sổ Đen hiện tại chỉ chứa các từ CŨ (Không có data Tiếng Anh). Hãy thi Thực Chiến bài mới để nạp từ nhé!"); return;
     }
 
+    // --- BẮT ĐẦU: KIẾN TRÚC TÀI CHÍNH HÌNH BỘ ---
+    window.isRevengeMode = true; 
+    let fee = 100 + (revengeQuestions.length * 50); 
+    userEconomy.gold = parseFloat(userEconomy.gold) || 0;
+    
+    if (userEconomy.gold < fee && currentStudentId !== 'T11') {
+        window.isPhaoCuuSinh = true;
+        showToast("Ngân khố cạn kiệt! Thái Phó ban PHAO CỨU SINH: Miễn phí vào cửa, nhưng Vàng thưởng giảm 50%!");
+    } else {
+        window.isPhaoCuuSinh = false;
+        if (currentStudentId !== 'T11') {
+            addEconomyLog("Mở cửa Hình Bộ (Sổ Đen)", -fee);
+            showToast(`Đã thu ${fee} Vàng phí vào cửa! Chúc sống sót!`);
+        }
+    }
+    // --- KẾT THÚC ---
+
     localStorage.setItem(getIsoKey('revenge_date'), today); closeModal('blackbookModal');
     currentType = 'vocab'; currentIsOfficial = false; 
     
@@ -4175,7 +4281,6 @@ function startRevengeMode() {
     }));
     
     setupSession(formattedData, 0); 
-    showToast("🔥 CHẾ ĐỘ PHỤC THÙ KÍCH HOẠT!");
 }
 
 // ==================== BỘ NÃO BẢNG TIN THỊ PHI ====================
