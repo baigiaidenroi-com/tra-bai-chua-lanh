@@ -2175,7 +2175,7 @@ function promptTestMode(type, unit, part) {
     
     if(attemptLogCount === 0) {
         document.getElementById('preTestTitle').innerHTML = "LẦN 1: THI CHUẨN GHI HỌC BẠ";
-        document.getElementById('preTestDesc').innerHTML = "Bắt buộc nhập mã PIN Phụ Huynh để mở đề!";
+        document.getElementById('preTestDesc').innerHTML = "Bắt buộc nhập mã PIN Phụ Huynh để mở đề!<br><span style='color:var(--accent-green);'>(Lần 1 nhận 100% Vàng, KHÔNG bị giới hạn trần)</span>";
         document.getElementById('parentPinSection').style.display = 'block';
         document.getElementById('parentPinEntry').value = '';
         document.getElementById('btnFarmGold').style.display = 'none';
@@ -2183,9 +2183,35 @@ function promptTestMode(type, unit, part) {
         // Fix hiển thị: Admin T11 có test quá 3 lần vẫn hiển thị số đếm đúng
         let displayCount = currentStudentId === 'T11' ? attemptLogCount + 1 : Math.min(attemptLogCount + 1, 3);
         document.getElementById('preTestTitle').innerHTML = `LẦN ${displayCount}/3: CÀY VÀNG BÙ ĐẮP`;
-        document.getElementById('preTestDesc').innerHTML = "Lượt thi phụ để farm Vàng (Không cần mã PIN). Lưu ý: Vàng sẽ bị giảm 50%!";
         document.getElementById('parentPinSection').style.display = 'none';
-        document.getElementById('btnFarmGold').style.display = 'block';
+
+        // --- BẮT ĐẦU: BỘ NÃO KIỂM TRA TRẦN CÀY CUỐC (CHẶN MẤT LƯỢT) ---
+        let todayStr = new Date().toLocaleDateString('vi-VN');
+        if (userEconomy.lastPlayDate !== todayStr) { 
+            userEconomy.dailyGold = 0; 
+            userEconomy.dailyFarmGold = 0; 
+            userEconomy.lastPlayDate = todayStr; 
+        }
+        let currentFarm = parseInt(userEconomy.dailyFarmGold) || 0;
+        let isMaxedOut = (currentFarm >= 1000);
+        
+        if (isMaxedOut && currentStudentId !== 'T11') {
+            // CHẶN CỬA NGAY TẠI SẢNH - KHÔNG CHO THI ĐỂ BẢO TOÀN LƯỢT
+            document.getElementById('preTestDesc').innerHTML = `<div style="padding: 10px; border: 2px dashed #ef4444; background: #fef2f2; border-radius: 8px; margin-bottom: 10px;"><span style="color:var(--accent-red); font-weight:900; font-size:16px;">⛔ BẠN ĐÃ CHẠM TRẦN CÀY CUỐC 1.000 VÀNG HÔM NAY!</span><br><br><span style="color:var(--text-dark); font-size:13px; font-weight:bold;">Các bài cày lại tiếp theo sẽ nhận 0 Xu. Lượt thi đã được khóa lại để bảo toàn số lần cho bạn.<br>Hãy quay lại vào ngày mai nhé!</span></div>`;
+            document.getElementById('btnFarmGold').style.display = 'none';
+        } else {
+            // CHO PHÉP THI + HIỂN THỊ "ĐỒNG HỒ XĂNG"
+            let rateText = displayCount === 2 ? "30%" : "10%";
+            document.getElementById('preTestDesc').innerHTML = `
+            <div style="background: rgba(250, 204, 21, 0.2); border: 2px solid var(--accent-yellow); padding: 8px; border-radius: 8px; margin-bottom: 15px; color: var(--border-dark); font-weight: bold; font-size: 13px;">
+                🎯 Năng lượng Farm hôm nay: <span style="color:#d97706; font-size:16px; font-weight:900;">${currentFarm} / 1.000 Vàng</span>
+            </div>
+            Lượt thi phụ để farm Vàng (Không cần mã PIN).<br>Lưu ý: Mức thưởng bị giảm xuống chỉ còn <span style="color:var(--accent-red); font-weight:900;">${rateText}</span>!`;
+            
+            document.getElementById('btnFarmGold').style.display = 'block';
+            document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-coins"></i> VÀO CÀY VÀNG (NHẬN ${rateText})`;
+        }
+        // --- KẾT THÚC ---
     }
 }
 
@@ -2640,7 +2666,7 @@ function checkVocabAnswer(isTimeout) {
     clearInterval(timerInterval); let q = questionsQueue[0]; let isAllCorrect = true, specificErrors = [];
     
     // ==========================================
-    // PHẦN 1: CHẤM ĐIỂM CÂU TRẢ LỜI
+    // PHẦN 1: CHẤM ĐIỂM CÂU TRẢ LỜI (AI KHOAN HỒNG KHOẢNG TRẮNG, HOA/THƯỜNG)
     // ==========================================
     if (q.type === 'wordform') {
         let expectedGroups = {}, userGroups = {};
@@ -2655,7 +2681,8 @@ function checkVocabAnswer(isTimeout) {
         for(let type in userGroups) {
             let targets = expectedGroups[type] || [], origTargets = expectedGroups[type + "_orig"] || [], matchedIndices = [];
             userGroups[type].forEach(uObj => {
-                let matchIdx = targets.findIndex((t, idx) => t === uObj.answer && !matchedIndices.includes(idx));
+                // CẤY LÕI KHOAN HỒNG: Xóa sạch khoảng trắng và đưa về in thường trước khi so sánh
+                let matchIdx = targets.findIndex((t, idx) => t.replace(/\s+/g, '').toLowerCase() === uObj.answer.replace(/\s+/g, '').toLowerCase() && !matchedIndices.includes(idx));
                 if(matchIdx !== -1) { matchedIndices.push(matchIdx); uObj.inp.style.borderColor = "var(--accent-green)"; } 
                 else {
                     isAllCorrect = false; uObj.inp.style.borderColor = "var(--accent-red)"; if(isTimeout) uObj.inp.classList.add('timeout');
@@ -2667,8 +2694,13 @@ function checkVocabAnswer(isTimeout) {
     } else {
         inputs.forEach(inp => {
             let answer = normalizeText(inp.value), target = normalizeText(inp.getAttribute('data-ans').replace(/\*/g, '')), origTarget = inp.getAttribute('data-ans').split('(')[0].trim().replace(/\*/g, '');
+            
+            // CẤY LÕI KHOAN HỒNG: Xóa sạch khoảng trắng và đưa về in thường trước khi so sánh
+            let cleanAnswer = answer.replace(/\s+/g, '').toLowerCase();
+            let cleanTarget = target.replace(/\s+/g, '').toLowerCase();
+
             if(isTimeout) { inp.classList.add('timeout'); isAllCorrect = false; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">(Hết giờ)</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); } 
-            else if(answer === target) { inp.style.borderColor = "var(--accent-green)"; } 
+            else if(cleanAnswer === cleanTarget) { inp.style.borderColor = "var(--accent-green)"; } 
             else { isAllCorrect = false; inp.style.borderColor = "var(--accent-red)"; specificErrors.push(`Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${inp.value || "(Trống)"}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${origTarget}</span>`); }
         });
     }
@@ -2799,10 +2831,28 @@ function checkVocabAnswer(isTimeout) {
     }
 }
 function evaluateVocabTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
-function renderGrammarQuestion() { if(currentQIndex >= questionsQueue.length) { evaluateGrammarTest(); return; } let qData = questionsQueue[currentQIndex]; document.getElementById('grammarProgress').innerText = `${currentQIndex + 1}/${questionsQueue.length}`; document.getElementById('grammarQuestionText').innerHTML = qData.q.replace("_____", "<b>_____</b>"); document.getElementById('grammarInputArea').innerHTML = `<input type="text" id="grammarInput" class="input-brutal" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Nhập đáp án..." onkeypress="if(event.key === 'Enter') checkGrammarAnswer()">`; document.getElementById('grammarFeedback').innerHTML = ""; document.getElementById('grammarInput').focus(); }
-function checkGrammarAnswer() { let qData = questionsQueue[currentQIndex], userTyped = document.getElementById('grammarInput').value; if(!userTyped) { showToast("Vui lòng nhập đáp án!"); return; } if(normalizeText(userTyped) === normalizeText(qData.ans)) { document.getElementById('grammarFeedback').innerHTML = `<h3 style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> ĐÚNG!</h3>`; currentQIndex++; setTimeout(renderGrammarQuestion, 1000); } else { let errHtml = `Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${userTyped}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án chuẩn phải là: <span style="color:var(--accent-green); font-weight:bold;">${qData.ans}</span>`; exactErrorDetails.push({ q: qData.q, htmlDetails: errHtml }); document.getElementById('grammarFeedback').innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">SAI RỒI!</h3><p>Đáp án đúng: <b>${qData.ans}</b></p><button class="btn btn-dark" style="width: 100%; margin-top: 10px;" onclick="currentQIndex++; renderGrammarQuestion();">TIẾP TỤC</button></div>`; } }
-function evaluateGrammarTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
 
+function renderGrammarQuestion() { if(currentQIndex >= questionsQueue.length) { evaluateGrammarTest(); return; } let qData = questionsQueue[currentQIndex]; document.getElementById('grammarProgress').innerText = `${currentQIndex + 1}/${questionsQueue.length}`; document.getElementById('grammarQuestionText').innerHTML = qData.q.replace("_____", "<b>_____</b>"); document.getElementById('grammarInputArea').innerHTML = `<input type="text" id="grammarInput" class="input-brutal" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Nhập đáp án..." onkeypress="if(event.key === 'Enter') checkGrammarAnswer()">`; document.getElementById('grammarFeedback').innerHTML = ""; document.getElementById('grammarInput').focus(); }
+
+function checkGrammarAnswer() { 
+    let qData = questionsQueue[currentQIndex], userTyped = document.getElementById('grammarInput').value; 
+    if(!userTyped) { showToast("Vui lòng nhập đáp án!"); return; } 
+
+    // CẤY LÕI KHOAN HỒNG: Xóa sạch khoảng trắng và đưa về in thường trước khi so sánh
+    let cleanTyped = normalizeText(userTyped).replace(/\s+/g, '').toLowerCase();
+    let cleanAns = normalizeText(qData.ans).replace(/\s+/g, '').toLowerCase();
+
+    if(cleanTyped === cleanAns) { 
+        document.getElementById('grammarFeedback').innerHTML = `<h3 style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> ĐÚNG!</h3>`; 
+        currentQIndex++; setTimeout(renderGrammarQuestion, 1000); 
+    } else { 
+        let errHtml = `Con nhập: <span style="color:var(--accent-red); text-decoration:line-through; margin:0 5px;">${userTyped}</span> <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> Đáp án chuẩn phải là: <span style="color:var(--accent-green); font-weight:bold;">${qData.ans}</span>`; 
+        exactErrorDetails.push({ q: qData.q, htmlDetails: errHtml }); 
+        document.getElementById('grammarFeedback').innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">SAI RỒI!</h3><p>Đáp án đúng: <b>${qData.ans}</b></p><button class="btn btn-dark" style="width: 100%; margin-top: 10px;" onclick="currentQIndex++; renderGrammarQuestion();">TIẾP TỤC</button></div>`; 
+    } 
+}
+
+function evaluateGrammarTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
 function finishSession(score, typeName, cheatMsg) {
     if (window.isSessionFinished) return; // CHỐNG SPAM CLICK: Nếu nộp rồi thì không chạy lần 2
     window.isSessionFinished = true;
