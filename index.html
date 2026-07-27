@@ -1004,7 +1004,6 @@ async function selectGrade(grade, btnElement) {
         btnElement.classList.remove('btn-outline'); btnElement.classList.add('btn-red');
     }
     
-    // BƯỚC NÂNG CẤP: BÁO HIỆU ĐANG TẢI & KÉO DATA LỚP MỚI VỀ
     let idInput = document.getElementById('studentId');
     if(idInput) {
         idInput.value = "";
@@ -1012,15 +1011,16 @@ async function selectGrade(grade, btnElement) {
         idInput.setAttribute('readonly', 'true');
     }
     
-    // Xóa sạch danh sách cũ, chỉ chừa lại Thầy Tiến
     studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123" } }; 
     
-    // Ra lệnh gọi Google Sheets tải danh sách mới
+    // Ra lệnh gọi Google Sheets tải danh sách và CHÌA KHÓA UNIT mới nhất
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
     if(data.students) data.students.forEach(s => studentDB[s.id] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0 });
     if(data.deadlines) serverDeadlines = data.deadlines;
     
-    // Tải xong thì mở khóa ô nhập ID
+    // NHẬN CHÌA KHÓA TỪ SERVER TRUYỀN XUỐNG
+    if(data.maxAvailableUnit) window.globalMaxUnit = data.maxAvailableUnit; 
+    
     if(idInput) {
         idInput.placeholder = "Nhập Lệnh Bài (VD: 91)...";
         idInput.removeAttribute('readonly');
@@ -2137,22 +2137,29 @@ function openUnitGrid(type, action) {
     document.getElementById('unitSelectTitle').innerText = prefix + suffix;
     let grid = document.getElementById('unitGridContainer'); grid.innerHTML = "";
     
+    // LẤY CHÌA KHÓA ĐÃ LƯU (Mặc định là 1 nếu lỗi)
+    let maxUnlockedUnit = window.globalMaxUnit || 1; 
+
     if (type === 'grammar') {
         grid.style.display = 'grid'; grid.style.gridTemplateColumns = 'repeat(4, 1fr)'; grid.style.gap = '10px';
+        // Ngữ pháp khóa tạm thời vì Sếp chưa có Data tab Ngữ pháp, khi nào có tôi mở sau
         for (let i = 1; i <= 12; i++) grid.innerHTML += `<button class="btn btn-disabled" style="font-size:12px; padding: 12px 5px;" onclick="showHumorousLock()"><i class="fa-solid fa-lock"></i> U${i}</button>`;
         switchScreen('unitSelectScreen'); return;
     }
+    
     grid.style.display = 'grid'; grid.style.gridTemplateColumns = 'repeat(4, 1fr)'; grid.style.gap = '10px';
     for (let i = 1; i <= 12; i++) {
-        if (i === 1) {
+        // TỰ ĐỘNG SO SÁNH VỚI CHÌA KHÓA TỪ DATA SHEET
+        if (i <= maxUnlockedUnit) { 
             if (action === 'test') {
                 grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="promptTestMode('${type}', ${i}, 1)">U${i} - P1</button>`; 
-                // Đã xóa điều kiện p1Done, hiển thị nút P2 luôn để hoàn toàn độc lập
                 grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="promptTestMode('${type}', ${i}, 2)">U${i} - P2</button>`; 
             } else {
-                grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 1)">U${i} - P1</button>`; grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 2)">U${i} - P2</button>`; 
+                grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 1)">U${i} - P1</button>`; 
+                grid.innerHTML += `<button class="btn btn-outline" style="border-color:var(--border-dark); font-size:13px; padding: 15px 5px; font-weight:900;" onclick="startFlow(${i}, 2)">U${i} - P2</button>`; 
             }
         } else {
+            // Chưa có Data thì xích nó lại
             grid.innerHTML += `<button class="btn btn-disabled" style="font-size:12px; padding: 12px 5px;" onclick="showHumorousLock()"><i class="fa-solid fa-lock"></i> U${i} - P1</button><button class="btn btn-disabled" style="font-size:12px; padding: 12px 5px;" onclick="showHumorousLock()"><i class="fa-solid fa-lock"></i> U${i} - P2</button>`;
         }
     }
@@ -3162,10 +3169,14 @@ function loginParentPortal() {
     document.getElementById('parentTimelineBox').innerHTML = timelineHtml || `<div style="color:var(--text-muted); text-align:center;">Chưa có lịch sử ôn tập.</div>`;
 
     vocabRowsDesc.forEach((row, index) => {
-        let timeStr = row[0], category = row[3] ? row[3].toString() : "", unitInfo = row[4] ? row[4].toString() : "";
+        let timeStr = row[0] ? row[0].toString() : "Không rõ";
+        let category = row[3] ? row[3].toString() : "";
+        let unitInfo = row[4] ? row[4].toString() : "";
         let attempt = row[idxAttempt] ? row[idxAttempt].toString() : "1";
         let score = row[idxScore] ? parseFloat(row[idxScore]) : 0;
-        let cCount = row[idxC] ? row[idxC].toString() : "0", wCount = row[idxW] ? row[idxW].toString() : "0", durStr = row[idxDur] ? row[idxDur].toString() : "--";
+        let cCount = row[idxC] ? row[idxC].toString() : "0";
+        let wCount = row[idxW] ? row[idxW].toString() : "0";
+        let durStr = row[idxDur] ? row[idxDur].toString() : "--";
         
         let rowStyle = attempt === "1" ? "border: 4px solid #ff4757; box-shadow: inset 0 0 10px rgba(239,68,68,0.2); background: #fff5f5; position: relative;" : "border-bottom: 2px solid var(--border-dark); position: relative;";
         let badge = attempt === "1" ? `<div style="background:#ff4757; color:white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; display: inline-block;">THI CHUẨN</div>` : `<div style="background:#cbd5e1; color:#0f172a; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">Cày Vàng</div>`;
@@ -3185,43 +3196,47 @@ function loginParentPortal() {
         let unitTextZalo = unitInfo.replace("Unit ", "UNIT ").replace(" - P", " - PHẦN ");
         let subjectTextZalo = `TEST ${unitTextZalo} - DẠNG TỪ VỰNG: ${cleanType} ✨ NEW ✨`;
         
-        // XỬ LÝ BÓC TÁCH NGÀY GIỜ VÀ TÍNH NGƯỢC THỜI GIAN BẮT ĐẦU
-        let timeParts = timeStr.split(' ');
-        let datePart = timeParts.find(p => p.includes('/')) || "";
-        let hourPart = timeParts.find(p => p.includes(':')) || "Không rõ";
-
-        let dParts = datePart.split('/');
-        let dateStrZalo = dParts.length === 3 ? `NGÀY ${dParts[0].padStart(2,'0')} THÁNG ${dParts[1].padStart(2,'0')} NĂM ${dParts[2]}` : datePart;
-
-        let durMatch = durStr.match(/(\d+)p\s*(\d+)s/);
+        // BÓC TÁCH NGÀY GIỜ BẤT TỬ CHỐNG CRASH
+        let logDate = new Date(timeStr);
+        let dateStrZalo = "Không rõ";
+        let hourPart = "Không rõ";
         let startStr = "Không rõ";
-        if(durMatch && hourPart !== "Không rõ") {
-            let mins = parseInt(durMatch[1]), secs = parseInt(durMatch[2]);
-            let tParts = hourPart.split(':');
-            if(tParts.length >= 3) {
-                let d = new Date(); d.setHours(tParts[0], tParts[1], tParts[2]);
-                d.setSeconds(d.getSeconds() - secs); d.setMinutes(d.getMinutes() - mins);
-                startStr = d.toLocaleTimeString('vi-VN', {hour12: false});
+
+        if (!isNaN(logDate.getTime())) {
+            dateStrZalo = `NGÀY ${logDate.getDate().toString().padStart(2,'0')} THÁNG ${(logDate.getMonth()+1).toString().padStart(2,'0')} NĂM ${logDate.getFullYear()}`;
+            hourPart = logDate.toLocaleTimeString('vi-VN', {hour12: false});
+            let durMatch = durStr.match(/(\d+)p\s*(\d+)s/);
+            if(durMatch) {
+                let mins = parseInt(durMatch[1]), secs = parseInt(durMatch[2]);
+                let startD = new Date(logDate.getTime() - (mins*60 + secs)*1000);
+                startStr = startD.toLocaleTimeString('vi-VN', {hour12: false});
             }
+        } else {
+            let timeParts = timeStr.split(' ');
+            dateStrZalo = timeParts.find(p => p.includes('/')) || timeStr;
+            hourPart = timeParts.find(p => p.includes(':')) || "Không rõ";
         }
 
-        // RENDER DANH SÁCH LỖI SAI KÈM "(TRỐNG/SAI)"
+        // RENDER DANH SÁCH LỖI SAI
         let errData = row[idxErr] ? row[idxErr].toString() : "";
         let errorPlainText = "";
         if (errData && wCount > 0) {
-            errorPlainText = "\\n❌ CHI TIẾT LỖI SAI:\\n";
+            errorPlainText = "\n❌ CHI TIẾT LỖI SAI:\n";
             errData.split(',').forEach((e, idx) => {
                 let parts = e.split('::');
                 if(parts[0]) {
-                    errorPlainText += `- Câu ${idx + 1} : [${parts[0].trim()}] Con nhập: (Trống/Sai) => Đáp án: ${parts[1] ? parts[1].trim() : ''}\\n`;
+                    errorPlainText += `- Câu ${idx + 1} : [${parts[0].trim()}] Con nhập: (Trống/Sai) => Đáp án: ${parts[1] ? parts[1].trim() : ''}\n`;
                 }
             });
         }
         
-        // GHÉP FORMAT CHUẨN ZALO NHƯ YÊU CẦU
-        let rawZaloText = `BÁO CÁO KẾT QUẢ CHI TIẾT [${attemptTextZalo}] của ${id}\\n${subjectTextZalo}\\nCON LÀM BÀI VÀO : ${dateStrZalo}\\n⏳ Thời gian làm bài: ${durStr}   -  Bắt đầu: ${startStr} => Kết thúc: ${hourPart}\\n🎯 Điểm: ${score}/10 (Đúng: ${cCount}, Sai: ${wCount})\\n${errorPlainText}`;
+        // GHÉP FORMAT CHUẨN ZALO
+        let rawZaloText = `BÁO CÁO KẾT QUẢ CHI TIẾT [${attemptTextZalo}] của ${id}\n${subjectTextZalo}\nCON LÀM BÀI VÀO : ${dateStrZalo}\n⏳ Thời gian làm bài: ${durStr}   -  Bắt đầu: ${startStr} => Kết thúc: ${hourPart}\n🎯 Điểm: ${score}/10 (Đúng: ${cCount}, Sai: ${wCount})\n${errorPlainText}`;
 
-        let btnZalo = attempt === "1" ? `<br><button style="background:#0088FF; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:900; font-size:11px; margin-top:8px; box-shadow: 2px 2px 0px #0f172a;" onclick="shareZalo('${rawZaloText}')"><i class="fa-solid fa-share"></i> BÁO CÁO ZALO</button>` : "";
+        // 🚨 BÍ QUYẾT BẤT TỬ: Mã hóa toàn bộ chuỗi sang định dạng URI để không một ký tự nào (dấu nháy, ngoặc) có thể làm nổ HTML
+        let safeEncodedText = encodeURIComponent(rawZaloText);
+
+        let btnZalo = attempt === "1" ? `<br><button style="background:#0088FF; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:900; font-size:11px; margin-top:8px; box-shadow: 2px 2px 0px #0f172a;" onclick="shareZalo(decodeURIComponent('${safeEncodedText}'))"><i class="fa-solid fa-share"></i> BÁO CÁO ZALO</button>` : "";
 
         totalVocabScore += score; vocabCount++;
         vocabHtml += `<tr style="${rowStyle}"><td style="text-align:left; line-height: 1.4;">${newBadgeHtml}<b>${unitInfo}</b><br>${badge}<br><small style="color:var(--accent-blue); font-weight:bold;">${cleanType}</small></td><td style="font-size:11px;">${timeStr}</td><td><b style="color:var(--accent-red); font-size:15px;">Lần ${attempt}</b> ${btnZalo}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
@@ -3253,7 +3268,7 @@ function loginParentPortal() {
 
     if(parentChartInst) parentChartInst.destroy(); let ctx = document.getElementById('parentHistoryChart').getContext('2d');
     let labels = vocabRowsAsc.map((_, i) => `Lần ${i+1}`);
-    parentChartInst = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'WORDFORM', data: vocabRowsAsc.map(r => r[3].toString().includes("Word Form") ? parseFloat(r[5]) : null), borderColor: '#1e90ff', spanGaps: true, tension: 0.3, pointBackgroundColor: '#1e90ff' }, { label: 'VOCAB', data: vocabRowsAsc.map(r => r[3].toString().includes("Từ Vựng") ? parseFloat(r[5]) : null), borderColor: '#2ed573', spanGaps: true, tension: 0.3, pointBackgroundColor: '#2ed573' }, { label: 'PREP', data: vocabRowsAsc.map(r => r[3].toString().includes("Giới từ") ? parseFloat(r[5]) : null), borderColor: '#ffa502', spanGaps: true, tension: 0.3, pointBackgroundColor: '#ffa502' }] }, options: { scales: { y: { min: 0, max: 10 } } } });
+    parentChartInst = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'WORDFORM', data: vocabRowsAsc.map(r => r[3].toString().includes("Word Form") ? parseFloat(r[idxScore]) : null), borderColor: '#1e90ff', spanGaps: true, tension: 0.3, pointBackgroundColor: '#1e90ff' }, { label: 'VOCAB', data: vocabRowsAsc.map(r => r[3].toString().includes("Từ Vựng") ? parseFloat(r[idxScore]) : null), borderColor: '#2ed573', spanGaps: true, tension: 0.3, pointBackgroundColor: '#2ed573' }, { label: 'PREP', data: vocabRowsAsc.map(r => r[3].toString().includes("Giới từ") ? parseFloat(r[idxScore]) : null), borderColor: '#ffa502', spanGaps: true, tension: 0.3, pointBackgroundColor: '#ffa502' }] }, options: { scales: { y: { min: 0, max: 10 } } } });
     
     if(pRadarChartInst) pRadarChartInst.destroy(); let ctxR = document.getElementById('parentRadarChart').getContext('2d'); 
     pRadarChartInst = new Chart(ctxR, { 
@@ -3875,55 +3890,52 @@ function openAttendanceModal() {
 
 function renderSlackerMatrix() {
     let table = document.getElementById('matrixTable');
-    let tasksDef = [
-        { id: "wf1", cat: "Thi Word Form", part: "P1", label: "WF1" },
-        { id: "wf2", cat: "Thi Word Form", part: "P2", label: "WF2" },
-        { id: "tv1", cat: "Thi Từ Vựng", part: "P1", label: "TV1" },
-        { id: "tv2", cat: "Thi Từ Vựng", part: "P2", label: "TV2" },
-        { id: "pr1", cat: "Thi Giới từ", part: "P1", label: "PR1" },
-        { id: "pr2", cat: "Thi Giới từ", part: "P2", label: "PR2" }
-    ];
-
-    // TỰ ĐỘNG PHÁT HIỆN UNIT CAO NHẤT ĐANG HỌC (Để không quét nhầm các Unit tương lai)
-    let maxActiveUnit = 1;
-    allLogsCache.forEach(r => {
-        let m = String(r[4] || "").match(/Unit\s+(\d+)/i);
-        if (m && parseInt(m[1]) > maxActiveUnit) maxActiveUnit = parseInt(m[1]);
-    });
-
-    let incompleteUnits = [];
-    for (let u = 1; u <= maxActiveUnit; u++) {
-        let unitHasSlacker = false;
-        for (let id in studentDB) {
-            if (id === "T11") continue;
-            let sLogs = allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(id).trim().toUpperCase());
-            for (let task of tasksDef) {
-                let isDone = sLogs.some(r => r[3] && r[4] && r[3].toString().includes(task.cat) && r[4].toString().includes(`Unit ${u} - ${task.part}`));
-                if (!isDone) { unitHasSlacker = true; break; }
-            }
-            if (unitHasSlacker) break;
-        }
-        if (unitHasSlacker) incompleteUnits.push(u);
-    }
-
-    let displayUnits = incompleteUnits.slice(0, 3);
-    if (displayUnits.length === 0) {
-        table.innerHTML = `<tr><td style="text-align:center; padding: 40px; font-weight:900; color:var(--accent-green); line-height: 1.6; font-size:16px;">🎉 QUÁ ĐỈNH!<br>Tất cả tiểu chủ đã dọn sạch sành sanh Báo Bài!<br>Không còn ai phải đóng vai phụ!</td></tr>`;
+    if(!serverDeadlines || serverDeadlines.length === 0) {
+        table.innerHTML = `<tr><td style="text-align:center; padding: 40px; font-weight:900; color:var(--accent-green); line-height: 1.6; font-size:16px;">🎉 KHÔNG CÓ BÁO BÀI NÀO TỪ THÁI PHÓ!<br>Tất cả đều rảnh rỗi!</td></tr>`;
         return;
     }
 
+    // Lọc ra các task từ Báo Bài (Chỉ check Từ vựng/WF/Prep)
+    let activeTasks = serverDeadlines.filter(dl => dl.type !== 'grammar');
+    if(activeTasks.length === 0) {
+        table.innerHTML = `<tr><td style="text-align:center; padding: 40px; font-weight:900; color:var(--accent-green); line-height: 1.6; font-size:16px;">🎉 CHƯA CÓ BÀI TỪ VỰNG NÀO ĐANG NỢ!</td></tr>`;
+        return;
+    }
+    
+    // Nhóm linh hoạt theo Unit (để tạo cột)
+    let unitsMap = {};
+    activeTasks.forEach(dl => {
+        let u = dl.unit;
+        if(!unitsMap[u]) unitsMap[u] = [];
+        
+        let label = (dl.type === 'wordform' ? 'WF' : (dl.type === 'vocab' ? 'TV' : 'PR')) + (dl.part !== "0" && dl.part !== 0 ? dl.part : "");
+        let cat = dl.type === 'wordform' ? 'Thi Word Form' : (dl.type === 'vocab' ? 'Thi Từ Vựng' : 'Thi Giới từ');
+        let unitStr = `Unit ${u}` + (dl.part !== "0" && dl.part !== 0 ? ` - P${dl.part}` : "");
+        
+        // Tránh bị lặp task nếu trùng thông báo
+        if(!unitsMap[u].some(x => x.unitStr === unitStr && x.cat === cat)) {
+            unitsMap[u].push({ cat: cat, unitStr: unitStr, label: label });
+        }
+    });
+
+    let displayUnits = Object.keys(unitsMap).sort((a,b) => parseInt(b) - parseInt(a)).slice(0, 3); // Lấy 3 Unit mới nhất
+    
     let headers = `<thead><tr><th rowspan="2" style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; top: 0; z-index: 11;">HỌC SINH</th>`;
-    displayUnits.forEach(u => { headers += `<th colspan="6" style="background:var(--border-dark); color:white; border-right: 4px solid white; position: sticky; top: 0; z-index: 10;">UNIT ${u}</th>`; });
+    displayUnits.forEach(u => { headers += `<th colspan="${unitsMap[u].length}" style="background:var(--border-dark); color:white; border-right: 4px solid white; position: sticky; top: 0; z-index: 10;">UNIT ${u}</th>`; });
     headers += `</tr><tr>`;
+    
     displayUnits.forEach(u => {
-        tasksDef.forEach((t, i) => {
-            let border = (i === 1 || i === 3) ? "border-right: 2px dashed rgba(255,255,255,0.2);" : (i === 5 ? "border-right: 4px solid white;" : "");
-            headers += `<th style="background:#1e293b; color:${i<2?'#93c5fd':(i<4?'#86efac':'#fca5a5')}; padding:5px; font-size:11px; position: sticky; top: 37px; z-index: 10; ${border}">${t.label}</th>`;
+        unitsMap[u].forEach((t, i) => {
+            let isLast = i === unitsMap[u].length - 1;
+            let border = isLast ? "border-right: 4px solid white;" : "border-right: 2px dashed rgba(255,255,255,0.2);";
+            headers += `<th style="background:#1e293b; color:#93c5fd; padding:5px; font-size:11px; position: sticky; top: 37px; z-index: 10; ${border}">${t.label}</th>`;
         });
     });
     headers += `</tr></thead><tbody>`;
 
     let rowsHtml = "";
+    let anySlacker = false;
+
     for (let id in studentDB) {
         if (id === "T11") continue;
         let sLogs = allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(id).trim().toUpperCase());
@@ -3931,9 +3943,12 @@ function renderSlackerMatrix() {
         let cellsHtml = "";
 
         displayUnits.forEach(u => {
-            tasksDef.forEach((task, i) => {
-                let border = (i === 1 || i === 3) ? "border-right: 2px dashed var(--border-dark);" : (i === 5 ? "border-right: 4px solid var(--border-dark);" : "");
-                let isDone = sLogs.some(r => r[3] && r[4] && r[3].toString().includes(task.cat) && r[4].toString().includes(`Unit ${u} - ${task.part}`));
+            unitsMap[u].forEach((task, i) => {
+                let isLast = i === unitsMap[u].length - 1;
+                let border = isLast ? "border-right: 4px solid var(--border-dark);" : "border-right: 2px dashed var(--border-dark);";
+                
+                // Mấu chốt gỡ oan: So sánh đúng y chang nội dung
+                let isDone = sLogs.some(r => r[3] && r[4] && r[3].toString().includes(task.cat) && r[4].toString().trim() === task.unitStr);
                 
                 if (!isDone) studentMissedInView = true; 
                 
@@ -3942,12 +3957,18 @@ function renderSlackerMatrix() {
             });
         });
 
-        // CHỈ HIỆN TÊN NẾU HỌC SINH CÒN THIẾU BÀI (AI XONG FULL SẼ TỰ ĐỘNG BIẾN MẤT)
         if (studentMissedInView) {
+            anySlacker = true;
             rowsHtml += `<tr><td style="border-right: 4px solid var(--border-dark); position: sticky; left: 0; z-index: 1; background: white; font-weight: bold; font-size:13px; text-transform:uppercase;">${studentDB[id].name}</td>${cellsHtml}</tr>`;
         }
     }
-    rowsHtml += `<tr><td colspan="${displayUnits.length * 6 + 1}" style="height: 45px; background: white; border: none;"></td></tr>`;
+    
+    if(!anySlacker) {
+        table.innerHTML = `<tr><td style="text-align:center; padding: 40px; font-weight:900; color:var(--accent-green); line-height: 1.6; font-size:16px;">🎉 QUÁ ĐỈNH!<br>Tất cả tiểu chủ đã dọn sạch sành sanh Báo Bài!<br>Không còn ai phải đóng vai phụ!</td></tr>`;
+        return;
+    }
+
+    rowsHtml += `<tr><td colspan="99" style="height: 45px; background: white; border: none;"></td></tr>`;
     table.innerHTML = headers + rowsHtml + `</tbody>`;
 }
 
