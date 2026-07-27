@@ -11,18 +11,32 @@
 
     <style>
         :root { 
-            --bg-color: #fff9e6; 
-            --surface-color: #ffffff; 
-            --border-dark: #0f172a; 
-            --accent-red: #ff4757; 
-            --accent-blue: #1e90ff; 
-            --accent-green: #2ed573;
-            --accent-yellow: #ffa502;
-            --accent-purple: #9c88ff;
-            --text-dark: #0f172a; 
-            --text-muted: #64748b;
-            --shadow-hard: 4px 4px 0px var(--border-dark);
-            --shadow-hard-large: 8px 8px 0px var(--border-dark);
+            /* BẢNG MÀU LÕI MẶC ĐỊNH TỪ UI SPEC CỦA SẾP */
+            --bg-color: #FFF8E6;       
+            --surface-color: #FFFFFF;  
+            --border-dark: #111111;    
+            --text-dark: #111111;      
+            --text-muted: #666666;     
+
+            --accent-yellow: #FFD54F;      
+            --accent-yellow-dark: #FFC933; 
+            
+            --accent-teal: #1E8F8A;        
+            --accent-teal-light: #E9F7F5;  
+            
+            --accent-pink: #F26D8C;        
+            --accent-pink-light: #FFF0F3;  
+            
+            --accent-blue: #3B82F6;        
+            --accent-blue-light: #E8F1FF;  
+            
+            --accent-green-light: #E7F7EB;       
+            --accent-purple-light: #EDE6FF;      
+            --accent-red: #ff4757;         
+
+            /* BÓNG CỨNG NEO-BRUTALISM */
+            --shadow-hard: 4px 4px 0px #00000033;
+            --shadow-hard-large: 8px 8px 0px #00000033;
         }
         
         .dark-mode {
@@ -2177,8 +2191,49 @@ function promptTestMode(type, unit, part) {
     let fullTitlePractice = `Thi ${typeTitles[type] || type} [Tự Luyện]`;
     let unitTitle = `Unit ${unit}${partText}`; 
 
+    // =========================================================================
+    // [CƠ CHẾ MỚI] BỘ NÃO KIỂM SOÁT THỜI GIAN ÉP HỌC - KHÓA 24H ĐẦU TIÊN
+    // =========================================================================
+    if (currentStudentId !== 'T11') {
+        let learnCategory = `Ôn Tập ${typeTitles[type] || type} [Flashcard]`;
+        let learnLogs = allLogsCache.filter(r => 
+            String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && 
+            r[3] && r[3].toString().includes(learnCategory) && 
+            r[4] && r[4].toString().trim() === unitTitle
+        );
+
+        // Cửa 1: Khóa mõm ngay nếu chưa từng vào Tàng Kinh Các ôn tập
+        if (learnLogs.length === 0) {
+            showToast("🛑 LỆNH CẤM: Ngươi chưa học bài! Phải vào TÀNG KINH CÁC (Ôn Tập) qua một lần trước khi thi!");
+            return;
+        }
+
+        // Cửa 2: Quét lấy thời gian học Lần Đầu Tiên và trừ lùi 24 tiếng
+        let firstLearnTimeStr = learnLogs[0][0]; 
+        let firstLearnDate = new Date(firstLearnTimeStr);
+        
+        // Fallback: Chữa cháy nếu định dạng ngày tháng của Google bị chuỗi dị biệt
+        if (isNaN(firstLearnDate.getTime())) {
+            let match = String(firstLearnTimeStr).match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})[^\d]+(\d{1,2}):(\d{1,2}):(\d{1,2})/);
+            if (match) firstLearnDate = new Date(match[3], match[2]-1, match[1], match[4], match[5], match[6]);
+            else firstLearnDate = new Date(); 
+        }
+
+        let diffHours = (Date.now() - firstLearnDate.getTime()) / (1000 * 60 * 60);
+        
+        // Đòn trừng phạt: Block nếu chưa qua đủ 24 tiếng
+        if (diffHours < 24) {
+            let waitTimeHours = Math.floor(24 - diffHours);
+            let waitTimeMins = Math.floor(((24 - diffHours) - waitTimeHours) * 60);
+            showToast(`⏳ KẾT GIỚI BẢO VỆ: Kiến thức chưa ngấm! Phải đợi ${waitTimeHours}h ${waitTimeMins}p nữa mới được mở khóa Thi Thực Chiến!`);
+            return;
+        }
+    }
+    // =========================================================================
+
     // Đếm tổng số lần đã làm (Thêm .trim() để khớp chuỗi tuyệt đối)
-    let attemptLogCount = allLogsCache.filter(r => 
+    let attemptLogCount = allLogsCache.filter(r =>
+
         String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && 
         (r[3] === fullTitleOfficial || r[3] === fullTitlePractice) && 
         String(r[4]).trim() === unitTitle
