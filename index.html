@@ -723,12 +723,7 @@
         </div>
     </div>
 
-    <div id="globalTickerBox" style="position: fixed; top: 0; left: 0; width: 100%; background: #000; border-bottom: 3px solid #eab308; z-index: 9999; display: flex; align-items: center; padding: 4px 10px; box-sizing: border-box; height: 38px;">
-    <div style="flex-grow: 1; overflow: hidden; color: #eab308; font-weight: bold; font-size: 13px; white-space: nowrap;">
-        <marquee scrollamount="6" id="globalTickerContent">Đang hóng hớt tin tức thị phi từ Tàng Kinh Các...</marquee>
-    </div>
-</div>
-
+    
     <!-- BẮT ĐẦU PHỤC HỒI MÀN HÌNH BÁO BÀI -->
     <div id="baoBaiScreen" class="screen scrollable-area">
         <div class="top-bar">
@@ -1795,7 +1790,11 @@ function showThinhKinhOverlay(isShow) {
     if(!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'thinhKinhOverlay';
-        overlay.innerHTML = `<div style="text-align:center; color:var(--accent-yellow);"><i class="fa-solid fa-yin-yang fa-spin fa-4x"></i><h2 style="margin-top:20px; font-weight:900;">ÉT Ô ÉT...</h2><p style="color:white; font-size:14px;">Đường Tăng đang còng lưng gánh data bơi qua sông Thông Thiên! Xin chấp tay niệm chú và KHÔNG ĐƯỢC TẮT TAB, tắt một phát là yêu quái nhào ra bắt đi luôn!</p></div>`;
+        overlay.innerHTML = `<div style="text-align:center; color:var(--accent-yellow); max-width: 85%; width: 400px; display: flex; flex-direction: column; align-items: center;">
+            <i class="fa-solid fa-yin-yang fa-spin fa-4x"></i>
+            <h2 style="margin-top:20px; font-weight:900;">ÉT Ô ÉT...</h2>
+            <p style="color:white; font-size:14px; line-height: 1.6; text-align: center; margin-top: 10px; padding: 15px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; background: rgba(0,0,0,0.5);">Đường Tăng đang còng lưng gánh data bơi qua sông Thông Thiên!<br><br><span style="color:#ef4444; font-weight:bold;">Xin chấp tay niệm chú và KHÔNG ĐƯỢC TẮT TAB. Tắt một phát là yêu quái nhào ra bắt đi luôn!</span></p>
+        </div>`;
         Object.assign(overlay.style, { position:'fixed', top:'0', left:'0', width:'100vw', height:'100vh', background:'rgba(15, 23, 42, 0.95)', zIndex:'9999', display:'flex', justifyContent:'center', alignItems:'center', flexDirection:'column' });
         document.body.appendChild(overlay);
     }
@@ -1869,6 +1868,12 @@ async function login() {
                         let localLogs = JSON.parse(localStorage.getItem(getIsoKey('logs')));
                         allLogsCache = (localLogs && Array.isArray(localLogs)) ? localLogs : [];
                     }
+                    
+                    // FIX: HIỂN THỊ BONG BÓNG MẬT THƯ NGAY LÚC LOGIN
+                    if(syncData.inbox) {
+                        renderStudentInbox(syncData.inbox);
+                    }
+                    
                     window.hasFetchedBackup = true; 
                 }
             }
@@ -2054,15 +2059,15 @@ function renderTopPhuHao() {
     if (phBox) phBox.innerHTML = html || "<div style='color:white; font-size:12px;'>Chưa có dữ liệu.</div>";
 }
 
-// BỘ NÃO XỬ LÝ MẬT THƯ & BONG BÓNG ĐỎ
+// BỘ NÃO XỬ LÝ MẬT THƯ & BONG BÓNG ĐỎ (FIXED)
 let studentInboxData = [];
 function renderStudentInbox(inboxArray) {
     studentInboxData = inboxArray || [];
     let lastReadCount = parseInt(localStorage.getItem(getIsoKey('lastReadInbox'))) || 0;
     
-    // Đếm số thư CÓ LỜI PHÊ của Admin
-    let repliedMessages = studentInboxData.filter(x => x.reply && x.reply.trim() !== "");
-    let unreadCount = Math.max(0, repliedMessages.length - lastReadCount);
+    // Đếm thư có Lời Phê HOẶC Thánh Chỉ hệ thống gửi (Trạng thái CHƯA ĐỌC)
+    let adminMessages = studentInboxData.filter(x => (x.reply && x.reply.trim() !== "") || (x.status && x.status.includes("CHƯA ĐỌC")));
+    let unreadCount = Math.max(0, adminMessages.length - lastReadCount);
     
     let badge = document.getElementById('studentInboxBadge');
     if (badge) {
@@ -2079,11 +2084,21 @@ function openMatThuModal() {
     document.getElementById('matThuModal').style.display = 'flex';
     let historyBox = document.getElementById('matThuHistory');
     
-    // Xóa bong bóng & lưu lại mốc đã đọc
-    let repliedMessages = studentInboxData.filter(x => x.reply && x.reply.trim() !== "");
-    localStorage.setItem(getIsoKey('lastReadInbox'), repliedMessages.length);
+    // Xóa bong bóng & lưu lại mốc đã đọc bằng Object chuẩn
+    let adminMessages = studentInboxData.filter(x => (x.reply && x.reply.trim() !== "") || (x.status && x.status.includes("CHƯA ĐỌC")));
+    localStorage.setItem(getIsoKey('lastReadInbox'), adminMessages.length);
     let badge = document.getElementById('studentInboxBadge');
     if (badge) badge.style.display = 'none';
+
+    // BẮN TÍN HIỆU NGẦM LÊN SERVER BÁO "HỌC SINH ĐÃ XEM" (KHÔNG GÂY LAG APP)
+    if (getScriptUrl() && currentStudentId !== 'T11') {
+        fetch(getScriptUrl(), {
+            method: 'POST',
+            mode: 'no-cors',
+            keepalive: true,
+            body: JSON.stringify({ mode: 'markInboxSeen', studentId: currentStudentId })
+        }).catch(e => {});
+    }
 
     if (studentInboxData.length === 0) {
         historyBox.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding: 10px;">Chưa có lịch sử gửi thư.</div>`;
@@ -2091,7 +2106,6 @@ function openMatThuModal() {
     }
 
     let html = "";
-    // Đảo ngược mảng để thư mới nhất hiện lên trên
     [...studentInboxData].reverse().forEach(msg => {
         html += `<div style="background: rgba(0,0,0,0.03); border: 2px solid var(--border-dark); border-radius: 8px; padding: 10px;">
             <div style="font-size:11px; color:var(--text-muted); margin-bottom:5px;"><i class="fa-solid fa-clock"></i> ${msg.time}</div>
@@ -3509,51 +3523,39 @@ window.addEventListener('beforeunload', function (e) {
 });
 
 // ============================================================================
-// BỘ NÃO TICKER SIÊU NHẸ & BẢNG TIN THỊ PHI (ĐỒNG BỘ & TRỘN XEN KẼ 100%)
+// BỘ NÃO TICKER SIÊU NHẸ (ĐỘC QUYỀN TỬ HUYỆT & FALLBACK THÔNG MINH)
 // ============================================================================
-let globalDramaData = null; // Biến giữ data toàn cục để không cần gọi API nhiều lần
+let globalDramaData = null;
 
 function updateThiPhiTicker() {
     let tickerEl = document.getElementById('globalTickerContent');
-    if (!tickerEl || !getScriptUrl()) return; // Chặn đánh vấp nếu chưa chọn lớp
+    if (!tickerEl || !getScriptUrl()) return; 
 
     fetchWithFallback(getScriptUrl(), "getHotDrama", { data: [], news: [] })
         .then(res => {
             if (res && res.data && res.data.length > 0) {
-                globalDramaData = res.data; // Lưu lại để Ticker và Modal xài chung
-                
-                // CẮT LỚP TỪNG LOẠI ĐÚNG NHƯ YÊU CẦU
-                let wfError = res.data.find(i => i.category === "TỬ HUYỆT" && i.content.includes("WORD FORM"));
-                let prepError = res.data.find(i => i.category === "TỬ HUYỆT" && i.content.includes("GIỚI TỪ"));
-                let vocError = res.data.find(i => i.category === "TỬ HUYỆT" && i.content.includes("TỪ VỰNG"));
-                
-                let vangList = res.data.filter(i => i.category === "BẢNG VÀNG");
-                let truynaList = res.data.filter(i => i.category === "TRUY NÃ");
-                let dramaList = res.data.filter(i => i.category === "DRAMA");
-                
-                let mixedNews = [];
-                let maxLen = Math.max(vangList.length, truynaList.length, dramaList.length, 1);
-                
-                // THUẬT TOÁN XÀO BÀI ĐỈNH CAO: 1 Lỗi Đỏ -> 1 Drama Vàng
-                for (let i = 0; i < maxLen; i++) {
-                    if (i === 0 && wfError) mixedNews.push(`<span style="color:#ef4444; font-weight:900;">🛑 ${wfError.content}</span>`);
-                    if (vangList[i]) mixedNews.push(`<span style="color:#eab308;">⚡ ${vangList[i].content}</span>`);
-                    
-                    if (i === 0 && prepError) mixedNews.push(`<span style="color:#ef4444; font-weight:900;">🛑 ${prepError.content}</span>`);
-                    if (truynaList[i]) mixedNews.push(`<span style="color:#eab308;">⚡ ${truynaList[i].content}</span>`);
-                    
-                    if (i === 0 && vocError) mixedNews.push(`<span style="color:#ef4444; font-weight:900;">🛑 ${vocError.content}</span>`);
-                    if (dramaList[i]) mixedNews.push(`<span style="color:#eab308;">⚡ ${dramaList[i].content}</span>`);
+                globalDramaData = res.data; 
+
+                // Ưu tiên 1: TỬ HUYỆT
+                let tuHuyetNews = res.data.filter(i => i.category === "TỬ HUYỆT");
+                let marqueeItems = tuHuyetNews.map(item => `<span style="color:#ef4444; font-weight:900;">🛑 ${item.content}</span>`);
+
+                // Fallback Ưu tiên 2: Nếu chưa có Tử Huyệt, lấy Drama hoặc Truy Nã lên chạy cho có không khí
+                if (marqueeItems.length === 0) {
+                    let backupNews = res.data.filter(i => i.category === "DRAMA" || i.category === "TRUY NÃ").slice(0, 3);
+                    marqueeItems = backupNews.map(item => `<span style="color:#eab308;">⚡ ${item.content}</span>`);
                 }
-                
-                if(mixedNews.length > 0) {
-                    window.thiPhiMixedCache = mixedNews.join(" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ");
+
+                if (marqueeItems.length > 0) {
+                    window.thiPhiMixedCache = marqueeItems.join(" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ");
                     tickerEl.innerHTML = window.thiPhiMixedCache;
-                    
-                    // Nếu Modal bóc phốt đang mở sẵn, tự động thay đổi chữ luôn!
-                    let modalMarquee = document.getElementById('modalMarqueeText');
-                    if(modalMarquee) modalMarquee.innerHTML = window.thiPhiMixedCache;
+                } else {
+                    tickerEl.innerHTML = "Giang hồ đang tạm yên bình, chưa có phốt nào...";
                 }
+
+                // Nạp cho Modal bóc phốt (nếu đang mở)
+                let modalMarquee = document.getElementById('modalMarqueeText');
+                if(modalMarquee) modalMarquee.innerHTML = window.thiPhiMixedCache || "🔥 Đang cập nhật tin nóng...";
             }
         }).catch(e => { console.log("Tàng Kinh Các bảo trì..."); });
 }
