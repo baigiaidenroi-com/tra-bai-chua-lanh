@@ -437,6 +437,19 @@
     </div>
 </div>
 
+<!-- BỔ SUNG MODAL THỊ PHI BỊ MẤT -->
+<div class="modal-overlay" id="gossipModal" style="z-index: 10006;">
+    <div class="modal-content" style="max-width: 800px; padding: 0; background: #fff; border: 4px solid var(--border-dark); box-shadow: 8px 8px 0px var(--border-dark);">
+        <div style="background: var(--accent-yellow); color: var(--border-dark); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark);">
+            <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 900;"><i class="fa-solid fa-bullhorn fa-shake"></i> TÀNG KINH CÁC THỊ PHI</h2>
+            <button onclick="closeModal('gossipModal')" style="background:#fff; border:3px solid #111; border-radius:50%; width:35px; height:35px; font-weight:bold; cursor:pointer; box-shadow:2px 2px 0px #111;">X</button>
+        </div>
+        <div id="gossipTicker" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+            <!-- Nội dung thị phi sẽ được bot bốc phốt đổ vào đây -->
+        </div>
+    </div>
+</div>
+
 <div class="app-container">
    <div class="header" style="background: #ffd54f !important; border-bottom: 3px solid #111; color: #111 !important; z-index: 10; padding: 5px 10px; min-height: unset;">
 <style>
@@ -629,6 +642,52 @@
         <!-- CONTAINER QUẢN TRỊ ADMIN -->
         <div class="grid-2" id="adminDashboardContainer" style="display: none; margin-bottom: 20px;">
             <button class="btn btn-outline" id="btnAdminDashboard" style="font-size:12px; grid-column: span 2; border-color: var(--accent-red); color: var(--accent-red);" onclick="document.getElementById('adminLoginModal').style.display='flex'"><i class="fa-solid fa-shield-halved"></i> QUẢN TRỊ ADMIN</button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH TRUYỀN THÁNH Ý (BÁO BÀI) ĐÃ KHÔI PHỤC -->
+    <div id="baoBaiScreen" class="screen scrollable-area" style="padding-bottom: 40px;">
+        <div class="top-bar" style="margin-top: 15px; border-bottom: 4px solid #111; padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #111; text-transform: uppercase; font-weight: 900; font-size: 18px;"><i class="fa-solid fa-bullhorn"></i> Truyền Thánh Ý</h2>
+            <button class="btn btn-outline" style="padding: 10px; border: 3px solid #111; box-shadow: 3px 3px 0px #111; background: #fff;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div id="baoBaiContent" style="background: #fff; border: 5px solid #111; padding: 25px; border-radius: 16px; box-shadow: 8px 8px 0px #111; white-space: pre-wrap; font-size: 15px; line-height: 1.8; font-weight: bold; color: #111; margin-bottom: 20px;">Đang tải thánh chỉ...</div>
+        <button class="btn btn-blue" style="width: 100%; padding: 18px; font-size: 16px; font-weight: 900; border: 4px solid #111; box-shadow: 6px 6px 0px #111;" onclick="goBack()">ĐÃ RÕ NHIỆM VỤ!</button>
+    </div>
+
+    <!-- MÀN HÌNH BÍ TỊCH SINH TỒN ĐÃ KHÔI PHỤC -->
+    <div id="biTichScreen" class="screen scrollable-area" style="padding-bottom: 40px;">
+        <div class="top-bar" style="margin-top: 15px; border-bottom: 4px solid #111; padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #111; text-transform: uppercase; font-weight: 900; font-size: 18px;"><i class="fa-solid fa-book-journal-whills"></i> Bí Tịch Sinh Tồn</h2>
+            <button class="btn btn-outline" style="padding: 10px; border: 3px solid #111; box-shadow: 3px 3px 0px #111; background: #fff;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div id="biTichContent" style="background: #fff; border: 5px solid #0ea5e9; padding: 25px; border-radius: 16px; box-shadow: 8px 8px 0px #0ea5e9; white-space: pre-wrap; font-size: 15px; line-height: 1.8; font-weight: bold; color: #111; margin-bottom: 20px;">Đang mở Bí Tích...</div>
+        <button class="btn btn-blue" style="width: 100%; padding: 18px; font-size: 16px; font-weight: 900; background: #0ea5e9; border: 4px solid #111; box-shadow: 6px 6px 0px #111;" onclick="goBack()">ĐÃ TU LUYỆN XONG!</button>
+    </div>
+
+    <!-- MÀN HÌNH VÕ LÂM TRANH BÁ ĐÃ KHÔI PHỤC -->
+    <div id="dauTruongMenuScreen" class="screen scrollable-area" style="padding-bottom: 40px;">
+        <div class="top-bar" style="margin-top: 15px; border-bottom: 4px solid #111; padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #2563eb; text-transform: uppercase; font-weight: 900; font-size: 18px;"><i class="fa-solid fa-chess-knight"></i> Sa Trường Võ Lâm</h2>
+            <button class="btn btn-outline" style="padding: 10px; border: 3px solid #111; box-shadow: 3px 3px 0px #111; background: #fff;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 25px;">
+            <div style="background: #fff; border: 5px solid #facc15; border-radius: 16px; padding: 20px; box-shadow: 8px 8px 0px #facc15;">
+                <div style="font-weight: 900; text-align: center; font-size: 18px; color: #b45309; margin-bottom: 15px;">TÀNG KINH CÁC <br><span style="font-size: 12px; color: #111;">(Lật thẻ lĩnh ngộ võ công)</span></div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <button class="btn btn-outline" style="border: 3px solid #111; background: #fefce8; font-size: 12px; padding: 15px 5px; box-shadow: 3px 3px 0px #111;" onclick="openUnitGrid('wordform', 'learn')">WORD FORM</button>
+                    <button class="btn btn-outline" style="border: 3px solid #111; background: #fefce8; font-size: 12px; padding: 15px 5px; box-shadow: 3px 3px 0px #111;" onclick="openUnitGrid('vocab', 'learn')">VOCAB</button>
+                    <button class="btn btn-outline" style="border: 3px solid #111; background: #fefce8; font-size: 12px; padding: 15px 5px; box-shadow: 3px 3px 0px #111;" onclick="openUnitGrid('prep', 'learn')">PREP</button>
+                </div>
+            </div>
+            <div style="background: #fff; border: 5px solid #ef4444; border-radius: 16px; padding: 20px; box-shadow: 8px 8px 0px #ef4444;">
+                <div style="font-weight: 900; text-align: center; font-size: 18px; color: #b91c1c; margin-bottom: 15px;">LÔI ĐÀI QUYẾT TỬ <br><span style="font-size: 12px; color: #111;">(Huyết chiến leo Bảng vàng)</span></div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <button class="btn btn-red" style="border: 3px solid #111; font-size: 12px; padding: 15px 5px; box-shadow: 3px 3px 0px #111;" onclick="openUnitGrid('wordform', 'test')">TEST WF</button>
+                    <button class="btn btn-red" style="border: 3px solid #111; font-size: 12px; padding: 15px 5px; box-shadow: 3px 3px 0px #111;" onclick="openUnitGrid('vocab', 'test')">TEST VOCAB</button>
+                    <button class="btn btn-red" style="border: 3px solid #111; font-size: 12px; padding: 15px 5px; box-shadow: 3px 3px 0px #111;" onclick="openUnitGrid('prep', 'test')">TEST PREP</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1657,7 +1716,7 @@ function switchScreen(id, isBack = false) {
 }
 function goBack() { if (screenHistory.length > 0) switchScreen(screenHistory.pop(), true); else goHome(); }
 function goHome() { clearInterval(timerInterval); screenHistory = []; if(currentStudentId !== "") { switchScreen('dashboardScreen'); calcRivalAnchor(); } else switchScreen('loginScreen'); }
-function normalizeText(text) { return text ? text.toString().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").replace(/\s+/g, " ").trim() : ""; }
+function normalizeText(text) { return text ? text.toString().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").replace(/\s+/g, "").trim() : ""; }
 
 function parseDeadlineTime(str) {
     try {
@@ -2923,6 +2982,7 @@ function finishSession(score, typeName, cheatMsg) {
     if (window.isSessionFinished) return; // CHỐNG SPAM CLICK: Nếu nộp rồi thì không chạy lần 2
     window.isSessionFinished = true;
     clearInterval(timerInterval);
+    closeVirtualKeyboard(); // BUG 2 FIX: Gặp đích là TỰ ĐỘNG dẹp bàn phím ảo ngay lập tức!
     let durSec = Math.round((Date.now() - testStartTime)/1000), durStr = Math.floor(durSec/60) + "p " + (durSec%60) + "s";
     
     let startStr = new Date(testStartTime).toLocaleTimeString('vi-VN');
