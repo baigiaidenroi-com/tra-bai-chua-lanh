@@ -4608,18 +4608,17 @@ function playNewsSound() {
 function switchGossipTab(tabId, el) {
     let parent = el.parentElement;
     parent.querySelectorAll('.gossip-tab-btn').forEach(b => {
-        b.style.background = '#f8fafc';
-        b.style.color = '#111';
-        b.style.transform = 'none';
+        b.style.background = '#f8fafc'; 
+        b.style.color = '#111'; 
         b.style.boxShadow = '3px 3px 0px #111';
+        b.style.transform = 'none';
     });
-    el.style.background = '#facc15';
-    el.style.transform = 'translate(3px, 3px)';
-    el.style.boxShadow = '0px 0px 0px #111';
+    el.style.background = '#facc15'; 
+    el.style.boxShadow = 'inset 3px 3px 0px rgba(0,0,0,0.2)'; 
     
     let container = document.getElementById('gossipTabsContent');
     container.querySelectorAll('.gossip-tab-pane').forEach(c => c.style.display = 'none');
-    document.getElementById(tabId).style.display = 'grid';
+    document.getElementById(tabId).style.display = 'block';
 }
 
 function openGossipFeed() {
@@ -4627,28 +4626,85 @@ function openGossipFeed() {
     document.getElementById('gossipModal').style.display = 'flex';
     let container = document.getElementById('gossipTicker');
     
-    container.innerHTML = `<div style="text-align:center; padding:30px; font-weight:bold; color:var(--text-muted);"><i class="fa-solid fa-satellite-dish fa-spin fa-2x"></i><br>Đang tải Thánh Chỉ từ Tàng Kinh Các...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:30px; font-weight:bold; color:var(--text-muted);"><i class="fa-solid fa-satellite-dish fa-spin fa-2x"></i><br>Đang kết nối trạm chim đưa thư...</div>`;
 
-        // [FIX] CỬA VIP: ĐÃ ĐỔI TÊN CỔNG GIAO TIẾP THÀNH getHotDrama
-        fetchWithFallback(getScriptUrl(), "getHotDrama", { data: [], news: [] })
+    fetchWithFallback(getScriptUrl(), "getHotDrama", { data: [], news: [], story: [] })
     .then(res => {
         let data = res.data || [];
-        if (data.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:30px; color:#f59e0b; font-weight:bold;"><i class="fa-solid fa-leaf"></i><br><br>Giang hồ hiện tại quá đỗi bình yên...<br>Chưa có drama nào trên bảng!</div>`;
-            return;
-        }
-
-        // Cập nhật ngầm luôn thanh chạy chữ trên đỉnh màn hình (Ticker)
+        let storyData = res.story || [];
+        
         window.thiPhiNewsCache = res.news || [];
         let tickerEl = document.getElementById('globalTickerContent');
         if (tickerEl && window.thiPhiNewsCache.length > 0) {
             tickerEl.innerHTML = window.thiPhiNewsCache.join(" &nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp; ");
         }
 
-        // Tách rập khuôn 3 thẻ từ 3 Category
+        // 1. TẠO HTML CỐT TRUYỆN (UI ACCORDION SIÊU GỌN - DẤU TITLE DÀI VÀO TRONG)
+        let storyHtml = "";
+        if (storyData.length === 0) {
+            storyHtml = `<div style="text-align:center; color:#666; font-style:italic; padding: 20px;">Không có cốt truyện nào! Thái Phó đang nghỉ lễ!</div>`;
+        } else {
+            storyData.forEach((sessionObj, index) => {
+                let isLatest = (index === storyData.length - 1); 
+                let displayStyle = isLatest ? "block" : "none"; 
+                let badgeNew = isLatest ? `<span class="badge-new-pro" style="position:static; margin-left:8px; animation: pulseAlertUI 1.5s infinite alternate;">✨ MỚI</span>` : "";
+                let headerBg = isLatest ? "linear-gradient(135deg, #fefce8, #fef08a)" : "#f8fafc";
+                let headerBorder = isLatest ? "#b45309" : "#cbd5e1";
+                let headerText = isLatest ? "#b45309" : "#64748b";
+
+                let sessionContentHtml = "";
+                sessionObj.dialogues.forEach(s => {
+                    let formattedContent = s.content.replace(/([A-Z][A-Z\s]+)\s*\((.*?)\)/g, '<span style="color:var(--accent-blue); font-weight:900;">$1</span> (<span style="color:var(--text-muted); font-style:italic;">$2</span>)');
+
+                    if (s.type === "SYSTEM") {
+                        sessionContentHtml += `<div style="background: #fef2f2; border: 2px dashed #ef4444; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; line-height: 1.6; color: #b91c1c; font-weight: bold; text-align: center; box-shadow: 2px 2px 0px #ef4444;">${s.speaker}<br><span style="color:#111;">${formattedContent}</span></div>`;
+                    } else if (s.type === "CINEMA") {
+                        sessionContentHtml += `<div style="background: #111; border: 2px solid #facc15; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; line-height: 1.6; color: #facc15; font-weight: 900; text-align: center; box-shadow: 4px 4px 0px #facc15; text-transform: uppercase;">${s.speaker}<br><span style="color:#fff; font-weight: bold; text-transform: none;">${formattedContent}</span></div>`;
+                    } else {
+                        let avatar = "👤";
+                        let speakerLower = s.speaker.toLowerCase();
+                        if (speakerLower.includes("phi")) avatar = "👩‍🦱";
+                        if (speakerLower.includes("cung nữ")) avatar = "📷";
+                        if (speakerLower.includes("thái giám")) avatar = "📶";
+                        if (speakerLower.includes("ngự lâm")) avatar = "💂";
+                        if (speakerLower.includes("lão sư") || speakerLower.includes("cụ hộ")) avatar = "👴";
+                        if (speakerLower.includes("sếp tổng")) avatar = "👑";
+
+                        sessionContentHtml += `
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                            <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--surface-color); border: 2px solid #111; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 2px 2px 0px #111;">${avatar}</div>
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 11px; font-weight: 900; color: #64748b; margin-bottom: 3px; text-transform: uppercase;">${s.speaker}</div>
+                                <div style="background: #fff; border: 2px solid #111; padding: 10px 12px; border-radius: 0px 12px 12px 12px; font-size: 13px; font-weight: bold; color: #111; box-shadow: 2px 2px 0px #111; line-height: 1.6;">${formattedContent}</div>
+                            </div>
+                        </div>`;
+                    }
+                });
+
+                // Bảo vệ biến dayTitle không bị Undefined
+                let dayTitleText = sessionObj.dayTitle || "CHI TIẾT KỲ ÁN";
+
+                storyHtml += `
+                <div style="margin-bottom: 12px; border: 3px solid ${headerBorder}; border-radius: 8px; overflow: hidden; box-shadow: 3px 3px 0px ${headerBorder}; background: white;">
+                    <div onclick="let pane = this.nextElementSibling; let icon = this.querySelector('.fa-caret-down') || this.querySelector('.fa-caret-up'); pane.style.display = pane.style.display === 'none' ? 'block' : 'none'; if(icon) { icon.classList.toggle('fa-caret-down'); icon.classList.toggle('fa-caret-up'); }" 
+                         style="background: ${headerBg}; padding: 12px 15px; cursor: pointer; font-weight: 900; font-size: 13px; color: ${headerText}; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+                        <div style="flex-grow:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-book-open"></i> ${sessionObj.title} ${badgeNew}</div>
+                        <i class="fa-solid ${isLatest ? 'fa-caret-up' : 'fa-caret-down'}" style="flex-shrink:0; margin-left:8px;"></i>
+                    </div>
+                    <div style="display: ${displayStyle}; padding: 15px; border-top: 2px dashed ${headerBorder}; background: #f8fafc;">
+                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px dashed #cbd5e1; padding-bottom: 15px;">
+                            <h3 style="margin: 0; color: #b91c1c; text-transform: uppercase; font-size: 15px; line-height: 1.4;">${dayTitleText}</h3>
+                        </div>
+                        ${sessionContentHtml}
+                    </div>
+                </div>`;
+            });
+        }
+
+        // 2. TẠO HTML TIN TỨC THỊ PHI AUTO
         let bangVang = data.filter(item => item.category === "BẢNG VÀNG");
         let truyNa = data.filter(item => item.category === "TRUY NÃ");
-        let drama = data.filter(item => item.category === "DRAMA");
+        let drama = data.filter(item => item.category === "DRAMA" || item.category === "TỬ HUYỆT"); 
 
         const createCard = (title, content, bgColor, borderColor) => `
             <div style="background: ${bgColor}; border: 3px solid #111; border-radius: 12px; padding: 15px; position: relative; box-shadow: 4px 4px 0px #111; overflow: hidden; margin-bottom:12px;">
@@ -4657,37 +4713,34 @@ function openGossipFeed() {
             </div>
         `;
 
-        let tab1Html = bangVang.map(x => createCard(x.author || "Khâm Thiên Giám", x.content, '#fefce8', '#b45309')).join('');
-        if(!tab1Html) tab1Html = `<div style="text-align:center; color:#666; font-style:italic;">Chưa có Vinh Danh nào.</div>`;
+        let tab1Html = bangVang.map(x => createCard(x.author || "Khâm Thiên Giám", x.content, '#fefce8', '#b45309')).join('') || `<div style="text-align:center; color:#666; font-style:italic;">Chưa có Chân Long nào xuất hiện.</div>`;
+        let tab2Html = truyNa.map(x => createCard(x.author || "Khâm Thiên Giám", x.content, '#fef2f2', '#b91c1c')).join('') || `<div style="text-align:center; color:#666; font-style:italic;">Chưa có ai bị Vạch Mặt.</div>`;
+        let tab3Html = drama.map(x => createCard(x.author || "Khâm Thiên Giám", x.content, '#f0fdf4', '#15803d')).join('') || `<div style="text-align:center; color:#666; font-style:italic;">Cuồng phong chưa nổi lên.</div>`;
 
-        let tab2Html = truyNa.map(x => createCard(x.author || "Khâm Thiên Giám", x.content, '#fef2f2', '#b91c1c')).join('');
-        if(!tab2Html) tab2Html = `<div style="text-align:center; color:#666; font-style:italic;">Chưa có Lệnh Truy Nã nào.</div>`;
-
-        let tab3Html = drama.map(x => createCard(x.author || "Khâm Thiên Giám", x.content, '#f0fdf4', '#15803d')).join('');
-        if(!tab3Html) tab3Html = `<div style="text-align:center; color:#666; font-style:italic;">Không có Drama thâm cung nào.</div>`;
-
-        let marqueeText = window.thiPhiNewsCache.slice(0, 5).join(' &nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp; ');
-        
         container.innerHTML = `
-        <div style="background: #111; color: #fff; padding: 15px 12px; border-radius: 8px; border: 3px solid var(--accent-yellow); box-shadow: 4px 4px 0px var(--accent-yellow); overflow: hidden; white-space: nowrap; margin-bottom: 15px; display: flex; align-items: center;">
-            <span style="font-weight: 900; font-size: 15px; margin-right: 10px; color: var(--accent-yellow); flex-shrink: 0;">🔥 HOT NEWS:</span>
-            <marquee scrollamount="4" style="font-weight: 900; font-size: 15px; flex-grow: 1; padding-top: 2px;">${marqueeText} 🔥</marquee>
+        <div style="background: #111; color: #fff; padding: 10px 12px; border-radius: 8px; border: 3px solid var(--accent-yellow); box-shadow: 4px 4px 0px var(--accent-yellow); overflow: hidden; white-space: nowrap; margin-bottom: 15px; display: flex; align-items: center;">
+            <span style="font-weight: 900; font-size: 13px; margin-right: 10px; color: var(--accent-yellow); flex-shrink: 0;"><i class="fa-solid fa-bolt"></i> HOT:</span>
+            <marquee scrollamount="4" style="font-weight: bold; font-size: 13px; flex-grow: 1; padding-top: 2px;">${window.thiPhiNewsCache.slice(0, 5).join(' &nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp; ') || "Giang hồ đang yên bình..."}</marquee>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px;">
-            <button class="btn gossip-tab-btn" style="background:#facc15; padding: 10px 5px; font-size: 11px; transform: translate(3px,3px); box-shadow: 0px 0px 0px #111;" onclick="switchGossipTab('gossipTab1', this)">BẢNG VÀNG</button>
-            <button class="btn gossip-tab-btn" style="background:#f8fafc; padding: 10px 5px; font-size: 11px;" onclick="switchGossipTab('gossipTab2', this)">TRUY NÃ</button>
-            <button class="btn gossip-tab-btn" style="background:#f8fafc; padding: 10px 5px; font-size: 11px;" onclick="switchGossipTab('gossipTab3', this)">DRAMA</button>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 15px;">
+            <button class="btn gossip-tab-btn" style="background:#facc15; padding: 8px 2px; font-size: 10px; box-shadow: inset 3px 3px 0px rgba(0,0,0,0.2); transition: none;" onclick="switchGossipTab('gossipTabStory', this)">🔥 HUYỀN ÁN</button>
+            <button class="btn gossip-tab-btn" style="background:#f8fafc; padding: 8px 2px; font-size: 10px; box-shadow: 3px 3px 0px #111; transition: none;" onclick="switchGossipTab('gossipTab1', this)">🐉 CHÂN LONG</button>
+            <button class="btn gossip-tab-btn" style="background:#f8fafc; padding: 8px 2px; font-size: 10px; box-shadow: 3px 3px 0px #111; transition: none;" onclick="switchGossipTab('gossipTab2', this)">🎯 VẠCH MẶT</button>
+            <button class="btn gossip-tab-btn" style="background:#f8fafc; padding: 8px 2px; font-size: 10px; box-shadow: 3px 3px 0px #111; transition: none;" onclick="switchGossipTab('gossipTab3', this)">🌪️ CUỒNG PHONG</button>
         </div>
         <div id="gossipTabsContent" style="padding-bottom: 10px;">
-            <div id="gossipTab1" class="gossip-tab-pane" style="display: block;">${tab1Html}</div>
+            <div id="gossipTabStory" class="gossip-tab-pane" style="display: block;">
+                ${storyHtml}
+            </div>
+            <div id="gossipTab1" class="gossip-tab-pane" style="display: none;">${tab1Html}</div>
             <div id="gossipTab2" class="gossip-tab-pane" style="display: none;">${tab2Html}</div>
             <div id="gossipTab3" class="gossip-tab-pane" style="display: none;">${tab3Html}</div>
         </div>
         `;
     })
     .catch(err => {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:red;"><b>Đứt cáp quang từ Tàng Kinh Các:</b><br>${err.message}</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:red;"><b>Mất mạng Tàng Kinh Các:</b><br>${err.message}</div>`;
     });
 }
 
