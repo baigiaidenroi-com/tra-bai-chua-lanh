@@ -828,12 +828,17 @@
 
     <!-- MÀN HÌNH THI GÕ TỪ VỰNG -->
     <div id="vocabTestScreen" class="screen">
-        <div style="width:100%; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 2px dashed var(--border-dark);"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> KÉO CỜ TRẮNG TẾ TƯỚNG</button></div>
-        <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center;">
-            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 20px;"><div id="vtProgress" style="font-weight: 900; font-size: 16px; border-bottom: 3px solid var(--border-dark);">Câu 1/10</div><div class="timer-brutal" id="vtTimer">15</div></div>
+        <div style="width:100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 3px solid var(--border-dark); background: #f8fafc; z-index: 10;">
+            <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px; box-shadow: 2px 2px 0px #111; border-color: var(--accent-red); color: var(--accent-red); background: white;" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button>
+            <div class="timer-brutal" id="vtTimer" style="font-size: 22px; padding: 4px 15px;">15</div>
+        </div>
+        <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center; padding-top: 20px;">
+            <div style="width: 100%; text-align: center; margin-bottom: 15px;">
+                <span id="vtProgress" style="font-weight: 900; font-size: 14px; background: var(--border-dark); color: white; padding: 4px 12px; border-radius: 20px;">Câu 1/10</span>
+            </div>
             <div style="width: 100%; border: 4px solid var(--border-dark); padding: 30px 15px; text-align: center; border-radius: 12px; box-shadow: var(--shadow-hard); background: white;">
-                <div id="vtHint" style="font-size: 26px; font-weight: 900; color: var(--accent-blue); text-transform: uppercase;">Nghĩa Tiếng Việt</div><div id="vtSubHint" style="font-size: 12px; color: var(--text-muted); margin-top: 10px; margin-bottom: 25px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;"></div>
-            
+                <div id="vtHint" style="font-size: 26px; font-weight: 900; color: var(--accent-blue); text-transform: uppercase;">Nghĩa Tiếng Việt</div>
+                <div id="vtSubHint" style="font-size: 12px; color: var(--text-muted); margin-top: 10px; margin-bottom: 25px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;"></div>
                 <div id="vtInputArea" style="width: 100%; display: flex; flex-direction: column; gap: 15px; align-items: center;"></div>
                 <button class="btn btn-green" id="btnVtSubmit" style="width: 100%; margin-top: 25px; padding: 18px; font-size: 16px;" onclick="checkVocabAnswer(false)">HẠ BÚT ĐIỂM NHÃN</button>
             </div>
@@ -926,36 +931,52 @@
     </div>
 </div>
 
-<!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM ================= -->
-<div id="neoKeyboard" style="position: fixed; bottom: -100%; left: 0; width: 100%; background: #facc15; border-top: 4px dashed #111; z-index: 100000; padding: 6px 4px 15px 4px; box-shadow: 0px -5px 15px rgba(0,0,0,0.2); transition: bottom 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; gap: 4px;">
-    <div style="display: flex; justify-content: space-between; padding: 0 8px 6px 8px; border-bottom: 2px dashed #111; margin-bottom: 2px;">
-        <span style="font-weight: 900; color: #111; text-transform: uppercase; font-size: 11px;"><i class="fa-solid fa-keyboard"></i> Bàn Phím Sĩ Tử</span>
-        <i class="fa-solid fa-chevron-down" style="font-size: 16px; color: #111; cursor: pointer; padding: 0 10px;" onclick="closeVirtualKeyboard()"></i>
+<!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM (ĐÃ FIX KHUYẾT ĐIỂM) ================= -->
+<!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM (ĐÃ FIX KHỔ LỚN) ================= -->
+<!-- ================= BÀN PHÍM ẢO (ĐÃ XÓA 3D, NẢY VÀ XÓA LIÊN TỤC) ================= -->
+<div id="neoKeyboard" style="position: fixed; bottom: -100%; left: 0; width: 100%; background: #facc15; border-top: 4px dashed #111; z-index: 100000; padding: 12px 6px 25px 6px; transition: bottom 0.2s ease-out; display: flex; flex-direction: column; gap: 8px;">
+    <div style="display: flex; justify-content: space-between; padding: 0 8px 6px 8px; border-bottom: 3px dashed #111; margin-bottom: 2px;">
+        <span style="font-weight: 900; color: #111; text-transform: uppercase; font-size: 13px;"><i class="fa-solid fa-keyboard"></i> Bàn Phím Sĩ Tử</span>
+        <i class="fa-solid fa-chevron-down" style="font-size: 22px; color: #111; cursor: pointer; padding: 0 10px;" onclick="closeVirtualKeyboard()"></i>
     </div>
-    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+    <div style="display: flex; justify-content: center; gap: 6px; width: 100%;">
         <button class="vk-key" onclick="vkType('q')">q</button><button class="vk-key" onclick="vkType('w')">w</button><button class="vk-key" onclick="vkType('e')">e</button><button class="vk-key" onclick="vkType('r')">r</button><button class="vk-key" onclick="vkType('t')">t</button><button class="vk-key" onclick="vkType('y')">y</button><button class="vk-key" onclick="vkType('u')">u</button><button class="vk-key" onclick="vkType('i')">i</button><button class="vk-key" onclick="vkType('o')">o</button><button class="vk-key" onclick="vkType('p')">p</button>
     </div>
-    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+    <div style="display: flex; justify-content: center; gap: 6px; width: 100%;">
         <button class="vk-key" onclick="vkType('a')">a</button><button class="vk-key" onclick="vkType('s')">s</button><button class="vk-key" onclick="vkType('d')">d</button><button class="vk-key" onclick="vkType('f')">f</button><button class="vk-key" onclick="vkType('g')">g</button><button class="vk-key" onclick="vkType('h')">h</button><button class="vk-key" onclick="vkType('j')">j</button><button class="vk-key" onclick="vkType('k')">k</button><button class="vk-key" onclick="vkType('l')">l</button>
     </div>
-    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
+    <div style="display: flex; justify-content: center; gap: 6px; width: 100%;">
         <button class="vk-key" onclick="vkType('z')">z</button><button class="vk-key" onclick="vkType('x')">x</button><button class="vk-key" onclick="vkType('c')">c</button><button class="vk-key" onclick="vkType('v')">v</button><button class="vk-key" onclick="vkType('b')">b</button><button class="vk-key" onclick="vkType('n')">n</button><button class="vk-key" onclick="vkType('m')">m</button><button class="vk-key" onclick="vkType('-')">-</button><button class="vk-key" onclick="vkType('\'')">'</button>
     </div>
-    <div style="display: flex; justify-content: center; gap: 6px; width: 100%; padding-top: 4px;">
-        <button class="vk-key wide" onclick="vkBack()"><i class="fa-solid fa-delete-left"></i></button>
+    <div style="display: flex; justify-content: center; gap: 8px; width: 100%; padding-top: 4px;">
+        <button class="vk-key wide" onpointerdown="startVkBack(event)" onpointerup="stopVkBack(event)" onpointerleave="stopVkBack(event)"><i class="fa-solid fa-delete-left"></i></button>
         <button class="vk-key space" onclick="vkType(' ')">space</button>
         <button class="vk-key submit" onclick="vkEnter()">hạ bút</button>
     </div>
 </div>
 <style>
-    .vk-key { background: #fff; border: 2px solid #111; border-radius: 6px; font-weight: 900; font-size: 18px; color: #111; padding: 6px 0; flex: 1; max-width: 9.2vw; text-transform: lowercase; box-shadow: 1px 1px 0px #111; cursor: pointer; text-align: center; transition: 0.1s; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; user-select: none; font-family: 'Space Grotesk', system-ui, sans-serif; }
-    .vk-key:active { transform: translate(1px, 1px); box-shadow: 0px 0px 0px #111; background: #e2e8f0; }
-    .vk-key.wide { max-width: 15vw; background: #ef4444; color: #fff; border-color: #111; }
-    .vk-key.space { max-width: 45vw; font-size: 14px; letter-spacing: 2px; }
-    .vk-key.submit { max-width: 25vw; background: #3b82f6; color: #fff; font-size: 12px; }
+    .vk-key { background: #fff; border: 2px solid #111; border-radius: 8px; font-weight: 900; font-size: 24px; color: #111; padding: 14px 0; flex: 1; text-transform: lowercase; box-shadow: none; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; font-family: 'Space Grotesk', system-ui, sans-serif; transition: transform 0.05s ease-out, background-color 0.05s; will-change: transform; }
+    .vk-key:active { transform: scale(0.92); background: #e2e8f0; transition: none; }
+    .vk-key.wide { flex: 1.5; background: #ef4444; color: #fff; border-color: #111; }
+    .vk-key.space { flex: 3; font-size: 16px; letter-spacing: 2px; }
+    .vk-key.submit { flex: 2; background: #3b82f6; color: #fff; font-size: 14px; text-transform: uppercase; }
 </style>
+<script>
+    let vkBackInterval, vkBackTimeout;
+    function startVkBack(e) {
+        if(e && e.cancelable) e.preventDefault();
+        vkBack(); // Xóa phát đầu ngay lập tức
+        vkBackTimeout = setTimeout(() => { vkBackInterval = setInterval(vkBack, 60); }, 350); // Đợi 350ms rồi xóa liên tục
+    }
+    function stopVkBack(e) {
+        if(e && e.cancelable) e.preventDefault();
+        clearTimeout(vkBackTimeout); clearInterval(vkBackInterval);
+    }
+</script>
 
 <script>
+
+
 // ================= LOGIC BÀN PHÍM ẢO & SCROLL CHỐNG ĐÈ =================
 window.activeVKInput = null;
 
@@ -1806,15 +1827,25 @@ document.addEventListener('visibilitychange', () => {
         triggerBackgroundSync();
     }
 
-    // 2. ANTI-CHEAT CŨ (GIỮ NGUYÊN BẢN CHẤT)
-    if (!currentIsOfficial) return; 
-    
+   // 2. ANTI-CHEAT TOÀN DIỆN (Áp dụng cho cả Lần 1 và Farm Vàng L2, L3)
     if (document.hidden && (document.getElementById("vocabTestScreen").classList.contains('active-screen') || document.getElementById("grammarTestScreen").classList.contains('active-screen'))) { 
+        
         cheatWarnings++; 
-        if(cheatWarnings >= 3) {
-            document.getElementById('forceSubmitModal').style.display = 'flex'; 
+        
+        if (currentIsOfficial) {
+            // LẦN 1 (THI THẬT): CẢNH BÁO, LẦN 3 ÉP NỘP BÀI
+            if(cheatWarnings >= 3) {
+                document.getElementById('forceSubmitModal').style.display = 'flex'; 
+            } else {
+                triggerSecurityAlert(`CẢNH BÁO GIAN LẬN: Rời Tab (Lần ${cheatWarnings}/3). Lần 3 thu bài!`); 
+            }
         } else {
-            triggerSecurityAlert(`CẢNH BÁO GIAN LẬN: Rời Tab (Lần ${cheatWarnings}/3). Lần 3 thu bài!`); 
+            // LẦN 2, LẦN 3 (FARM VÀNG): KHÔNG ÉP NỘP NHƯNG TRỪ NẶNG VÀNG TRỰC TIẾP
+            let phatVang = 300 * cheatWarnings; // Lần 1 trừ 300, lần 2 trừ 600...
+            triggerSecurityAlert(`🚨 PHẠT FARM VÀNG: Rời tab ăn gian! Cẩm Y Vệ thu phạt ${phatVang} Vàng!`);
+            if (typeof addEconomyLog === 'function') {
+                addEconomyLog(`🚨 Cấm Vệ Quân Phạt: Rời Tab khi Farm Vàng (Lần ${cheatWarnings})`, -phatVang);
+            }
         }
     } 
 });
@@ -2397,14 +2428,9 @@ function promptTestMode(type, unit, part) {
         String(r[4]).trim() === unitTitle
     ).length;
     
-    // Khóa lượt thi nếu đã làm 3 lần (Admin T11 được đặc cách)
-    if (attemptLogCount >= 3 && currentStudentId !== 'T11') {
-        showToast("🛑 LỆNH CẤM: Bạn đã làm Test này 3 lần (Đạt giới hạn tối đa)!");
-        return;
-    }
-
+    // BỎ KHÓA CỬA: Mở lượt thi vô hạn (Admin T11 được đặc cách)
     currentType = type; 
-    tempTestParams = { unit: unit, part: pNum }; // Lưu chuẩn tham số
+    tempTestParams = { unit: unit, part: pNum }; 
     document.getElementById('preTestModal').style.display = 'flex'; 
     
     if(attemptLogCount === 0) {
@@ -2413,28 +2439,23 @@ function promptTestMode(type, unit, part) {
         document.getElementById('parentPinSection').style.display = 'block';
         document.getElementById('parentPinEntry').value = '';
         document.getElementById('btnFarmGold').style.display = 'none';
-    } else {
-        // Fix hiển thị: Admin T11 có test quá 3 lần vẫn hiển thị số đếm đúng
+    } else if (attemptLogCount < 3) {
         let displayCount = currentStudentId === 'T11' ? attemptLogCount + 1 : Math.min(attemptLogCount + 1, 3);
         document.getElementById('preTestTitle').innerHTML = `LẦN ${displayCount}/3: CÀY VÀNG BÙ ĐẮP`;
         document.getElementById('parentPinSection').style.display = 'none';
 
-        // --- BẮT ĐẦU: BỘ NÃO KIỂM TRA TRẦN CÀY CUỐC (CHẶN MẤT LƯỢT) ---
         let todayStr = new Date().toLocaleDateString('vi-VN');
         if (userEconomy.lastPlayDate !== todayStr) { 
-            userEconomy.dailyGold = 0; 
-            userEconomy.dailyFarmGold = 0; 
-            userEconomy.lastPlayDate = todayStr; 
+            userEconomy.dailyGold = 0; userEconomy.dailyFarmGold = 0; userEconomy.lastPlayDate = todayStr; 
         }
         let currentFarm = parseInt(userEconomy.dailyFarmGold) || 0;
         let isMaxedOut = (currentFarm >= 1000);
         
         if (isMaxedOut && currentStudentId !== 'T11') {
-            // CHẶN CỬA NGAY TẠI SẢNH - KHÔNG CHO THI ĐỂ BẢO TOÀN LƯỢT
-            document.getElementById('preTestDesc').innerHTML = `<div style="padding: 10px; border: 2px dashed #ef4444; background: #fef2f2; border-radius: 8px; margin-bottom: 10px;"><span style="color:var(--accent-red); font-weight:900; font-size:16px;">⛔ BẠN ĐÃ CHẠM TRẦN CÀY CUỐC 1.000 VÀNG HÔM NAY!</span><br><br><span style="color:var(--text-dark); font-size:13px; font-weight:bold;">Các bài cày lại tiếp theo sẽ nhận 0 Xu. Lượt thi đã được khóa lại để bảo toàn số lần cho bạn.<br>Hãy quay lại vào ngày mai nhé!</span></div>`;
-            document.getElementById('btnFarmGold').style.display = 'none';
+            document.getElementById('preTestDesc').innerHTML = `<div style="padding: 10px; border: 2px dashed #ef4444; background: #fef2f2; border-radius: 8px; margin-bottom: 10px;"><span style="color:var(--accent-red); font-weight:900; font-size:16px;">⛔ BẠN ĐÃ CHẠM TRẦN CÀY CUỐC 1.000 VÀNG HÔM NAY!</span><br><br><span style="color:var(--text-dark); font-size:13px; font-weight:bold;">Các bài cày lại tiếp theo sẽ nhận 0 Xu. Bấm VÀO TỰ LUYỆN để mài giũa võ công.</span></div>`;
+            document.getElementById('btnFarmGold').style.display = 'block';
+            document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-dumbbell"></i> VÀO TỰ LUYỆN (0 VÀNG)`;
         } else {
-            // CHO PHÉP THI + HIỂN THỊ "ĐỒNG HỒ XĂNG"
             let rateText = displayCount === 2 ? "30%" : "10%";
             document.getElementById('preTestDesc').innerHTML = `
             <div style="background: rgba(250, 204, 21, 0.2); border: 2px solid var(--accent-yellow); padding: 8px; border-radius: 8px; margin-bottom: 15px; color: var(--border-dark); font-weight: bold; font-size: 13px;">
@@ -2445,7 +2466,19 @@ function promptTestMode(type, unit, part) {
             document.getElementById('btnFarmGold').style.display = 'block';
             document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-coins"></i> VÀO CÀY VÀNG (NHẬN ${rateText})`;
         }
-        // --- KẾT THÚC ---
+    } else {
+        // LẦN 4 TRỞ ĐI: LUYỆN TẬP VÔ TẬN
+        let displayCount = attemptLogCount + 1;
+        document.getElementById('preTestTitle').innerHTML = `LẦN ${displayCount}: TỰ LUYỆN VÔ HẠN`;
+        document.getElementById('parentPinSection').style.display = 'none';
+        document.getElementById('preTestDesc').innerHTML = `
+        <div style="background: rgba(100, 116, 139, 0.1); border: 2px dashed var(--border-dark); padding: 8px; border-radius: 8px; margin-bottom: 15px; color: var(--border-dark); font-weight: bold; font-size: 13px;">
+            🎯 Từ Lần thứ 4 trở đi, hệ thống mở cửa vô hạn để tiểu chủ mài giũa võ công.
+        </div>
+        Lưu ý: Bạn sẽ <span style="color:var(--accent-red); font-weight:900;">không nhận được thêm Vàng</span> (Nhận 0 Vàng). Chủ yếu là rèn luyện tay nghề!`;
+        
+        document.getElementById('btnFarmGold').style.display = 'block';
+        document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-dumbbell"></i> VÀO TỰ LUYỆN (0 VÀNG)`;
     }
 }
 
@@ -2526,7 +2559,26 @@ function setupSession(data, part = 0) {
         if (part === 1) formattedData = formattedData.slice(0, mid); 
         else if (part === 2) formattedData = formattedData.slice(mid); 
     }
-    if (!currentIsOfficial && currentAction === 'test') { formattedData = shuffleArray(formattedData); }
+    // TÁCH ĐÁP ÁN TRÙNG & XÁO TRỘN Ở MỌI LẦN THI (L1, L2, L3)
+    if (currentAction === 'test') { 
+        formattedData = shuffleArray(formattedData);
+        // Thuật toán tách giãn cách các câu có đáp án y hệt nhau (VD: in, on, at...)
+        for (let i = 0; i < formattedData.length - 1; i++) {
+            let currentAns = String(formattedData[i].en).trim().toLowerCase();
+            let nextAns = String(formattedData[i+1].en).trim().toLowerCase();
+            if (currentAns === nextAns) {
+                for (let j = i + 2; j < formattedData.length; j++) {
+                    let farAns = String(formattedData[j].en).trim().toLowerCase();
+                    if (farAns !== currentAns) {
+                        let temp = formattedData[i+1];
+                        formattedData[i+1] = formattedData[j];
+                        formattedData[j] = temp;
+                        break;
+                    }
+                }
+            }
+        }
+    }
     questionsQueue = formattedData; totalQuestionsCount = questionsQueue.length; currentQIndex = 0;
     
     if (currentType === 'grammar') { 
