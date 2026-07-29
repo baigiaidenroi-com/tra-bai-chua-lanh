@@ -442,16 +442,38 @@
 </div>
 
 <div class="modal-overlay" id="redeemModal" style="z-index: 10005;">
-    <div class="modal-content" style="max-width: 600px; background: #fff; border: 4px solid var(--accent-yellow); box-shadow: 8px 8px 0px var(--accent-yellow); padding: 0;">
-        <div style="background: var(--accent-yellow); color: var(--border-dark); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark);">
-            <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 900;"><i class="fa-solid fa-gift fa-bounce"></i> CHỢ ĐEN CHỐN THÂM CUNG</h2>
-            <button onclick="closeModal('redeemModal')" style="background:#fff; border:3px solid #111; border-radius:50%; width:35px; height:35px; font-weight:bold; cursor:pointer; box-shadow:2px 2px 0px #111;">X</button>
+    <div class="modal-content" style="max-width: 800px; background: #09090b; border: 4px solid #c084fc; box-shadow: 8px 8px 0px #7e22ce; padding: 0;">
+        <div style="background: #2e1065; color: #e9d5ff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #c084fc;">
+            <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 900;"><i class="fa-solid fa-shop fa-bounce"></i> CHỢ ĐEN CHỐN THÂM CUNG</h2>
+            <button onclick="closeModal('redeemModal')" style="background:#09090b; border:3px solid #c084fc; border-radius:50%; width:35px; height:35px; font-weight:bold; cursor:pointer; box-shadow:2px 2px 0px #7e22ce; color:#e9d5ff;">X</button>
         </div>
+        
         <div style="padding: 20px;">
-            <p style="font-size: 14px; color: var(--text-muted); font-weight: bold; margin-top: 0;">Tiêu hao kim nguyên bảo tại đây. Chú ý: Các mốc cao cần xác nhận qua Zalo Phụ huynh!</p>
-            <div id="redeemItemsContainer" style="display: flex; flex-direction: column; gap: 15px;">
-                </div>
+            <!-- HỆ THỐNG TAB MỞ RỘNG TƯƠNG LAI -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                <button class="btn" style="background:#a855f7; color:white; border:3px solid #c084fc; box-shadow:inset 3px 3px 0px rgba(0,0,0,0.3); padding:12px; font-size:14px;"><i class="fa-solid fa-flask"></i> ĐAN DƯỢC & VẬT PHẨM</button>
+                <button class="btn" style="background:#1e1b4b; color:#94a3b8; border:3px solid #475569; padding:12px; font-size:14px; box-shadow:none;" onclick="showToast('Thái Phó đang bế quan vẽ bùa. Chức năng Bùa Ngũ Hành sẽ sớm mở múa!')"><i class="fa-solid fa-yin-yang"></i> BÙA NGŨ HÀNH (Sắp mở)</button>
+            </div>
+            
+            <!-- LƯỚI GRID HIỂN THỊ ITEM -->
+            <div id="redeemItemsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; max-height: 50vh; overflow-y: auto; padding-right: 5px;">
+                <!-- JavaScript sẽ đổ item vào đây -->
+            </div>
         </div>
+    </div>
+</div>
+
+<!-- POP-UP PHÂN TÍCH KINH TẾ (CHI TIẾT VẬT PHẨM) -->
+<div class="modal-overlay" id="itemDetailModal" style="z-index: 10006;">
+    <div class="modal-content" style="max-width: 450px; background: #0f172a; border: 4px solid #38bdf8; box-shadow: 8px 8px 0px #0284c7; padding: 25px; text-align: left;">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:15px; border-bottom: 2px dashed #38bdf8; padding-bottom: 10px;">
+            <h2 id="itemDetailName" style="margin: 0; color: #38bdf8; font-size: 18px; font-weight: 900; text-transform: uppercase;">TÊN VẬT PHẨM</h2>
+            <i class="fa-solid fa-times close-modal" style="position: static; color:#38bdf8;" onclick="closeModal('itemDetailModal')"></i>
+        </div>
+        <div id="itemDetailMath" style="font-size: 13px; color: #f8fafc; line-height: 1.6; background: rgba(56,189,248,0.1); padding: 15px; border-radius: 8px; border: 2px solid #0284c7;">
+            <!-- Bài toán kinh tế sẽ hiển thị ở đây -->
+        </div>
+        <button class="btn btn-blue" style="width: 100%; margin-top: 20px; padding: 15px;" onclick="closeModal('itemDetailModal')">ĐÃ HIỂU CHIẾN THUẬT!</button>
     </div>
 </div>
 
@@ -486,6 +508,85 @@
         </div>
     </div>
 </div>
+
+<!-- BALO HÀNH TRANG (INVENTORY) -->
+<div class="modal-overlay" id="backpackModal" style="z-index: 10006;">
+    <div class="modal-content" style="max-width: 500px; background: #fff8e6; border: 4px solid #111; box-shadow: 8px 8px 0px #111; padding: 0;">
+        <div style="background: #a855f7; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #111;">
+            <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 900;"><i class="fa-solid fa-briefcase fa-bounce"></i> BALO HÀNH TRANG</h2>
+            <button onclick="closeModal('backpackModal')" style="background:#fff; border:3px solid #111; border-radius:50%; width:35px; height:35px; font-weight:bold; cursor:pointer; box-shadow:2px 2px 0px #111; color:#111;">X</button>
+        </div>
+        <div style="padding: 20px;">
+            <p style="font-size: 13px; color: var(--text-muted); font-weight: bold; margin-top: 0; border-bottom: 2px dashed #111; padding-bottom: 10px;">Những vật phẩm kỳ trân dị bảo Tiểu chủ mua ở Chợ Đen đều cất giữ tại đây!</p>
+            <div id="backpackItemsContainer" style="display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 5px;">
+                <!-- JavaScript sẽ đổ item vào đây -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- BÙA NGƯNG ĐỌNG THỜI KHÔNG (UPSALE LỆNH BÀI) -->
+<div class="modal-overlay" id="upsaleFreezeModal" style="z-index: 10008; background: rgba(0,0,0,0.9);">
+    <div class="modal-content" style="max-width: 450px; background: #0f172a; border: 4px solid #facc15; box-shadow: 8px 8px 0px #b45309; padding: 25px; text-align: center;">
+        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase; font-size: 20px;"><i class="fa-solid fa-triangle-exclamation fa-shake"></i> CẢNH BÁO TỪ THÁI PHÓ!</h2>
+        <div style="font-size: 14px; color: #f8fafc; line-height: 1.6; text-align: left; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 2px dashed #ef4444; margin-bottom: 15px;">
+            Ngươi đã mua đề nháp, nhưng Thái Phó đã yểm bùa <b>XÁO TRỘN</b> toàn bộ vị trí câu hỏi! Nếu Não Cá Vàng, nháp xong vào thi thật vẫn sẽ đánh sai như thường!
+        </div>
+        <h3 style="color: #c084fc; margin-top: 0;"><i class="fa-solid fa-hourglass-half"></i> BÙA NGƯNG ĐỌNG THỜI KHÔNG</h3>
+        <div style="font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: left; margin-bottom: 20px;">
+            <b>Tác dụng:</b> Đóng băng tuyệt đối 100% thứ tự câu hỏi và đáp án y hệt như lúc làm nháp. Nhắm mắt bấm bừa theo vị trí cũng được trọn vẹn 10.000 Vàng!<br><br>
+            <b>Bài toán kinh tế:</b> Chỉ tốn thêm <span style="text-decoration:line-through;">7.000 Vàng</span>, à mà thôi nhìn ngươi cũng hạp nhãn ta, bán ngươi <b>2.000 Vàng</b> thôi, thu về chắc chắn 10.000 Vàng. Không mua là DỞ!
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color:#b45309;" onclick="buyUpsaleFreeze()"><i class="fa-solid fa-unlock-keyhole"></i> MUA THÊM BÙA (2.000 VÀNG)</button>
+            <button class="btn btn-outline" style="width: 100%; padding: 15px; color:#94a3b8; border-color:#475569;" onclick="closeModal('upsaleFreezeModal')">TỰ TIN TRÍ NHỚ, KHÔNG MUA</button>
+        </div>
+    </div>
+</div>
+
+<!-- UPSALE HỘ THỂ KIM CHUNG TRONG HÌNH BỘ -->
+<div class="modal-overlay" id="upsaleShieldModal" style="z-index: 10008; background: rgba(0,0,0,0.9);">
+    <div class="modal-content" style="max-width: 450px; background: #2e1065; border: 4px solid #c084fc; box-shadow: 8px 8px 0px #7e22ce; padding: 25px; text-align: center;">
+        <i class="fa-solid fa-bolt fa-shake" style="font-size: 50px; color: #ef4444; margin-bottom: 15px;"></i>
+        <h2 style="color: #fca5a5; margin-top: 0; text-transform: uppercase;">Á Á! SAI RỒI!</h2>
+        <p style="color: #e9d5ff; font-size: 14px; line-height: 1.6; font-weight: bold; margin-bottom: 20px;">
+            Hệ thống chuẩn bị gõ đầu ngươi <span style="color:#ef4444; font-size:18px;">-300 Vàng</span> kìa!<br>
+            Quên mua bảo hiểm ở Chợ Đen đúng không? Bổn tiệm đặc cách bán GẤP cho ngươi Kim Bài Miễn Tử ngay tại đây. Có mua để chặn đòn này không?
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-purple" style="width: 100%; padding: 15px;" onclick="buyUpsaleShield(700, 3)"><i class="fa-solid fa-shield-halved"></i> MUA LOẠI 700V (Đỡ 3 đòn)</button>
+            <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color:#b45309;" onclick="buyUpsaleShield(1000, 5)"><i class="fa-solid fa-shield-cat"></i> MUA LOẠI 1.000V (Đỡ 5 đòn)</button>
+            <button class="btn btn-outline" style="width: 100%; padding: 12px; color:#94a3b8; border-color:#475569;" onclick="closeModal('upsaleShieldModal')">CỨ TRỪ 300V ĐI, TA CÒN NHIỀU TIỀN!</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function buyUpsaleFreeze() {
+    if(userEconomy.gold < 2000) { showToast("Mõm! Tiền đâu mà đòi mua bùa?"); return; }
+    addEconomyLog("🔮 Mua Bùa Ngưng Đọng Thời Không", -2000);
+    localStorage.setItem(getIsoKey('item_freeze_order'), 'true');
+    closeModal('upsaleFreezeModal');
+    showToast("✨ Đã đóng băng không gian! Đề Lần 1 sẽ y hệt Đề Nháp!");
+}
+
+function buyUpsaleShield(cost, hits) {
+    if(userEconomy.gold < cost) { showToast("Nghèo mà ra vẻ! Bị trừ 300V đi nha con!"); closeModal('upsaleShieldModal'); return; }
+    
+    // Thu tiền mua bảo hiểm
+    addEconomyLog("🛡️ Mua Kim Bài Miễn Tử Khẩn Cấp", -cost);
+    
+    // Tự động hoàn lại 300V VỪA BỊ TRỪ ở câu sai hiện tại
+    addEconomyLog("✨ Hoàn tiền Nghiệp Quật", +300);
+    
+    // Ghi nhận số lượt khiên còn lại (Đã xài 1 lượt cho câu vừa sai)
+    localStorage.setItem(getIsoKey('item_shield'), (hits - 1).toString());
+    
+    closeModal('upsaleShieldModal');
+    showToast(`🛡️ Đã Kích Hoạt Kim Bài! Chặn thành công đòn vừa rồi và còn dư ${hits - 1} lần đỡ!`);
+}
+</script>
 
 <div class="app-container">
    <div class="header" style="background: #ffd54f !important; border-bottom: 3px solid #111; color: #111 !important; z-index: 10; padding: 5px 10px; min-height: unset;">
@@ -584,6 +685,12 @@
                     <i class="fa-solid fa-envelope-open-text fa-shake"></i>
                     <span id="studentInboxBadge" class="badge-new-pro" style="display:none; top:-8px; right:-8px; background:#facc15; color:#111; border: 2px solid #111; box-shadow: 1px 1px 0px #111; font-size: 11px; padding: 2px 6px; border-radius: 50%;">0</span>
                 </button>
+                
+                <!-- BALO HÀNH TRANG -->
+                <button class="btn dash-top-btn" style="background: #a855f7; border: 2px solid #111; box-shadow: 2px 2px 0px #111; color: #fff; border-radius: 8px; padding: 8px 14px;" onclick="openBackpackModal()" title="Balo Hành Trang">
+                    <i class="fa-solid fa-briefcase"></i>
+                </button>
+
                 <!-- CỔNG PH (ĐÃ XÓA CHỮ CHỈ GIỮ ICON GIA ĐÌNH) -->
                 <button class="btn dash-top-btn" style="background: #dcfce7; border: 2px solid #16a34a; color: #16a34a; padding: 8px 14px;" onclick="document.getElementById('parentLoginModal').style.display='flex'" title="Cổng Phụ Huynh"><i class="fa-solid fa-users" style="font-size: 16px;"></i></button>
                 <!-- LOGOUT -->
@@ -635,8 +742,8 @@
             <button class="btn" style="background:#ef4444; border:3px solid #111; box-shadow:4px 4px 0px #111; color:#fff; margin:0; width:100%; flex-direction:column; padding:12px 2px; font-size:12px; gap:6px; text-align:center; line-height:1.2;" onclick="openBlackbook()">
                 <i class="fa-solid fa-skull fa-shake" style="font-size:26px;"></i><span>HÌNH BỘ</span>
             </button>
-            <button class="btn" style="background:#000; border:4px solid #a855f7; box-shadow:4px 4px 0px #a855f7; color:#fff; margin:0; width:100%; flex-direction:column; padding:12px 2px; font-size:12px; gap:6px; text-align:center; line-height:1.2;" onclick="showBlackMarketLock()">
-                <i class="fa-solid fa-lock fa-beat-fade" style="font-size:26px; color:#a855f7;"></i><span>CHỢ ĐEN</span>
+           <button class="btn" style="background:#000; border:4px solid #a855f7; box-shadow:4px 4px 0px #a855f7; color:#fff; margin:0; width:100%; flex-direction:column; padding:12px 2px; font-size:12px; gap:6px; text-align:center; line-height:1.2;" onclick="openRedeemModal()">
+                <i class="fa-solid fa-shop fa-beat-fade" style="font-size:26px; color:#a855f7;"></i><span>CHỢ ĐEN</span>
             </button>
 
             <!-- HÀNG 2 -->
@@ -1115,7 +1222,7 @@ async function selectGrade(grade, btnElement) {
         idInput.setAttribute('readonly', 'true');
     }
     
-    studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123" } }; 
+    studentDB = { "T11": { name: "Thầy Tiến (Admin Test)", pass: "123", gold: 9999999 } }; 
     
     // Ra lệnh gọi Google Sheets tải danh sách và CHÌA KHÓA UNIT mới nhất
     let data = await fetchWithFallback(getScriptUrl(), "init", { students: [], deadlines: [] });
@@ -1446,12 +1553,31 @@ function showGoldNotification(amount) {
     setTimeout(() => notif.remove(), 2000);
 }
 
-// ================= HỆ THỐNG QUẦY ĐỔI THƯỞNG (SMART LỜI) =================
+// ================= HỆ THỐNG CHỢ ĐEN (VẬT PHẨM VÔ CỰC) =================
 const REDEEM_TIERS = [
-    { id: 'T1', cost: 2500, name: 'Mốc 1 (Nhập cung)', reward: '5.000đ', voucher: 'Không', reqZalo: false },
-    { id: 'T2', cost: 8000, name: 'Mốc 2 (Thị vệ)', reward: '10.000đ', voucher: 'Không', reqZalo: true },
-    { id: 'T3', cost: 15000, name: 'Mốc 3 (Thượng Thư)', reward: '20.000đ', voucher: '40.000đ Voucher', reqZalo: true },
-    { id: 'T4', cost: 30000, name: 'Mốc 4 (Hoàng Tộc)', reward: '50.000đ', voucher: '100.000đ Voucher', reqZalo: true }
+    { id: 'ITM1', cost: 1000, origCost: "10.000", badge: '-90%', type: 'INGAME', name: 'Lệnh Bài Tự Luyện', reward: 'Mở khóa nháp đề Lần 1', 
+      desc: 'Sợ Lần 1 điểm thấp mất mỏ vàng 100%? Mua ngay Lệnh Bài để làm nháp trước cho quen tay!',
+      mathText: '👉 <b>BÀI TOÁN KINH TẾ:</b><br>- Bài Test Lần 1 có mức thưởng 100% (200 Xu/Câu). Trung bình 1 bài 20 câu lụm trọn <b>4.000 Vàng</b> (Chưa tính thưởng Bạo Kích Combo).<br>- Nếu không luyện trước, lụi sai rớt Combo, mất sạch cơ hội làm giàu.<br>- Đầu tư <b>1.000 Vàng</b> mua thẻ, luyện tập quen tay!<br>- Vào thi thật tự tin ẵm 4.000 - 5.000 Vàng. Lợi nhuận ròng: <b>+3.000 Vàng</b>.<br>🚀 <b>Tỉ suất sinh lời (ROI): Tối thiểu 300%</b>.<br><br>⏳ <b>Luật:</b> Max 2 thẻ/ngày. Mỗi thẻ kích hoạt 1 lần nháp.' },
+    
+    { id: 'ITM2', cost: 800, origCost: "3.200", badge: '-75%', type: 'INGAME', name: 'Đan Dược Cuồng Nộ', reward: 'X2 Trần Farm Vàng', 
+      desc: 'Nâng trần Farm Lần 2, 3 từ 1.000 lên 2.500 Vàng! Lãi ngay 187% chỉ trong 1 ngày! Quá hời cho hệ cày cuốc!',
+      mathText: '👉 <b>BÀI TOÁN KINH TẾ:</b><br>- Trần Farm Vàng Lần 2, Lần 3 mỗi ngày bị khóa ở mức 1.000 Vàng.<br>- Cắn Đan Dược giá <b>800 Vàng</b>, trần Farm lập tức bung lên <b>2.500 Vàng</b>.<br>- Bạn cày kịch trần nhận thêm 1.500 Vàng mới.<br>- Lợi nhuận ròng: <b>+700 Vàng</b>.<br>🚀 <b>Tỉ suất sinh lời (ROI): 187%</b>.<br><br>⏳ <b>Luật:</b> Hết tác dụng vào 00h00 mỗi ngày.' },
+    
+    { id: 'ITM3', cost: 500, origCost: "2.500", badge: '-80%', type: 'INGAME', name: 'Hộ Thể Kim Chung', reward: 'Đỡ 3 đòn Hình Bộ (-900V)', 
+      desc: 'Vào Hình Bộ lụi sai 1 từ bay 300 Vàng. Mua cái này tự động chặn 3 đòn phạt đầu tiên. Quá hời!',
+      mathText: '👉 <b>BÀI TOÁN KINH TẾ:</b><br>- Vào Hình Bộ trả bài, lụi bừa sai 1 từ lập tức bị hệ thống phạt <b>-300 Vàng</b>.<br>- Xui rủi ấn nhầm 3 từ, bay sạch 900 Vàng!<br>- Mua bảo hiểm Hộ Thể Kim Chung chỉ <b>500 Vàng</b>, hệ thống tự động hóa giải 3 đòn phạt đầu tiên (Trị giá 900 Vàng).<br>- Bạn tiết kiệm được: <b>400 Vàng</b> so với việc nộp phạt.<br><br>⏳ <b>Luật:</b> Chỉ có hiệu lực bảo vệ trong 1 phiên Hình Bộ.' },
+    
+    { id: 'ITM5', cost: 5000, origCost: "500", badge: '+1000%', type: 'INGAME', name: 'Thánh Chỉ Ân Xá', reward: 'Xóa 3 từ Sổ Đen', 
+      desc: 'Giá gốc 500 mà ta thích bán 5.000 đấy làm gì nhau? Đốt tiền để bốc hơi 3 từ ngẫu nhiên trong Sổ Đen mà không cần trả bài!',
+      mathText: '👉 <b>ĐẶC QUYỀN GIỚI SIÊU GIÀU:</b><br>- Quá lười cày Hình Bộ? Quá sợ đối mặt với đống từ vựng sai be bét?<br>- Hãy dùng tiền đè chết hệ thống! Đốt <b>5.000 Vàng</b> mua Thánh Chỉ, hệ thống lập tức chém bỏ ngẫu nhiên 3 từ vựng trong Sổ Đen của bạn mà không cần phải trả bài.<br>- Giao dịch này rất lỗ về Vàng, nhưng cực lời về Thời Gian.<br><br>⏳ <b>Luật:</b> Sổ Đen rỗng thì không được mua!' },
+
+    { id: 'ITM_MYSTERY1', cost: 9999, origCost: "???", badge: 'SẮP RA MẮT', type: 'MYSTERY', name: 'Mặt Nạ Tàng Hình', reward: 'Bí ẩn chưa hé lộ', 
+      desc: 'Bảo vật rớt ra từ Tàng Kinh Các. Tương truyền kẻ nào đeo nó sẽ hoàn toàn bay màu khỏi Bảng Tin Thị Phi.',
+      mathText: '🤫 <b>Thiên cơ bất khả lộ!</b> Lão Tổng Quản đang cất món hàng này dưới mật thất. Vui lòng quay lại sau!' },
+
+    { id: 'ITM_MYSTERY2', cost: 9999, origCost: "???", badge: 'SẮP RA MẮT', type: 'MYSTERY', name: 'Nước Mắt Cá Sấu', reward: 'Bí ẩn chưa hé lộ', 
+      desc: 'Lỡ tay tra từ điển bị Cẩm Y Vệ tóm cổ? Nhỏ vài giọt nước mắt này sẽ khiến hệ thống mủi lòng.',
+      mathText: '🤫 <b>Thiên cơ bất khả lộ!</b> Đừng nôn nóng, Thái Phó đang vận nội công tinh luyện đan dược này. Vui lòng quay lại sau!' }
 ];
 
 let pendingRedeem = null;
@@ -1460,71 +1586,165 @@ function openRedeemModal() {
     document.getElementById('redeemModal').style.display = 'flex';
     let container = document.getElementById('redeemItemsContainer');
     let html = '';
+    
     REDEEM_TIERS.forEach(tier => {
+        let isLockedForStudent = (currentStudentId !== 'T11');
         let canAfford = userEconomy.gold >= tier.cost;
-        let btnClass = canAfford ? 'btn-green' : 'btn-disabled';
-        let btnAction = canAfford ? `onclick="initiateRedeem('${tier.id}')"` : `onclick="showToast('Chưa đủ Vàng! Cày thêm đi tiểu chủ!')"`;
-        let icon = canAfford ? '<i class="fa-solid fa-unlock"></i>' : '<i class="fa-solid fa-lock"></i>';
-        let filter = canAfford ? '' : 'filter: grayscale(1); opacity: 0.7;';
         
+        let btnClass = 'btn-purple';
+        let btnAction = '';
+        let icon = '<i class="fa-solid fa-cart-shopping"></i>';
+        let filter = '';
+
+        if (tier.type === 'MYSTERY') {
+            btnClass = 'btn-disabled';
+            icon = '<i class="fa-solid fa-lock"></i>';
+            btnAction = `onclick="showToast('🛑 VẬT PHẨM CHƯA MỞ BÁN! Lão Tổng Quản đang cất trong kho, nhìn cho thèm đi chứ chưa mua được đâu!')"`;
+        } else if (isLockedForStudent) {
+            btnClass = 'btn-disabled';
+            icon = '<i class="fa-solid fa-lock"></i>';
+            btnAction = `onclick="showToast('🛑 CHƯA ĐẾN THỜI CƠ! Lão Tổng Quản đang kẹt xe ở biên giới dọn hàng về. Cứ ngắm nghía trước đi, tiền cứ giữ đó chưa tiêu được đâu!')"`;
+        } else if (!canAfford) {
+            btnClass = 'btn-disabled';
+            icon = '<i class="fa-solid fa-lock"></i>';
+            filter = 'filter: grayscale(1); opacity: 0.6;';
+            btnAction = `onclick="showToast('Hảo hán, túi tiền rỗng tuếch mà đòi mua hàng VIP? Về cày thêm đi!')"`;
+        } else {
+            btnAction = `onclick="initiateRedeem('${tier.id}')"`;
+        }
+
+        let badgeHtml = tier.badge ? `<div style="background:#ef4444; color:white; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:900; border:2px solid #000; box-shadow:2px 2px 0px #000; transform: rotate(10deg); animation: pulseAlertUI 1s infinite alternate;">${tier.badge}</div>` : '';
+
         html += `
-        <div style="border: 3px solid var(--border-dark); border-radius: 8px; padding: 15px; background: ${canAfford ? '#fff' : '#f8fafc'}; display: flex; justify-content: space-between; align-items: center; ${filter}">
-            <div>
-                <div style="font-weight: 900; font-size: 16px; color: var(--border-dark); text-transform: uppercase;">${tier.name}</div>
-                <div style="color: var(--accent-red); font-weight: bold; font-size: 14px; margin-top: 5px;">Thưởng: ${tier.reward} ${tier.voucher !== 'Không' ? ' <span style="color:var(--text-dark);">hoặc</span> ' + tier.voucher : ''}</div>
-                <div style="color: var(--text-muted); font-size: 12px; margin-top: 5px;"><i class="fa-solid fa-coins"></i> Yêu cầu: ${tier.cost.toLocaleString('vi-VN')} Vàng</div>
+        <div style="border: 3px solid #c084fc; border-radius: 12px; padding: 15px; background: #1e1b4b; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 4px 4px 0px #581c87; transition: 0.2s; ${filter}">
+            <div style="margin-bottom: 15px;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div style="font-weight: 900; font-size: 14px; color: #e9d5ff; text-transform: uppercase; width: 70%;"><i class="fa-solid fa-gem"></i> ${tier.name}</div>
+                    ${badgeHtml}
+                </div>
+                <div style="color: #fca5a5; font-weight: bold; font-size: 13px; margin-top: 10px; background: rgba(255,255,255,0.1); padding: 6px; border-radius: 6px; border: 1px dashed #fca5a5; cursor:pointer;" onclick="openItemDetail('${tier.id}')">
+                    <i class="fa-solid fa-bolt"></i> ${tier.reward} <span style="float:right; color:#38bdf8; font-size:11px;">[ Xem Chi Tiết ]</span>
+                </div>
             </div>
-            <button class="btn ${btnClass}" style="padding: 10px; font-size: 12px;" ${btnAction}>${icon} ĐỔI</button>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top: 2px dashed #9333ea; padding-top: 12px; margin-top: auto;">
+                <div>
+                    <span style="color: #64748b; font-size: 11px; text-decoration: line-through; font-weight:bold; margin-right:5px;">${tier.origCost}</span>
+                    <div style="color: #facc15; font-size: 16px; font-weight: 900;"><i class="fa-solid fa-coins"></i> ${tier.type === 'MYSTERY' ? '???' : tier.cost.toLocaleString('vi-VN')}</div>
+                </div>
+                <button class="btn ${btnClass}" style="padding: 10px 15px; font-size: 12px; background:${(!canAfford || isLockedForStudent || tier.type === 'MYSTERY')?'#334155':'#a855f7'}; color:white; border:2px solid #000; box-shadow:3px 3px 0px #000; margin:0;" ${btnAction}>${icon} MUA</button>
+            </div>
         </div>`;
     });
     container.innerHTML = html;
+}
+
+function openItemDetail(tierId) {
+    let tier = REDEEM_TIERS.find(t => t.id === tierId);
+    if(tier) {
+        document.getElementById('itemDetailName').innerText = tier.name;
+        document.getElementById('itemDetailMath').innerHTML = tier.mathText || "Đang cập nhật mật tịch...";
+        document.getElementById('itemDetailModal').style.display = 'flex';
+    }
+}
+
+// --- BỘ NÃO QUẢN LÝ BALO HÀNH TRANG ---
+function getInventory() { return JSON.parse(localStorage.getItem(getIsoKey('inventory'))) || {}; }
+function saveInventory(inv) { localStorage.setItem(getIsoKey('inventory'), JSON.stringify(inv)); }
+function addInventoryItem(id, qty) { let inv = getInventory(); inv[id] = (inv[id] || 0) + qty; saveInventory(inv); }
+function consumeInventoryItem(id, qty = 1) { 
+    let inv = getInventory(); 
+    if ((inv[id] || 0) >= qty) { 
+        inv[id] -= qty; 
+        if (inv[id] <= 0) delete inv[id]; 
+        saveInventory(inv); 
+        return true; 
+    } 
+    return false; 
+}
+
+function openBackpackModal() {
+    document.getElementById('backpackModal').style.display = 'flex';
+    let container = document.getElementById('backpackItemsContainer');
+    let inv = getInventory();
+    let html = '';
+    
+    let hasItems = false;
+    REDEEM_TIERS.forEach(tier => {
+        if (inv[tier.id] && inv[tier.id] > 0) {
+            hasItems = true;
+            let btnHtml = '';
+            // Các nút bấm sử dụng Item tương ứng
+            if (tier.id === 'ITM2') btnHtml = `<button class="btn btn-purple" style="padding: 8px 12px; font-size: 11px;" onclick="useItemFromBalo('ITM2')"><i class="fa-solid fa-flask-vial"></i> DÙNG NGAY</button>`;
+            else if (tier.id === 'ITM5') btnHtml = `<button class="btn btn-red" style="padding: 8px 12px; font-size: 11px;" onclick="useItemFromBalo('ITM5')"><i class="fa-solid fa-fire"></i> ĐỐT SỔ ĐEN</button>`;
+            else btnHtml = `<div style="color:var(--accent-red); font-size:11px; font-style:italic; font-weight:bold;">*Mang sẵn trong Balo.<br>Tự kích hoạt khi vào đúng tính năng.</div>`;
+
+            html += `
+            <div style="border: 3px solid #111; border-radius: 8px; padding: 12px; background: #fff; display: flex; justify-content: space-between; align-items: center; box-shadow: 3px 3px 0px #111;">
+                <div style="display:flex; align-items:center; gap: 15px;">
+                    <div style="background:#1e1b4b; color:#c084fc; width:45px; height:45px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; border:2px solid #111; box-shadow: 2px 2px 0px #111;">x${inv[tier.id]}</div>
+                    <div>
+                        <div style="font-weight: 900; font-size: 14px; color: #111; text-transform: uppercase;">${tier.name}</div>
+                        <div style="color: #ef4444; font-size: 11px; font-weight:bold; margin-top:4px;"><i class="fa-solid fa-bolt"></i> ${tier.reward}</div>
+                    </div>
+                </div>
+                ${btnHtml}
+            </div>`;
+        }
+    });
+
+    if (!hasItems) html = `<div style="text-align:center; padding: 30px; color:var(--text-muted); font-weight:bold;"><i class="fa-solid fa-spider fa-2x" style="opacity:0.5; margin-bottom:10px;"></i><br>Balo rỗng tuếch! Hãy ra Chợ Đen mua sắm đi tiểu chủ.</div>`;
+    container.innerHTML = html;
+}
+
+function useItemFromBalo(id) {
+    if (!consumeInventoryItem(id, 1)) return;
+    
+    if (id === 'ITM2') {
+        localStorage.setItem(getIsoKey('item_farmcap'), new Date().toLocaleDateString('vi-VN')); 
+        showToast("⚡ Máu cày cuốc sục sôi! Trần Farm nâng lên 2.500 Vàng trong hôm nay!");
+    } else if (id === 'ITM5') {
+        let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        if (bb.length === 0) { 
+            showToast("Sổ đen đang sạch, Thầy trả lại Thánh Chỉ vào Balo cho con!"); 
+            addInventoryItem('ITM5', 1); // Trả lại đồ nếu dùng hụt
+            return; 
+        } 
+        for(let i=0; i<3; i++) { if(bb.length > 0) bb.splice(Math.floor(Math.random() * bb.length), 1); }
+        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
+        if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
+        showToast("✨ Phép thuật kích hoạt! Đã bốc hơi tối đa 3 từ trong Sổ Đen!");
+    }
+    openBackpackModal(); // Render lại Balo để thấy số lượng giảm
 }
 
 function initiateRedeem(tierId) {
     let tier = REDEEM_TIERS.find(t => t.id === tierId);
     if(!tier) return;
     
-    // Mở khóa bằng Zalo (Chiêu thức Thái Thượng Hoàng)
-    if(tier.reqZalo) {
-        let hasZalo = confirm("LỆNH TRUYỀN:\nBổng lộc này cần xác nhận qua Zalo của Phụ huynh (Chống gian lận).\n\nBạn đã báo Ba/Mẹ kết bạn Zalo với Thầy Tiến chưa?");
-        if(!hasZalo) {
-            showToast("Vui lòng nhờ Phụ huynh kết bạn Zalo với Thầy trước khi rút!");
-            return;
-        }
+    if(tier.id === 'ITM1') {
+        let today = new Date().toLocaleDateString('vi-VN');
+        let boughtToday = parseInt(localStorage.getItem(getIsoKey('itm1_count_' + today))) || 0;
+        if(boughtToday >= 2) { showToast("Hôm nay Sĩ tử đã mua cạn 2 Lệnh Bài rồi! Ngày mai quay lại nha."); return; }
     }
 
-    if(tier.voucher !== 'Không') {
-        // Kích hoạt bẫy Trojan Horse
-        pendingRedeem = tier;
-        document.getElementById('trojanVal').innerText = tier.reward;
-        document.getElementById('trojanVoucherVal').innerText = tier.voucher;
-        document.getElementById('trojanModal').style.display = 'flex';
-        closeModal('redeemModal');
-    } else {
-        // Rút tiền mặt bình thường
-        pendingRedeem = tier;
-        confirmRedeem('CASH');
+    let pass = confirm(`Xác nhận bỏ ${tier.cost.toLocaleString('vi-VN')} Vàng để cất [${tier.name}] vào Balo?`);
+    if(!pass) return;
+    
+    addEconomyLog(`🛒 Mua vật phẩm: ${tier.name}`, -tier.cost);
+    addInventoryItem(tier.id, 1); // RỚT VÀO BALO HÀNH TRANG
+    
+    if(tier.id === 'ITM1') { 
+        let today = new Date().toLocaleDateString('vi-VN');
+        let boughtToday = parseInt(localStorage.getItem(getIsoKey('itm1_count_' + today))) || 0;
+        localStorage.setItem(getIsoKey('itm1_count_' + today), boughtToday + 1);
     }
+    
+    showToast(`🎉 Đã cất [${tier.name}] vào Balo! Bấm nút cái Cặp ở trên cùng để kiểm tra.`);
+    closeModal('redeemModal');
 }
 
-function confirmRedeem(type) {
-    if(!pendingRedeem) return;
-    let cost = pendingRedeem.cost;
-    let rewardDisplay = type === 'VOUCHER' ? pendingRedeem.voucher : pendingRedeem.reward;
-    let actionLog = type === 'VOUCHER' ? `Đổi Voucher ${rewardDisplay}` : `Rút tiền mặt ${rewardDisplay}`;
-
-    if(userEconomy.gold >= cost) {
-        addEconomyLog(actionLog, -cost); 
-        closeModal('trojanModal');
-        closeModal('redeemModal');
-        
-        // Pop-up Thánh chỉ chúc mừng
-        showToast(`🎉 THÁNH CHỈ: Đã trừ ${cost.toLocaleString('vi-VN')} Vàng! Yêu cầu [${actionLog}] đang chờ Ngự Phê!`);
-    } else {
-        showToast("Kho bạc báo động: Không đủ Vàng!");
-    }
-    pendingRedeem = null;
-}
+function confirmRedeem(type) { }
 // ========================================================================
 
 function updateGoldUI() {
@@ -2000,6 +2220,13 @@ async function login() {
 
         if (!Array.isArray(allLogsCache)) allLogsCache = [];
 
+        // KHỞI ĐỘNG GOD MODE: T11 LUÔN LUÔN CÓ 9.999.999 VÀNG TRONG MỌI VŨ TRỤ
+        if (id === 'T11') {
+            userEconomy.gold = 9999999;
+            localStorage.setItem(getIsoKey('gold'), '9999999');
+            localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
+        }
+
         document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
         document.getElementById('dashAvatar').innerText = currentPet; 
         
@@ -2435,10 +2662,33 @@ function promptTestMode(type, unit, part) {
     
     if(attemptLogCount === 0) {
         document.getElementById('preTestTitle').innerHTML = "LẦN 1: THI CHUẨN GHI HỌC BẠ";
-        document.getElementById('preTestDesc').innerHTML = "Bắt buộc nhập mã PIN Phụ Huynh để mở đề!<br><span style='color:var(--accent-green);'>(Lần 1 nhận 100% Vàng, KHÔNG bị giới hạn trần)</span>";
-        document.getElementById('parentPinSection').style.display = 'block';
-        document.getElementById('parentPinEntry').value = '';
-        document.getElementById('btnFarmGold').style.display = 'none';
+        
+        // KIỂM TRA LỆNH BÀI TỰ LUYỆN NẰM TRONG BALO
+        let inv = getInventory();
+        let hasPracticeItem = (inv['ITM1'] && inv['ITM1'] > 0);
+        
+        if (hasPracticeItem) {
+            document.getElementById('preTestDesc').innerHTML = "<div style='background:#dcfce7; padding:10px; border:2px dashed #16a34a; border-radius:8px; color:#166534;'><i class='fa-solid fa-briefcase fa-bounce'></i> <b>PHÁT HIỆN LỆNH BÀI TRONG BALO!</b><br>Đã vô hiệu hóa mã PIN Phụ huynh. Tiểu chủ có thể dùng 1 Lệnh Bài để Tự Luyện nháp trước 1 lần!</div>";
+            document.getElementById('parentPinSection').style.display = 'none';
+            document.getElementById('btnFarmGold').style.display = 'block';
+            document.getElementById('btnFarmGold').className = "btn btn-purple";
+            document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-bolt"></i> DÙNG LỆNH BÀI TRONG BALO ĐỂ NHÁP`;
+            
+            // Bấm vào thì trừ Lệnh bài trong Balo và KÍCH HOẠT UPSALE BÙA
+            document.getElementById('btnFarmGold').onclick = function() {
+                if (consumeInventoryItem('ITM1', 1)) {
+                    closeModal('preTestModal');
+                    setTimeout(() => { document.getElementById('upsaleFreezeModal').style.display = 'flex'; }, 300);
+                }
+            };
+        } else {
+            document.getElementById('preTestDesc').innerHTML = "Bắt buộc nhập mã PIN Phụ Huynh để mở đề!<br><span style='color:var(--accent-green);'>(Lần 1 nhận 100% Vàng, KHÔNG bị giới hạn trần)</span>";
+            document.getElementById('parentPinSection').style.display = 'block';
+            document.getElementById('parentPinEntry').value = '';
+            document.getElementById('btnFarmGold').style.display = 'none';
+            
+            document.getElementById('btnFarmGold').onclick = startFarmMode;
+        }
     } else if (attemptLogCount < 3) {
         let displayCount = currentStudentId === 'T11' ? attemptLogCount + 1 : Math.min(attemptLogCount + 1, 3);
         document.getElementById('preTestTitle').innerHTML = `LẦN ${displayCount}/3: CÀY VÀNG BÙ ĐẮP`;
@@ -2559,24 +2809,32 @@ function setupSession(data, part = 0) {
         if (part === 1) formattedData = formattedData.slice(0, mid); 
         else if (part === 2) formattedData = formattedData.slice(mid); 
     }
-    // TÁCH ĐÁP ÁN TRÙNG & XÁO TRỘN Ở MỌI LẦN THI (L1, L2, L3)
+  // TÁCH ĐÁP ÁN TRÙNG & XÁO TRỘN (TRỪ KHI CÓ BÙA NGƯNG ĐỌNG)
     if (currentAction === 'test') { 
-        formattedData = shuffleArray(formattedData);
-        // Thuật toán tách giãn cách các câu có đáp án y hệt nhau (VD: in, on, at...)
-        for (let i = 0; i < formattedData.length - 1; i++) {
-            let currentAns = String(formattedData[i].en).trim().toLowerCase();
-            let nextAns = String(formattedData[i+1].en).trim().toLowerCase();
-            if (currentAns === nextAns) {
-                for (let j = i + 2; j < formattedData.length; j++) {
-                    let farAns = String(formattedData[j].en).trim().toLowerCase();
-                    if (farAns !== currentAns) {
-                        let temp = formattedData[i+1];
-                        formattedData[i+1] = formattedData[j];
-                        formattedData[j] = temp;
-                        break;
+        let hasFreezeBuff = localStorage.getItem(getIsoKey('item_freeze_order')) === 'true';
+        
+        if (!hasFreezeBuff) {
+            formattedData = shuffleArray(formattedData);
+            // Thuật toán tách giãn cách các câu có đáp án y hệt nhau (VD: in, on, at...)
+            for (let i = 0; i < formattedData.length - 1; i++) {
+                let currentAns = String(formattedData[i].en).trim().toLowerCase();
+                let nextAns = String(formattedData[i+1].en).trim().toLowerCase();
+                if (currentAns === nextAns) {
+                    for (let j = i + 2; j < formattedData.length; j++) {
+                        let farAns = String(formattedData[j].en).trim().toLowerCase();
+                        if (farAns !== currentAns) {
+                            let temp = formattedData[i+1];
+                            formattedData[i+1] = formattedData[j];
+                            formattedData[j] = temp;
+                            break;
+                        }
                     }
                 }
             }
+        } else {
+            console.log("❄️ Đã kích hoạt Bùa Ngưng Đọng Thời Không! Đề thi giữ nguyên vị trí gốc.");
+            // Xóa bùa sau khi xài (Chỉ áp dụng cho 1 bài test)
+            localStorage.removeItem(getIsoKey('item_freeze_order'));
         }
     }
     questionsQueue = formattedData; totalQuestionsCount = questionsQueue.length; currentQIndex = 0;
@@ -3101,13 +3359,34 @@ function checkVocabAnswer(isTimeout) {
         let errHtml = specificErrors.join("<br>"); 
         exactErrorDetails.push({ q: cleanWordKey, htmlDetails: errHtml });
         
-        // --- BẮT ĐẦU: NGHIỆP QUẬT HÌNH BỘ ---
+      // --- BẮT ĐẦU: NGHIỆP QUẬT HÌNH BỘ & BALO BẢO HIỂM ---
         if (window.isRevengeMode && currentStudentId !== 'T11') {
-            addEconomyLog("🚨 NGHIỆP QUẬT: Lụi bừa trong Hình Bộ", -300);
-            errHtml += `<div style="margin-top: 10px; color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 10px; border-radius: 6px; border: 2px dashed #ef4444; animation: redAlert 0.5s infinite alternate;"><i class="fa-solid fa-bolt"></i> NGHIỆP QUẬT: Phạt -300 Vàng trừ thẳng vào Ví!</div>`;
+            let shieldCount = parseInt(localStorage.getItem(getIsoKey('item_shield'))) || 0;
+            let inv = getInventory();
+
+            if (shieldCount > 0) {
+                // Đang còn hiệu lực khiên Upsale
+                shieldCount--;
+                localStorage.setItem(getIsoKey('item_shield'), shieldCount.toString());
+                errHtml += `<div style="margin-top: 10px; color: #c084fc; font-weight: bold; background: #3b0764; padding: 10px; border-radius: 6px; border: 2px dashed #c084fc;"><i class="fa-solid fa-shield-halved fa-bounce"></i> HỘ THỂ KIM CHUNG: Đỡ thành công sát thương -300 Vàng! (Còn ${shieldCount} lần đỡ)</div>`;
+            } else if (inv['ITM3'] && inv['ITM3'] > 0) {
+                // Hết khiên Upsale nhưng trong Balo có Khiên Chợ Đen -> Lấy ra xài
+                consumeInventoryItem('ITM3', 1);
+                localStorage.setItem(getIsoKey('item_shield'), '2'); // Khởi tạo Khiên đỡ 3 đòn, vừa xài 1 đòn, còn 2.
+                errHtml += `<div style="margin-top: 10px; color: #16a34a; font-weight: bold; background: #dcfce7; padding: 10px; border-radius: 6px; border: 2px dashed #16a34a;"><i class="fa-solid fa-shield-halved fa-bounce"></i> HỘ THỂ TỪ BALO TỰ ĐỘNG KÍCH HOẠT: Đỡ đòn đầu tiên! (Balo đã trừ 1, còn 2 lần đỡ)</div>`;
+            } else {
+                // Không có khiên nào bảo vệ -> Trừ tiền
+                addEconomyLog("🚨 NGHIỆP QUẬT: Lụi bừa trong Hình Bộ", -300);
+                errHtml += `<div style="margin-top: 10px; color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 10px; border-radius: 6px; border: 2px dashed #ef4444; animation: redAlert 0.5s infinite alternate;"><i class="fa-solid fa-bolt"></i> NGHIỆP QUẬT: Phạt -300 Vàng trừ thẳng vào Ví!</div>`;
+                
+                // KÍCH HOẠT UPSALE: CHỈ CHÀO HÀNG 1 LẦN DUY NHẤT TRONG BÀI TEST ĐÓ
+                if (!window.hasOfferedShieldUpsale) {
+                    window.hasOfferedShieldUpsale = true;
+                    setTimeout(() => { document.getElementById('upsaleShieldModal').style.display = 'flex'; }, 500); 
+                }
+            }
         }
         // --- KẾT THÚC ---
-
         feedback.innerHTML = `<div style="background: white; border: 3px solid var(--accent-red); padding: 15px; border-radius: 8px; box-shadow: 4px 4px 0px var(--accent-red);"><h3 style="margin-top:0; color:var(--accent-red);">${isTimeout ? 'HẾT GIỜ!' : 'SAI RỒI!'}</h3><div style="font-size: 14px; line-height: 1.6;">${errHtml}</div></div>`;
         
         questionsQueue.shift(); 
@@ -3284,17 +3563,30 @@ function finishSession(score, typeName, cheatMsg) {
         userEconomy.dailyGold = parseInt(userEconomy.dailyGold) || 0;
         userEconomy.dailyFarmGold = parseInt(userEconomy.dailyFarmGold) || 0;
 
-        // MỚI: KIỂM SOÁT MAX TRẦN CÀY CUỐC (1.000 Vàng/Ngày) CHỈ ÁP DỤNG CHO LẦN 2 & 3
+        // MỚI: KIỂM SOÁT MAX TRẦN CÀY CUỐC (CÓ TÍCH HỢP THẺ KÍCH THÍCH)
         if (finalGold > 0) {
-            if (attemptLogCount > 1) { // Chỉ khóa trần nếu là Farm
-                if (userEconomy.dailyFarmGold + finalGold > 1000) {
-                    let allowedGold = Math.max(0, 1000 - userEconomy.dailyFarmGold);
+            if (attemptLogCount > 1) { 
+                // Kiểm tra xem hôm nay có cắn Thẻ Kích Thích không
+                let todayStr = new Date().toLocaleDateString('vi-VN');
+                let activeCap = 1000;
+                if (localStorage.getItem(getIsoKey('item_farmcap')) === todayStr) {
+                    activeCap = 2500;
+                }
+
+                if (userEconomy.dailyFarmGold + finalGold > activeCap) {
+                    let allowedGold = Math.max(0, activeCap - userEconomy.dailyFarmGold);
                     finalGold = allowedGold;
-                    if (allowedGold === 0) { dailyCapTag = " [Đạt trần Farm 1.000 xu/ngày]"; goldReasonHtml = "Đạt trần Farm 1.000 xu/ngày"; } 
-                    else { dailyCapTag = ` [Tràn mốc Farm, nhận ${allowedGold}]`; goldReasonHtml = `Chạm trần Farm, chỉ nhận ${allowedGold} Vàng`; }
+                    if (allowedGold === 0) { 
+                        dailyCapTag = ` [Đạt trần Farm ${activeCap.toLocaleString('vi-VN')} xu/ngày]`; 
+                        goldReasonHtml = `Đạt trần Farm ${activeCap.toLocaleString('vi-VN')} xu/ngày`; 
+                    } else { 
+                        dailyCapTag = ` [Tràn mốc Farm, nhận ${allowedGold}]`; 
+                        goldReasonHtml = `Chạm trần Farm, chỉ nhận ${allowedGold} Vàng`; 
+                    }
                     petLogForUI = ""; 
                 }
                 if (finalGold > 0) userEconomy.dailyFarmGold += finalGold;
+            
             } else {
                 // Nếu là Lần 1 Học Thuật -> Vẫn ghi nhận vào dailyGold để sau này làm báo cáo, nhưng KHÔNG khóa chặn.
                 userEconomy.dailyGold += finalGold;
@@ -3403,6 +3695,11 @@ function finishSession(score, typeName, cheatMsg) {
     if (getScriptUrl().startsWith("http")) {
         fetch(getScriptUrl(), { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, attempt: attemptLogCount, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: cheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: sessionFixedErrors, errorWords: sessionErrorWords.join(',') }) }).then(() => checkMissingTasks(currentStudentId)).catch(e=>{});
     }
+    
+    // THU HỒI ẤN TÍN SAU KHI THI XONG (Chống xài chùa)
+    localStorage.removeItem(getIsoKey('item_shield'));
+    localStorage.removeItem(getIsoKey('item_practice'));
+
     switchScreen('resultScreen');
 }
 
