@@ -1330,15 +1330,66 @@ let offlineQueue = [];
 let isSyncing = false;
 
 function initEconomySystem() {
-    if(!currentStudentId || currentStudentId === 'T11') {
+    // 1. FIX LỖI T11: Mở khóa cho T11 thấy Ví Vàng để tiêu xài
+    if(!currentStudentId) {
         let wallet = document.getElementById('economyWalletBox');
         if(wallet) wallet.style.display = 'none'; 
         return;
     }
-    // FIX TẬN GỐC: Chỉ bật UI, KHÔNG GỌI syncAllDataFromServer (Lệnh POST) gây treo máy nữa
+    
     offlineQueue = JSON.parse(localStorage.getItem(getIsoKey('queue'))) || [];
     let wallet = document.getElementById('economyWalletBox');
     if(wallet) wallet.style.display = 'flex';
+    
+    // 2. THUẬT TOÁN "THUẾ NUÔI TÙ" (BẮT ĐẦU KÍCH HOẠT TỪ SÁNG THỨ BẢY 01/08/2026)
+    if (currentStudentId !== 'T11') {
+        let now = new Date();
+        // Cài mốc giờ hẹn: Năm 2026, Tháng 7 (Tháng 8 trong JS), Ngày 1, Giờ 0, Phút 1
+        let taxStartTime = new Date(2026, 7, 1, 0, 1, 0).getTime(); 
+        
+        // Chỉ khi thời gian hiện tại VƯỢT QUA mốc Thứ 7 thì Thuế mới tính
+        if (now.getTime() >= taxStartTime) {
+            let today = now.toLocaleDateString('vi-VN');
+            let lastTaxDate = localStorage.getItem(getIsoKey('last_tax_date'));
+            
+            if (lastTaxDate !== today) {
+                let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+                if (!Array.isArray(localBB)) localBB = (localBB && localBB.errors) ? localBB.errors : [];
+                
+                // Thuế: Từ 10 từ trở lên, mỗi từ thu 50 Vàng/ngày
+                if (localBB.length >= 10) {
+                    let taxAmount = localBB.length * 50;
+                    
+                    userEconomy.gold = parseFloat(userEconomy.gold) || 0;
+                    userEconomy.gold -= taxAmount;
+                    localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
+                    
+                    let logItem = {
+                        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+                        time: now.toLocaleString('vi-VN'),
+                        studentId: currentStudentId,
+                        studentName: currentStudentName,
+                        action: `[⚖️ THUẾ HÌNH BỘ] Nuôi cơm ${localBB.length} tội phạm`, 
+                        goldDiff: -taxAmount 
+                    };
+                    offlineQueue.push(logItem);
+                    localStorage.setItem(getIsoKey('queue'), JSON.stringify(offlineQueue));
+                    
+                    // Cảnh báo rung màn hình
+                    setTimeout(() => {
+                        let ab = document.getElementById('securityAlert'); 
+                        if(ab) {
+                            ab.innerHTML = `<i class="fa-solid fa-handcuffs fa-shake" style="font-size:24px;"></i> <span>QUẢN NGỤC THU THUẾ: Bị trừ ${taxAmount} Vàng tiền nuôi ${localBB.length} tên tội phạm trong Hình Bộ! Dọn sạch ngay!</span>`;
+                            ab.style.top = '20px'; 
+                            setTimeout(() => { ab.style.top = '-100px'; }, 6000);
+                        }
+                    }, 3500);
+                }
+                localStorage.setItem(getIsoKey('last_tax_date'), today);
+            }
+        }
+    }
+    
     updateGoldUI();
 }
 
@@ -1555,9 +1606,9 @@ function showGoldNotification(amount) {
 
 // ================= HỆ THỐNG CHỢ ĐEN (VẬT PHẨM VÔ CỰC) =================
 const REDEEM_TIERS = [
-    { id: 'ITM1', cost: 1000, origCost: "10.000", badge: '-90%', type: 'INGAME', name: 'Lệnh Bài Tự Luyện', reward: 'Mở khóa nháp đề Lần 1', 
-      desc: 'Sợ Lần 1 điểm thấp mất mỏ vàng 100%? Mua ngay Lệnh Bài để làm nháp trước cho quen tay!',
-      mathText: '👉 <b>BÀI TOÁN KINH TẾ:</b><br>- Bài Test Lần 1 có mức thưởng 100% (200 Xu/Câu). Trung bình 1 bài 20 câu lụm trọn <b>4.000 Vàng</b> (Chưa tính thưởng Bạo Kích Combo).<br>- Nếu không luyện trước, lụi sai rớt Combo, mất sạch cơ hội làm giàu.<br>- Đầu tư <b>1.000 Vàng</b> mua thẻ, luyện tập quen tay!<br>- Vào thi thật tự tin ẵm 4.000 - 5.000 Vàng. Lợi nhuận ròng: <b>+3.000 Vàng</b>.<br>🚀 <b>Tỉ suất sinh lời (ROI): Tối thiểu 300%</b>.<br><br>⏳ <b>Luật:</b> Max 2 thẻ/ngày. Mỗi thẻ kích hoạt 1 lần nháp.' },
+    { id: 'ITM1', cost: 1000, origCost: "10.000", badge: '-90%', type: 'INGAME', name: 'Gương Tiền Tri Soi Đề', reward: 'Mở khóa soi đề nháp', 
+      desc: 'Món pháp bảo chốn hoàng cung, soi vào là biết trước độ khó của bài test để nháp trước.',
+      mathText: '👉 <b>BÀI TOÁN KINH TẾ:</b><br>- Bài Test Lần 1 có mức thưởng 100% (200 Xu/Câu). Trung bình 1 bài 20 câu lụm trọn <b>4.000 Vàng</b> (Chưa tính thưởng Bạo Kích Combo).<br>- Nếu không luyện trước, lụi sai rớt Combo, mất sạch cơ hội làm giàu.<br>- Đầu tư <b>1.000 Vàng</b> mua Gương, biết trước toàn bộ đề.<br>- Vào thi thật tự tin ẵm 4.000 - 5.000 Vàng. Lợi nhuận ròng: <b>+3.000 Vàng</b>.<br>🚀 <b>Tỉ suất sinh lời (ROI): Tối thiểu 300%</b>.<br><br>⏳ <b>Luật:</b> Max 2 Gương/ngày. Mỗi Gương soi được 1 lần.' },
     
     { id: 'ITM2', cost: 800, origCost: "3.200", badge: '-75%', type: 'INGAME', name: 'Đan Dược Cuồng Nộ', reward: 'X2 Trần Farm Vàng', 
       desc: 'Nâng trần Farm Lần 2, 3 từ 1.000 lên 2.500 Vàng! Lãi ngay 187% chỉ trong 1 ngày! Quá hời cho hệ cày cuốc!',
@@ -1722,10 +1773,14 @@ function initiateRedeem(tierId) {
     let tier = REDEEM_TIERS.find(t => t.id === tierId);
     if(!tier) return;
     
+    // Ràng buộc riêng cho Gương Tiền Tri (Tối đa 2 lần/ngày)
     if(tier.id === 'ITM1') {
         let today = new Date().toLocaleDateString('vi-VN');
         let boughtToday = parseInt(localStorage.getItem(getIsoKey('itm1_count_' + today))) || 0;
-        if(boughtToday >= 2) { showToast("Hôm nay Sĩ tử đã mua cạn 2 Lệnh Bài rồi! Ngày mai quay lại nha."); return; }
+        if(boughtToday >= 2) {
+            showToast("Hôm nay Sĩ tử đã mua cạn 2 Gương Tiền Tri rồi! Mua gì mua lắm thế!");
+            return;
+        }
     }
 
     let pass = confirm(`Xác nhận bỏ ${tier.cost.toLocaleString('vi-VN')} Vàng để cất [${tier.name}] vào Balo?`);
@@ -2794,12 +2849,13 @@ function setupSession(data, part = 0) {
     });
     
     // Đã thêm trường meaning để hứng dữ liệu Tiếng Việt từ Apps Script
+    // ĐÃ FIX: Bảo toàn đúng phân loại (Wordform, Prep...) để máy tạo Box nhập liệu chuẩn xác
     let formattedData = data.map(q => { 
         if(currentType === 'grammar') return q; 
         return { 
             vn: q.baseWord || q.vn, 
             en: q.answers || q.en, 
-            type: currentType, 
+            type: q.type || currentType, // Không ép cứng nữa, tôn trọng type gốc
             meaning: q.meaning || q.nghia || q.NghiaVN || "" 
         }; 
     });
@@ -3469,7 +3525,9 @@ function finishSession(score, typeName, cheatMsg) {
     // FIX: Bắt buộc lưu lịch sử mới ngay xuống bộ nhớ Local
     localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
     
-    if (sessionErrorWords.length > 0) {
+    // CHỈ ĐƯA VÀO SỔ ĐEN NẾU: Là Thi Chuẩn / Cày Vàng (Lần 1, 2, 3)
+    // MIỄN NHIỄM SỔ ĐEN NẾU: Là Tự Luyện (Lần 4+) HOẶC Đang trả nợ trong Hình Bộ
+    if (sessionErrorWords.length > 0 && attemptLogCount < 4 && !window.isRevengeMode) {
         let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
         sessionErrorWords.forEach(w => { if(!localBB.includes(w)) localBB.push(w); });
         localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(localBB));
@@ -4930,7 +4988,7 @@ function startRevengeMode() {
     // --- KẾT THÚC ---
 
     localStorage.setItem(getIsoKey('revenge_date'), today); closeModal('blackbookModal');
-    currentType = 'vocab'; currentIsOfficial = false; 
+    currentType = 'revenge'; currentIsOfficial = false; // CHUYỂN SANG MODE PHỤC THÙ ĐỂ TRÁNH LỖI GỘP BOX 
     
     let formattedData = revengeQuestions.map(q => ({
         vn: q.vn, en: q.en, meaning: q.meaning,
