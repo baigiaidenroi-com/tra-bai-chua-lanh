@@ -3245,6 +3245,7 @@ function navVocabLearn(dir) {
 function startTypingTestPhase() { exactErrorDetails = []; totalQuestionsCount = questionsQueue.length; renderTypingTest(); switchScreen('vocabTestScreen'); }
 
 function renderTypingTest() {
+    window.isCheckingAnswer = false; // MỞ KHÓA LUỒNG TÍNH ĐIỂM
     if(questionsQueue.length === 0) { evaluateVocabTest(); return; }
     let q = questionsQueue[0]; document.getElementById('vtProgress').innerText = `Câu ${totalQuestionsCount - questionsQueue.length + 1}/${totalQuestionsCount}`;
     
@@ -3288,6 +3289,8 @@ function renderTypingTest() {
 
 function checkVocabAnswer(isTimeout) {
     if(questionsQueue.length === 0) return; // CHỐNG SPAM
+    if(window.isCheckingAnswer) return; // KHÓA ĐÓNG BĂNG TRÁNH DOUBLE CLICK GÂY NGÁO DATA
+    window.isCheckingAnswer = true;
     
     // KHÓA MÕM INPUT TỨC THÌ
     let inputs = document.querySelectorAll('#vtInputArea input');
