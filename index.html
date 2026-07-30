@@ -1639,7 +1639,7 @@ function openRedeemModal() {
     let html = '';
     
     REDEEM_TIERS.forEach(tier => {
-        let isLockedForStudent = (currentStudentId !== 'T11');
+        let isAdmin = (currentStudentId === 'T11');
         let canAfford = userEconomy.gold >= tier.cost;
         
         let btnClass = 'btn-purple';
@@ -1647,24 +1647,26 @@ function openRedeemModal() {
         let icon = '<i class="fa-solid fa-cart-shopping"></i>';
         let filter = '';
 
-        if (tier.type === 'MYSTERY') {
+        if (tier.type === 'MYSTERY' && !isAdmin) {
             btnClass = 'btn-disabled';
             icon = '<i class="fa-solid fa-lock"></i>';
             btnAction = `onclick="showToast('🛑 VẬT PHẨM CHƯA MỞ BÁN! Lão Tổng Quản đang cất trong kho, nhìn cho thèm đi chứ chưa mua được đâu!')"`;
-        } else if (isLockedForStudent) {
-            btnClass = 'btn-disabled';
-            icon = '<i class="fa-solid fa-lock"></i>';
-            btnAction = `onclick="showToast('🛑 CHƯA ĐẾN THỜI CƠ! Lão Tổng Quản đang kẹt xe ở biên giới dọn hàng về. Cứ ngắm nghía trước đi, tiền cứ giữ đó chưa tiêu được đâu!')"`;
-        } else if (!canAfford) {
+        } else if (!canAfford && !isAdmin) {
             btnClass = 'btn-disabled';
             icon = '<i class="fa-solid fa-lock"></i>';
             filter = 'filter: grayscale(1); opacity: 0.6;';
             btnAction = `onclick="showToast('Hảo hán, túi tiền rỗng tuếch mà đòi mua hàng VIP? Về cày thêm đi!')"`;
         } else {
             btnAction = `onclick="initiateRedeem('${tier.id}')"`;
+            if (tier.type === 'MYSTERY' && isAdmin) {
+                btnClass = 'btn-red';
+                icon = '<i class="fa-solid fa-vial-virus"></i>'; 
+            }
         }
 
         let badgeHtml = tier.badge ? `<div style="background:#ef4444; color:white; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:900; border:2px solid #000; box-shadow:2px 2px 0px #000; transform: rotate(10deg); animation: pulseAlertUI 1s infinite alternate;">${tier.badge}</div>` : '';
+        
+        let btnBg = (!canAfford && !isAdmin || (tier.type === 'MYSTERY' && !isAdmin)) ? '#334155' : (tier.type === 'MYSTERY' ? '#ef4444' : '#a855f7');
 
         html += `
         <div style="border: 3px solid #c084fc; border-radius: 12px; padding: 15px; background: #1e1b4b; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 4px 4px 0px #581c87; transition: 0.2s; ${filter}">
@@ -1683,7 +1685,7 @@ function openRedeemModal() {
                     <span style="color: #64748b; font-size: 11px; text-decoration: line-through; font-weight:bold; margin-right:5px;">${tier.origCost}</span>
                     <div style="color: #facc15; font-size: 16px; font-weight: 900;"><i class="fa-solid fa-coins"></i> ${tier.type === 'MYSTERY' ? '???' : tier.cost.toLocaleString('vi-VN')}</div>
                 </div>
-                <button class="btn ${btnClass}" style="padding: 10px 15px; font-size: 12px; background:${(!canAfford || isLockedForStudent || tier.type === 'MYSTERY')?'#334155':'#a855f7'}; color:white; border:2px solid #000; box-shadow:3px 3px 0px #000; margin:0;" ${btnAction}>${icon} MUA</button>
+                <button class="btn ${btnClass}" style="padding: 10px 15px; font-size: 12px; background:${btnBg}; color:white; border:2px solid #000; box-shadow:3px 3px 0px #000; margin:0;" ${btnAction}>${icon} MUA</button>
             </div>
         </div>`;
     });
@@ -1725,7 +1727,6 @@ function openBackpackModal() {
         if (inv[tier.id] && inv[tier.id] > 0) {
             hasItems = true;
             let btnHtml = '';
-            // Các nút bấm sử dụng Item tương ứng
             if (tier.id === 'ITM2') btnHtml = `<button class="btn btn-purple" style="padding: 8px 12px; font-size: 11px;" onclick="useItemFromBalo('ITM2')"><i class="fa-solid fa-flask-vial"></i> DÙNG NGAY</button>`;
             else if (tier.id === 'ITM5') btnHtml = `<button class="btn btn-red" style="padding: 8px 12px; font-size: 11px;" onclick="useItemFromBalo('ITM5')"><i class="fa-solid fa-fire"></i> ĐỐT SỔ ĐEN</button>`;
             else btnHtml = `<div style="color:var(--accent-red); font-size:11px; font-style:italic; font-weight:bold;">*Mang sẵn trong Balo.<br>Tự kích hoạt khi vào đúng tính năng.</div>`;
@@ -1751,12 +1752,14 @@ function openBackpackModal() {
 function useItemFromBalo(id) {
     if (!consumeInventoryItem(id, 1)) return;
     
+    let isAdmin = (currentStudentId === 'T11');
+
     if (id === 'ITM2') {
         localStorage.setItem(getIsoKey('item_farmcap'), new Date().toLocaleDateString('vi-VN')); 
         showToast("⚡ Máu cày cuốc sục sôi! Trần Farm nâng lên 2.500 Vàng trong hôm nay!");
     } else if (id === 'ITM5') {
         let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
-        if (bb.length === 0) { 
+        if (bb.length === 0 && !isAdmin) { 
             showToast("Sổ đen đang sạch, Thầy trả lại Thánh Chỉ vào Balo cho con!"); 
             addInventoryItem('ITM5', 1); // Trả lại đồ nếu dùng hụt
             return; 
@@ -1766,15 +1769,17 @@ function useItemFromBalo(id) {
         if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
         showToast("✨ Phép thuật kích hoạt! Đã bốc hơi tối đa 3 từ trong Sổ Đen!");
     }
-    openBackpackModal(); // Render lại Balo để thấy số lượng giảm
+    openBackpackModal(); 
 }
 
 function initiateRedeem(tierId) {
     let tier = REDEEM_TIERS.find(t => t.id === tierId);
     if(!tier) return;
     
+    let isAdmin = (currentStudentId === 'T11');
+
     // Ràng buộc riêng cho Gương Tiền Tri (Tối đa 2 lần/ngày)
-    if(tier.id === 'ITM1') {
+    if(tier.id === 'ITM1' && !isAdmin) {
         let today = new Date().toLocaleDateString('vi-VN');
         let boughtToday = parseInt(localStorage.getItem(getIsoKey('itm1_count_' + today))) || 0;
         if(boughtToday >= 2) {
@@ -1787,7 +1792,7 @@ function initiateRedeem(tierId) {
     if(!pass) return;
     
     addEconomyLog(`🛒 Mua vật phẩm: ${tier.name}`, -tier.cost);
-    addInventoryItem(tier.id, 1); // RỚT VÀO BALO HÀNH TRANG
+    addInventoryItem(tier.id, 1); 
     
     if(tier.id === 'ITM1') { 
         let today = new Date().toLocaleDateString('vi-VN');
@@ -2695,7 +2700,6 @@ function openUnitGrid(type, action) {
 function promptTestMode(type, unit, part) { 
     let typeTitles = { 'wordform': 'Word Form', 'vocab': 'Từ Vựng', 'prep': 'Giới từ', 'grammar': 'Ngữ Pháp' };
     
-    // ÉP KIỂU SỐ NGUYÊN ĐỂ TÁCH BIỆT HOÀN TOÀN P1 VÀ P2
     let pNum = parseInt(part);
     let partText = pNum === 0 ? "" : (pNum === 1 ? " - P1" : " - P2");
     
@@ -2703,14 +2707,12 @@ function promptTestMode(type, unit, part) {
     let fullTitlePractice = `Thi ${typeTitles[type] || type} [Tự Luyện]`;
     let unitTitle = `Unit ${unit}${partText}`; 
 
-    // Đếm tổng số lần đã làm (Thêm .trim() để khớp chuỗi tuyệt đối)
     let attemptLogCount = allLogsCache.filter(r => 
         String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && 
         (r[3] === fullTitleOfficial || r[3] === fullTitlePractice) && 
         String(r[4]).trim() === unitTitle
     ).length;
     
-    // BỎ KHÓA CỬA: Mở lượt thi vô hạn (Admin T11 được đặc cách)
     currentType = type; 
     tempTestParams = { unit: unit, part: pNum }; 
     document.getElementById('preTestModal').style.display = 'flex'; 
@@ -2718,19 +2720,30 @@ function promptTestMode(type, unit, part) {
     if(attemptLogCount === 0) {
         document.getElementById('preTestTitle').innerHTML = "LẦN 1: THI CHUẨN GHI HỌC BẠ";
         
-        // KIỂM TRA LỆNH BÀI TỰ LUYỆN NẰM TRONG BALO
+        // KIỂM TRA GƯƠNG TIỀN TRI TRONG BALO
         let inv = getInventory();
         let hasPracticeItem = (inv['ITM1'] && inv['ITM1'] > 0);
         
         if (hasPracticeItem) {
-            document.getElementById('preTestDesc').innerHTML = "<div style='background:#dcfce7; padding:10px; border:2px dashed #16a34a; border-radius:8px; color:#166534;'><i class='fa-solid fa-briefcase fa-bounce'></i> <b>PHÁT HIỆN LỆNH BÀI TRONG BALO!</b><br>Đã vô hiệu hóa mã PIN Phụ huynh. Tiểu chủ có thể dùng 1 Lệnh Bài để Tự Luyện nháp trước 1 lần!</div>";
-            document.getElementById('parentPinSection').style.display = 'none';
-            document.getElementById('btnFarmGold').style.display = 'block';
-            document.getElementById('btnFarmGold').className = "btn btn-purple";
-            document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-bolt"></i> DÙNG LỆNH BÀI TRONG BALO ĐỂ NHÁP`;
+            document.getElementById('preTestDesc').innerHTML = `<div style="background:#f0fdf4; padding:12px; border:2px dashed #16a34a; border-radius:8px; color:#166534; margin-bottom:15px; text-align:left; line-height:1.5; box-shadow: 2px 2px 0px #16a34a;">
+                <i class="fa-solid fa-briefcase fa-bounce"></i> <b>PHÁT HIỆN GƯƠNG TIỀN TRI TRONG BALO!</b><br>Tiểu chủ muốn dùng Gương soi đề để nháp trước, hay muốn dũng cảm nhập Ấn Tín thi thật luôn?
+            </div>`;
             
-            // Bấm vào thì trừ Lệnh bài trong Balo và KÍCH HOẠT UPSALE BÙA
-            document.getElementById('btnFarmGold').onclick = function() {
+            document.getElementById('parentPinSection').style.display = 'block';
+            document.getElementById('parentPinEntry').value = '';
+            
+            let btnFarm = document.getElementById('btnFarmGold');
+            btnFarm.style.display = 'block';
+            
+            // Ép thẳng màu sắc bằng CSS nội tuyến để chống lỗi CSS tàng hình
+            btnFarm.className = "btn";
+            btnFarm.style.background = "#a855f7"; 
+            btnFarm.style.color = "#ffffff";
+            btnFarm.style.borderColor = "#111111";
+            btnFarm.style.marginBottom = "15px";
+            btnFarm.innerHTML = `<i class="fa-solid fa-eye fa-beat-fade"></i> DÙNG GƯƠNG SOI ĐỀ (LÀM NHÁP TRƯỚC)`;
+            
+            btnFarm.onclick = function() {
                 if (consumeInventoryItem('ITM1', 1)) {
                     closeModal('preTestModal');
                     setTimeout(() => { document.getElementById('upsaleFreezeModal').style.display = 'flex'; }, 300);
@@ -2740,9 +2753,14 @@ function promptTestMode(type, unit, part) {
             document.getElementById('preTestDesc').innerHTML = "Bắt buộc nhập mã PIN Phụ Huynh để mở đề!<br><span style='color:var(--accent-green);'>(Lần 1 nhận 100% Vàng, KHÔNG bị giới hạn trần)</span>";
             document.getElementById('parentPinSection').style.display = 'block';
             document.getElementById('parentPinEntry').value = '';
-            document.getElementById('btnFarmGold').style.display = 'none';
             
-            document.getElementById('btnFarmGold').onclick = startFarmMode;
+            let btnFarm = document.getElementById('btnFarmGold');
+            btnFarm.style.display = 'none';
+            btnFarm.style.marginBottom = "0px";
+            
+            // Trả lại style mặc định phòng khi dùng lại
+            btnFarm.style.background = ""; btnFarm.style.color = ""; btnFarm.style.borderColor = "";
+            btnFarm.onclick = startFarmMode;
         }
     } else if (attemptLogCount < 3) {
         let displayCount = currentStudentId === 'T11' ? attemptLogCount + 1 : Math.min(attemptLogCount + 1, 3);
@@ -2756,10 +2774,15 @@ function promptTestMode(type, unit, part) {
         let currentFarm = parseInt(userEconomy.dailyFarmGold) || 0;
         let isMaxedOut = (currentFarm >= 1000);
         
+        let btnFarm = document.getElementById('btnFarmGold');
+        // Reset style
+        btnFarm.className = "btn btn-yellow";
+        btnFarm.style.background = ""; btnFarm.style.color = ""; btnFarm.style.borderColor = "";
+        
         if (isMaxedOut && currentStudentId !== 'T11') {
             document.getElementById('preTestDesc').innerHTML = `<div style="padding: 10px; border: 2px dashed #ef4444; background: #fef2f2; border-radius: 8px; margin-bottom: 10px;"><span style="color:var(--accent-red); font-weight:900; font-size:16px;">⛔ BẠN ĐÃ CHẠM TRẦN CÀY CUỐC 1.000 VÀNG HÔM NAY!</span><br><br><span style="color:var(--text-dark); font-size:13px; font-weight:bold;">Các bài cày lại tiếp theo sẽ nhận 0 Xu. Bấm VÀO TỰ LUYỆN để mài giũa võ công.</span></div>`;
-            document.getElementById('btnFarmGold').style.display = 'block';
-            document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-dumbbell"></i> VÀO TỰ LUYỆN (0 VÀNG)`;
+            btnFarm.style.display = 'block';
+            btnFarm.innerHTML = `<i class="fa-solid fa-dumbbell"></i> VÀO TỰ LUYỆN (0 VÀNG)`;
         } else {
             let rateText = displayCount === 2 ? "30%" : "10%";
             document.getElementById('preTestDesc').innerHTML = `
@@ -2768,9 +2791,10 @@ function promptTestMode(type, unit, part) {
             </div>
             Lượt thi phụ để farm Vàng (Không cần mã PIN).<br>Lưu ý: Mức thưởng bị giảm xuống chỉ còn <span style="color:var(--accent-red); font-weight:900;">${rateText}</span>!`;
             
-            document.getElementById('btnFarmGold').style.display = 'block';
-            document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-coins"></i> VÀO CÀY VÀNG (NHẬN ${rateText})`;
+            btnFarm.style.display = 'block';
+            btnFarm.innerHTML = `<i class="fa-solid fa-coins"></i> VÀO CÀY VÀNG (NHẬN ${rateText})`;
         }
+        btnFarm.onclick = startFarmMode;
     } else {
         // LẦN 4 TRỞ ĐI: LUYỆN TẬP VÔ TẬN
         let displayCount = attemptLogCount + 1;
@@ -2782,8 +2806,12 @@ function promptTestMode(type, unit, part) {
         </div>
         Lưu ý: Bạn sẽ <span style="color:var(--accent-red); font-weight:900;">không nhận được thêm Vàng</span> (Nhận 0 Vàng). Chủ yếu là rèn luyện tay nghề!`;
         
-        document.getElementById('btnFarmGold').style.display = 'block';
-        document.getElementById('btnFarmGold').innerHTML = `<i class="fa-solid fa-dumbbell"></i> VÀO TỰ LUYỆN (0 VÀNG)`;
+        let btnFarm = document.getElementById('btnFarmGold');
+        btnFarm.className = "btn btn-yellow";
+        btnFarm.style.background = ""; btnFarm.style.color = ""; btnFarm.style.borderColor = "";
+        btnFarm.style.display = 'block';
+        btnFarm.innerHTML = `<i class="fa-solid fa-dumbbell"></i> VÀO TỰ LUYỆN (0 VÀNG)`;
+        btnFarm.onclick = startFarmMode;
     }
 }
 
