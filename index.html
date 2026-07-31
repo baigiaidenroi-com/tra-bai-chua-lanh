@@ -566,9 +566,10 @@
 function buyUpsaleFreeze() {
     if(userEconomy.gold < 2000) { showToast("Mõm! Tiền đâu mà đòi mua bùa?"); return; }
     addEconomyLog("🔮 Mua Bùa Ngưng Đọng Thời Không", -2000);
-    localStorage.setItem(getIsoKey('item_freeze_order'), 'true');
     closeModal('upsaleFreezeModal');
     showToast("✨ Đã đóng băng không gian! Đề Lần 1 sẽ y hệt Đề Nháp!");
+    currentIsOfficial = true; 
+    setupSessionBackupForOfficial(true); // GỌI THI THẬT & ĐÓNG BĂNG ĐỀ
 }
 
 function buyUpsaleShield(cost, hits) {
@@ -972,7 +973,7 @@ function buyUpsaleShield(cost, hits) {
             <h4 style="color: var(--accent-red); margin-top: 25px; margin-bottom: 10px; text-transform: uppercase; font-size: 15px;"><i class="fa-solid fa-triangle-exclamation"></i> TỬ HUYỆT BỊ ĐỐI THỦ CHỌC THỦNG CẦN BĂNG BÓ:</h4><div id="rErrorsDetail" style="background: rgba(239,68,68,0.1); padding: 15px; border-radius: 8px; border: 2px solid var(--accent-red); font-size: 13px; line-height: 1.6; color: var(--accent-red); font-weight: bold;">Chân nhân bất lộ tướng! Nội công đạt mức thượng thừa, không một vết xước!</div>
         </div>
         <div id="zaloShareContainer" style="display:none; margin-bottom: 20px;"><button class="btn btn-blue" style="width: 100%; font-size: 14px; background: #0088FF; color: white; border-color: var(--border-dark);" onclick="shareZalo()"><i class="fa-solid fa-paper-plane"></i> BAY TRẠM CHIM ĐƯA THƯ BÁO TIN VUI CHO THÁI THƯỢNG HOÀNG VÀ MẪU HẬU!</button></div>
-        <div style="display: block; width: 100%;"><button class="btn btn-outline" style="width: 100%; border-color: var(--border-dark);" onclick="goHome()"><i class="fa-solid fa-house"></i> VỀ SẢNH CHÍNH</button></div>
+        <div id="resultActionContainer" style="display: block; width: 100%;"><button class="btn btn-outline" style="width: 100%; border-color: var(--border-dark);" onclick="goHome()"><i class="fa-solid fa-house"></i> VỀ SẢNH CHÍNH</button></div>
     </div>
 
     <!-- MÀN HÌNH TÔNG ĐỒ (PHỤ HUYNH) -->
@@ -1084,22 +1085,20 @@ function buyUpsaleShield(cost, hits) {
 <script>
 
 
-// ================= LOGIC BÀN PHÍM ẢO & SCROLL CHỐNG ĐÈ =================
-window.activeVKInput = null;
-
 function openVirtualKeyboard(inputEl) {
-    window.activeVKInput = inputEl;
+    // ĐÃ FIX PC: Nếu là màn hình to, gỡ khóa Readonly để gõ phím cơ, KHÔNG bật phím ảo!
+    if (window.innerWidth > 850 || !('ontouchstart' in window)) {
+        inputEl.removeAttribute('readonly');
+        inputEl.focus();
+        return;
+    }
     
-    // Bật Bàn phím ảo lên
+    window.activeVKInput = inputEl;
     document.getElementById('neoKeyboard').style.bottom = '0';
     
-    // Đẩy màn hình hiện tại lên (Đã ép cân padding từ 350px xuống 260px)
     let activeScreen = document.querySelector('.screen.active-screen');
-    if(activeScreen) {
-        activeScreen.style.paddingBottom = "260px"; 
-    }
+    if(activeScreen) activeScreen.style.paddingBottom = "260px"; 
 
-    // Tạo hiệu ứng Focus (Viền xanh)
     document.querySelectorAll('.input-brutal').forEach(el => { 
         el.style.borderColor = "var(--border-dark)"; 
         el.style.boxShadow = "none"; 
@@ -1107,31 +1106,42 @@ function openVirtualKeyboard(inputEl) {
     inputEl.style.borderColor = "var(--accent-blue)";
     inputEl.style.boxShadow = "0 0 0 4px rgba(59, 130, 246, 0.3)";
 
-    // Cuộn màn hình tới ô input mượt mà
-    setTimeout(() => { 
-        inputEl.scrollIntoView({ behavior: "smooth", block: "center" }); 
-    }, 250);
+    setTimeout(() => { inputEl.scrollIntoView({ behavior: "smooth", block: "center" }); }, 250);
 }
 
 function closeVirtualKeyboard() {
     window.activeVKInput = null;
-    let vk = document.getElementById('neoKeyboard'); 
-    if(vk) vk.style.bottom = '-100%';
-    
-    // Trả màn hình về bình thường
+    let vk = document.getElementById('neoKeyboard'); if(vk) vk.style.bottom = '-100%';
     let activeScreen = document.querySelector('.screen.active-screen');
-    if(activeScreen) {
-        activeScreen.style.paddingBottom = "80px"; 
-    }
-
+    if(activeScreen) activeScreen.style.paddingBottom = "80px"; 
     document.querySelectorAll('.input-brutal').forEach(el => { 
-        el.style.borderColor = "var(--border-dark)"; 
-        el.style.boxShadow = "none"; 
+        el.style.borderColor = "var(--border-dark)"; el.style.boxShadow = "none"; 
     });
 }
 
-function vkType(char) { if(window.activeVKInput) window.activeVKInput.value += char; }
-function vkBack() { if(window.activeVKInput) window.activeVKInput.value = window.activeVKInput.value.slice(0, -1); }
+function vkType(char) { 
+    if(window.activeVKInput) {
+        let start = window.activeVKInput.selectionStart;
+        let end = window.activeVKInput.selectionEnd;
+        let val = window.activeVKInput.value;
+        window.activeVKInput.value = val.substring(0, start) + char + val.substring(end);
+        window.activeVKInput.setSelectionRange(start + 1, start + 1); // ĐÃ FIX: Chèn chuẩn vị trí con trỏ
+    } 
+}
+function vkBack() { 
+    if(window.activeVKInput) {
+        let start = window.activeVKInput.selectionStart;
+        let end = window.activeVKInput.selectionEnd;
+        let val = window.activeVKInput.value;
+        if (start === end && start > 0) {
+            window.activeVKInput.value = val.substring(0, start - 1) + val.substring(end);
+            window.activeVKInput.setSelectionRange(start - 1, start - 1);
+        } else if (start !== end) {
+            window.activeVKInput.value = val.substring(0, start) + val.substring(end);
+            window.activeVKInput.setSelectionRange(start, start);
+        }
+    } 
+}
 function vkEnter() {
     if(window.activeVKInput) {
         closeVirtualKeyboard();
@@ -1248,31 +1258,17 @@ function getIsoKey(prefix) { return prefix + "_G" + currentSelectedGrade + "_" +
 
 // Reset toàn bộ App khi Đăng Xuất (Tuyệt chiêu chống dính Data) - BẢN PRO TỰ ĐỘNG
 function logout() {
-    // Nếu phát hiện có data kẹt chưa gửi
     if (typeof offlineQueue !== 'undefined' && offlineQueue.length > 0) {
-        // Khóa màn hình ngay lập tức, không cho thao tác gì thêm
-        document.body.innerHTML = "<div style='text-align:center; margin-top:50px; font-weight:bold; font-size: 24px; color: #ff3333;'>Đang chốt sổ giọt mồ hôi cuối cùng lên Triều Đình... Vui lòng không tắt máy!</div>";
-        
-        // Kích hoạt đẩy data ngầm
-        if (typeof processOfflineQueue === 'function') {
-            processOfflineQueue();
-        }
-        
-        // Cài "điệp viên" kiểm tra mỗi 1 giây. Hàng đợi trống (gửi xong) là tự động kick out luôn.
-        let checkSync = setInterval(function() {
-            if (offlineQueue.length === 0) {
-                clearInterval(checkSync);
-                currentStudentId = "";
-                window.location.reload();
-            }
-        }, 1000);
-        
-        return; // Dừng code tại đây, giao lại cho "điệp viên" setInterval xử lý.
+        document.body.innerHTML = "<div style='text-align:center; margin-top:50px; font-weight:900; font-size: 20px; color: #ef4444;'>Đang thu dọn hành lý...</div>";
+        if (typeof processOfflineQueue === 'function') processOfflineQueue(); // Bắn data đi ngầm
+        setTimeout(() => {
+            currentStudentId = "";
+            window.location.reload();
+        }, 500); // Thoát cực nhanh sau 0.5s
+        return; 
     }
-
-    // Nếu không kẹt data nào, đăng xuất tức thì 
     currentStudentId = ""; 
-    document.body.innerHTML = "<div style='text-align:center; margin-top:50px; font-weight:bold; font-size: 20px;'>Đang dọn dẹp thư phòng...</div>";
+    document.body.innerHTML = "<div style='text-align:center; margin-top:50px; font-weight:900; font-size: 20px;'>Đang dọn dẹp thư phòng...</div>";
     window.location.reload(); 
 }
 // =================================================================
@@ -1727,7 +1723,7 @@ function openBackpackModal() {
         if (inv[tier.id] && inv[tier.id] > 0) {
             hasItems = true;
             let btnHtml = '';
-            if (tier.id === 'ITM2') btnHtml = `<button class="btn btn-purple" style="padding: 8px 12px; font-size: 11px;" onclick="useItemFromBalo('ITM2')"><i class="fa-solid fa-flask-vial"></i> DÙNG NGAY</button>`;
+            if (tier.id === 'ITM2') btnHtml = `<button class="btn" style="background: #a855f7; color: white; border-color: #111; padding: 8px 12px; font-size: 11px; box-shadow: 2px 2px 0px #111;" onclick="useItemFromBalo('ITM2')"><i class="fa-solid fa-flask-vial"></i> DÙNG NGAY</button>`;
             else if (tier.id === 'ITM5') btnHtml = `<button class="btn btn-red" style="padding: 8px 12px; font-size: 11px;" onclick="useItemFromBalo('ITM5')"><i class="fa-solid fa-fire"></i> ĐỐT SỔ ĐEN</button>`;
             else btnHtml = `<div style="color:var(--accent-red); font-size:11px; font-style:italic; font-weight:bold;">*Mang sẵn trong Balo.<br>Tự kích hoạt khi vào đúng tính năng.</div>`;
 
@@ -1761,13 +1757,30 @@ function useItemFromBalo(id) {
         let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
         if (bb.length === 0 && !isAdmin) { 
             showToast("Sổ đen đang sạch, Thầy trả lại Thánh Chỉ vào Balo cho con!"); 
-            addInventoryItem('ITM5', 1); // Trả lại đồ nếu dùng hụt
+            addInventoryItem('ITM5', 1); 
             return; 
         } 
-        for(let i=0; i<3; i++) { if(bb.length > 0) bb.splice(Math.floor(Math.random() * bb.length), 1); }
+        let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+        let deletedWords = []; // Lưu lại tên 3 đứa vừa bị chém
+        for(let i=0; i<3; i++) { 
+            if(bb.length > 0) {
+                let deleted = bb.splice(Math.floor(Math.random() * bb.length), 1)[0];
+                if(deleted) { 
+                    let parts = deleted.split('::'); 
+                    ghosts.push({vn: parts[0], en: parts[1]}); 
+                    deletedWords.push(parts[0]); // Đưa tiếng Việt vào danh sách báo cáo
+                }
+            } 
+        }
+        localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
         localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
         if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
-        showToast("✨ Phép thuật kích hoạt! Đã bốc hơi tối đa 3 từ trong Sổ Đen!");
+        
+        // ĐÃ FIX: Tắt Balo, Bật Popup bự chà bá lên giữa màn hình!
+        closeModal('backpackModal');
+        document.getElementById('decreeWordsList').innerText = deletedWords.join(" 💀 ");
+        document.getElementById('holyDecreeWarningModal').style.display = 'flex';
+        return; // Chặn không cho mở lại Balo nữa
     }
     openBackpackModal(); 
 }
@@ -1778,12 +1791,18 @@ function initiateRedeem(tierId) {
     
     let isAdmin = (currentStudentId === 'T11');
 
-    // Ràng buộc riêng cho Gương Tiền Tri (Tối đa 2 lần/ngày)
-    if(tier.id === 'ITM1' && !isAdmin) {
+    // BỘ LUẬT CHỐNG LẠM PHÁT: Siết chặt giới hạn mua vật phẩm theo ngày
+    if (!isAdmin) {
+        let maxLimit = 3; 
+        if (tier.id === 'ITM1') maxLimit = 2; // Gương Tiền Tri: 2 Lần
+        else if (tier.id === 'ITM2' || tier.id === 'ITM3' || tier.id === 'ITM5') maxLimit = 1; // Đan Dược, Kim Chung, Thánh Chỉ: 1 Lần
+        
         let today = new Date().toLocaleDateString('vi-VN');
-        let boughtToday = parseInt(localStorage.getItem(getIsoKey('itm1_count_' + today))) || 0;
-        if(boughtToday >= 2) {
-            showToast("Hôm nay Sĩ tử đã mua cạn 2 Gương Tiền Tri rồi! Mua gì mua lắm thế!");
+        let buyKey = getIsoKey('buy_count_' + tier.id + '_' + today);
+        let boughtToday = parseInt(localStorage.getItem(buyKey)) || 0;
+        
+        if (boughtToday >= maxLimit) {
+            showToast(`🛑 Hôm nay Sĩ tử đã mua cạn ${maxLimit} lần [${tier.name}] rồi! Cấm tích trữ đồ đạc, mai hãy quay lại!`);
             return;
         }
     }
@@ -1794,10 +1813,11 @@ function initiateRedeem(tierId) {
     addEconomyLog(`🛒 Mua vật phẩm: ${tier.name}`, -tier.cost);
     addInventoryItem(tier.id, 1); 
     
-    if(tier.id === 'ITM1') { 
+    if (!isAdmin) {
         let today = new Date().toLocaleDateString('vi-VN');
-        let boughtToday = parseInt(localStorage.getItem(getIsoKey('itm1_count_' + today))) || 0;
-        localStorage.setItem(getIsoKey('itm1_count_' + today), boughtToday + 1);
+        let buyKey = getIsoKey('buy_count_' + tier.id + '_' + today);
+        let boughtToday = parseInt(localStorage.getItem(buyKey)) || 0;
+        localStorage.setItem(buyKey, boughtToday + 1);
     }
     
     showToast(`🎉 Đã cất [${tier.name}] vào Balo! Bấm nút cái Cặp ở trên cùng để kiểm tra.`);
@@ -2101,32 +2121,25 @@ async function fetchWithFallback(url, mode, fallbackData, extraParams = "", retr
     }
 }
 
+let lastTabLeaveTime = 0;
 document.addEventListener('visibilitychange', () => { 
-    // 1. AUTO-SYNC BẤT CHẤP: Cứ hễ rời mắt khỏi màn hình là Push Queue lên Server
     if (document.hidden) {
         triggerBackgroundSync();
-    }
-
-   // 2. ANTI-CHEAT TOÀN DIỆN (Áp dụng cho cả Lần 1 và Farm Vàng L2, L3)
-    if (document.hidden && (document.getElementById("vocabTestScreen").classList.contains('active-screen') || document.getElementById("grammarTestScreen").classList.contains('active-screen'))) { 
-        
-        cheatWarnings++; 
-        
-        if (currentIsOfficial) {
-            // LẦN 1 (THI THẬT): CẢNH BÁO, LẦN 3 ÉP NỘP BÀI
-            if(cheatWarnings >= 3) {
-                document.getElementById('forceSubmitModal').style.display = 'flex'; 
+        if (document.getElementById("vocabTestScreen").classList.contains('active-screen') || document.getElementById("grammarTestScreen").classList.contains('active-screen')) { 
+            let now = Date.now();
+            if (now - lastTabLeaveTime < 800) return; // FIX: Bỏ qua nếu chớp tắt dưới 0.8s
+            lastTabLeaveTime = now;
+            
+            cheatWarnings++; 
+            if (currentIsOfficial) {
+                if(cheatWarnings >= 3) document.getElementById('forceSubmitModal').style.display = 'flex'; 
+                else triggerSecurityAlert(`CẢNH BÁO GIAN LẬN: Rời Tab (Lần ${cheatWarnings}/3). Lần 3 thu bài!`); 
             } else {
-                triggerSecurityAlert(`CẢNH BÁO GIAN LẬN: Rời Tab (Lần ${cheatWarnings}/3). Lần 3 thu bài!`); 
+                let phatVang = 300 * cheatWarnings; 
+                triggerSecurityAlert(`🚨 PHẠT FARM VÀNG: Rời tab ăn gian! Cẩm Y Vệ thu phạt ${phatVang} Vàng!`);
+                if (typeof addEconomyLog === 'function') addEconomyLog(`🚨 Cấm Vệ Quân Phạt: Rời Tab khi Farm Vàng (Lần ${cheatWarnings})`, -phatVang);
             }
-        } else {
-            // LẦN 2, LẦN 3 (FARM VÀNG): KHÔNG ÉP NỘP NHƯNG TRỪ NẶNG VÀNG TRỰC TIẾP
-            let phatVang = 300 * cheatWarnings; // Lần 1 trừ 300, lần 2 trừ 600...
-            triggerSecurityAlert(`🚨 PHẠT FARM VÀNG: Rời tab ăn gian! Cẩm Y Vệ thu phạt ${phatVang} Vàng!`);
-            if (typeof addEconomyLog === 'function') {
-                addEconomyLog(`🚨 Cấm Vệ Quân Phạt: Rời Tab khi Farm Vàng (Lần ${cheatWarnings})`, -phatVang);
-            }
-        }
+        } 
     } 
 });
 
@@ -2236,39 +2249,11 @@ async function login() {
 
         try {
             let scriptUrl = getScriptUrl();
-            if(scriptUrl.startsWith("http") && id !== 'T11') {
+            if(scriptUrl.startsWith("http")) { // ĐÃ FIX: Tháo gông cho T11 được chạy
                 let fallbackData = { memoryBoxData: null, blackbookData: null, gold: -1, logs: [] };
                 let syncData = await fetchWithFallback(scriptUrl, "getBackupData", fallbackData, `&studentId=${id}`, 2, 1000);
-                
-                if(syncData) {
-                    if(syncData.memoryBoxData) localStorage.setItem(getIsoKey('membox'), typeof syncData.memoryBoxData === 'string' ? syncData.memoryBoxData : JSON.stringify(syncData.memoryBoxData));
-                    
-                    if(syncData.blackbookData) {
-                        let bbData = typeof syncData.blackbookData === 'string' ? JSON.parse(syncData.blackbookData) : syncData.blackbookData;
-                        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bbData.errors || []));
-                        localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(bbData.fixed || []));
-                    }
-                    
-                    if(syncData.gold !== undefined && syncData.gold !== -1) {
-                        userEconomy.gold = syncData.gold;
-                        localStorage.setItem(getIsoKey('gold'), syncData.gold);
-                        localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
-                    }
-
-                    if(syncData.logs && Array.isArray(syncData.logs) && syncData.logs.length > 0) {
-                        allLogsCache = syncData.logs;
-                        localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
-                    } else {
-                        let localLogs = JSON.parse(localStorage.getItem(getIsoKey('logs')));
-                        allLogsCache = (localLogs && Array.isArray(localLogs)) ? localLogs : [];
-                    }
-                    
-                    // FIX: HIỂN THỊ BONG BÓNG MẬT THƯ NGAY LÚC LOGIN
-                    if(syncData.inbox) {
-                        renderStudentInbox(syncData.inbox);
-                    }
-                    
-                    window.hasFetchedBackup = true; 
+                if(syncData && typeof window.processSyncData === 'function') {
+                    window.processSyncData(syncData); // Gọi thẳng Bộ Não Trung Tâm
                 }
             }
         } catch(e) {
@@ -2292,6 +2277,7 @@ async function login() {
         
         initEconomySystem(); switchScreen('dashboardScreen'); checkMissingTasks(id); calcRivalAnchor(); applyRoleUI();
         updateThiPhiTicker();
+        setTimeout(checkGhostThiefEncounter, 2000); // ĐÃ FIX: Kích hoạt Bóng ma đòi mạng
 
     } else { 
         showToast("🤴💢 TO GAN! Sai mã số!"); 
@@ -2735,18 +2721,19 @@ function promptTestMode(type, unit, part) {
             let btnFarm = document.getElementById('btnFarmGold');
             btnFarm.style.display = 'block';
             
-            // Ép thẳng màu sắc bằng CSS nội tuyến để chống lỗi CSS tàng hình
             btnFarm.className = "btn";
-            btnFarm.style.background = "#a855f7"; 
-            btnFarm.style.color = "#ffffff";
-            btnFarm.style.borderColor = "#111111";
+            btnFarm.style.background = "#000000"; 
+            btnFarm.style.color = "#facc15";
+            btnFarm.style.borderColor = "#facc15";
             btnFarm.style.marginBottom = "15px";
-            btnFarm.innerHTML = `<i class="fa-solid fa-eye fa-beat-fade"></i> DÙNG GƯƠNG SOI ĐỀ (LÀM NHÁP TRƯỚC)`;
+            btnFarm.innerHTML = `<i class="fa-solid fa-eye fa-beat-fade"></i> DÙNG GƯƠNG THÁM THÍNH (KHÔNG LẤY VÀNG)`;
             
             btnFarm.onclick = function() {
                 if (consumeInventoryItem('ITM1', 1)) {
                     closeModal('preTestModal');
-                    setTimeout(() => { document.getElementById('upsaleFreezeModal').style.display = 'flex'; }, 300);
+                    window.isThamThinh = true; // Cắm cờ Thám thính
+                    showToast("🕵️ Đang vào chế độ Thám Thính! Cố gắng nhớ kỹ vị trí nhé!");
+                    setTimeout(() => { startFarmMode(); }, 1000);
                 }
             };
         } else {
@@ -2856,7 +2843,7 @@ function setupSession(data, part = 0) {
     allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase()).forEach(r => { 
         if(r[13]) r[13].toString().split(',').forEach(w => { 
             let vn = w.split('::')[0].trim(); 
-            if(vn) pastStudentErrors.add(vn); 
+            if(vn) pastStudentErrors.add(vn.toLowerCase()); // ĐÃ FIX: Ép về in thường
         }); 
     });
     
@@ -2872,7 +2859,7 @@ function setupSession(data, part = 0) {
     localBB.forEach(w => { 
         if (typeof w === 'string') {
             let vn = w.split('::')[0].trim(); 
-            if(vn) pastStudentErrors.add(vn); 
+            if(vn) pastStudentErrors.add(vn.toLowerCase()); // ĐÃ FIX: Ép về in thường
         }
     });
     
@@ -2883,7 +2870,7 @@ function setupSession(data, part = 0) {
         return { 
             vn: q.baseWord || q.vn, 
             en: q.answers || q.en, 
-            type: q.type || currentType, // Không ép cứng nữa, tôn trọng type gốc
+            type: q.type || currentType, 
             meaning: q.meaning || q.nghia || q.NghiaVN || "" 
         }; 
     });
@@ -2893,33 +2880,31 @@ function setupSession(data, part = 0) {
         if (part === 1) formattedData = formattedData.slice(0, mid); 
         else if (part === 2) formattedData = formattedData.slice(mid); 
     }
-  // TÁCH ĐÁP ÁN TRÙNG & XÁO TRỘN (TRỪ KHI CÓ BÙA NGƯNG ĐỌNG)
+
+    // ĐÃ FIX: LƯU TRỮ BẢN GỐC CỦA BÀI THI LẠI TRONG BỘ NHỚ RAM ĐỂ LÁT NỮA "THI THẬT" LẤY RA XÀI LẠI!
+    window.backupQuestionsData = JSON.parse(JSON.stringify(formattedData)); 
+
+    // TÁCH ĐÁP ÁN TRÙNG & XÁO TRỘN ĐỀ NHÁP
     if (currentAction === 'test') { 
-        let hasFreezeBuff = localStorage.getItem(getIsoKey('item_freeze_order')) === 'true';
-        
-        if (!hasFreezeBuff) {
-            formattedData = shuffleArray(formattedData);
-            // Thuật toán tách giãn cách các câu có đáp án y hệt nhau (VD: in, on, at...)
-            for (let i = 0; i < formattedData.length - 1; i++) {
-                let currentAns = String(formattedData[i].en).trim().toLowerCase();
-                let nextAns = String(formattedData[i+1].en).trim().toLowerCase();
-                if (currentAns === nextAns) {
-                    for (let j = i + 2; j < formattedData.length; j++) {
-                        let farAns = String(formattedData[j].en).trim().toLowerCase();
-                        if (farAns !== currentAns) {
-                            let temp = formattedData[i+1];
-                            formattedData[i+1] = formattedData[j];
-                            formattedData[j] = temp;
-                            break;
-                        }
+        formattedData = shuffleArray(formattedData);
+        // Thuật toán tách giãn cách các câu có đáp án y hệt nhau
+        for (let i = 0; i < formattedData.length - 1; i++) {
+            let currentAns = String(formattedData[i].en).trim().toLowerCase();
+            let nextAns = String(formattedData[i+1].en).trim().toLowerCase();
+            if (currentAns === nextAns) {
+                for (let j = i + 2; j < formattedData.length; j++) {
+                    let farAns = String(formattedData[j].en).trim().toLowerCase();
+                    if (farAns !== currentAns) {
+                        let temp = formattedData[i+1];
+                        formattedData[i+1] = formattedData[j];
+                        formattedData[j] = temp;
+                        break;
                     }
                 }
             }
-        } else {
-            console.log("❄️ Đã kích hoạt Bùa Ngưng Đọng Thời Không! Đề thi giữ nguyên vị trí gốc.");
-            // Xóa bùa sau khi xài (Chỉ áp dụng cho 1 bài test)
-            localStorage.removeItem(getIsoKey('item_freeze_order'));
         }
+        // ĐÃ FIX LÕI: Lưu lại CHÍNH XÁC MẢNG ĐÃ XÁO TRỘN của Thám Thính vào RAM
+        window.thamThinhBackup = JSON.parse(JSON.stringify(formattedData));
     }
     questionsQueue = formattedData; totalQuestionsCount = questionsQueue.length; currentQIndex = 0;
     
@@ -3484,7 +3469,160 @@ function checkVocabAnswer(isTimeout) {
         }
     }
 }
-function evaluateVocabTest(isForce = false) { if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; let wrongCount = exactErrorDetails.length; let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); }
+function evaluateVocabTest(isForce = false) { 
+    if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; 
+    let wrongCount = exactErrorDetails.length; 
+    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); 
+    
+    if (window.isThamThinh) { finishThamThinhSession(score, "Từ Vựng / Giới Từ / Wordform"); return; }
+    finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
+}
+
+function evaluateGrammarTest(isForce = false) { 
+    if (isForce) { exactErrorDetails = [{ q: "Thu bài do gian lận", htmlDetails: "<span style='color: var(--accent-red); font-weight: bold;'>Con nhập: (Rời tab) - Đáp án chuẩn: N/A</span>" }]; }
+    let wrongCount = exactErrorDetails.length; 
+    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10) / 10); 
+    
+    if (window.isThamThinh) { finishThamThinhSession(score, "Ngữ Pháp"); return; }
+    finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
+}
+
+// BỘ NÃO KIẾN TẠO BÁO CÁO THÁM THÍNH (KHÔNG LƯU DATA, CHỈ GẠ BÙA TẠI ĐÍCH)
+function finishThamThinhSession(score, typeName) {
+    window.isSessionFinished = true;
+    clearInterval(timerInterval);
+    closeVirtualKeyboard();
+    let durSec = Math.round((Date.now() - testStartTime)/1000), durStr = Math.floor(durSec/60) + "p " + (durSec%60) + "s";
+    let startStr = new Date(testStartTime).toLocaleTimeString('vi-VN');
+    let endStr = new Date().toLocaleTimeString('vi-VN');
+
+    let typeTitles = { 'wordform': 'Word Form', 'vocab': 'Từ Vựng', 'prep': 'Giới từ', 'grammar': 'Ngữ Pháp' };
+    let cpNum = parseInt(currentPart);
+    let partText = cpNum === 0 ? "" : (cpNum === 1 ? " - P1" : " - P2");
+    let fullTitle = `Thi ${typeTitles[currentType] || typeName} [Thám Thính]`, unitTitle = `Unit ${currentUnit}${partText}`;
+
+    let fbMsg = document.getElementById('feedbackMsg'), scBox = document.getElementById('scoreBoxColor');
+    let msgText = score === 10 ? "XUẤT SẮC - HOÀN HẢO!" : (score >= 8 ? "GIỎI - HÃY PHÁT HUY!" : (score >= 5 ? "TẠM ỔN - CẦN CHÚ Ý LỖI SAI!" : "YẾU - CẦN ÔN TẬP LẠI KHẨN CẤP!"));
+    let borderColor = score >= 8 ? "var(--accent-green)" : (score >= 5 ? "var(--accent-yellow)" : "var(--accent-red)");
+
+    let goldHtml = `<div style="color:#64748b; font-size:18px; font-weight:900; margin-top:15px; border-top: 2px dashed ${borderColor}; padding-top: 10px;"><i class="fa-solid fa-eye"></i> CHẾ ĐỘ THÁM THÍNH (0 VÀNG)</div>`;
+
+    scBox.innerHTML = `<h1 id="finalScore" style="font-size: 55px; margin: 0; font-weight: 900;">${score}/10</h1><div id="feedbackMsg" style="font-weight:900; margin-top:10px; font-size: 16px; text-transform: uppercase; color:${borderColor};">${msgText}</div>${goldHtml}`;
+    scBox.style.borderColor = borderColor;
+    scBox.style.background = score >= 8 ? "rgba(46,213,115,0.05)" : (score >= 5 ? "rgba(255,165,0,0.05)" : "rgba(239,68,68,0.05)");
+
+    let dateStr = new Date().toLocaleDateString('vi-VN');
+    let timeBoxHtml = `<div style="border: 4px solid var(--accent-red); padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; box-shadow: 4px 4px 0px var(--accent-red); background: #fef2f2;">
+        <div style="font-size: 14px; font-weight: 900; color: var(--accent-red); margin-bottom: 5px; line-height: 1.6;">
+            Con trả bài THÁM THÍNH này, vào NGÀY ${dateStr}<br>
+            Bắt đầu: <span style="color:var(--text-dark);">${startStr}</span> => Kết thúc: <span style="color:var(--text-dark);">${endStr}</span> [mất ${durStr}]
+        </div>
+    </div>`;
+
+    let infoContainer = document.getElementById('rInfoContainer_custom');
+    if (!infoContainer) {
+        let oldBox = document.getElementById('rName').parentElement.parentElement;
+        infoContainer = document.createElement('div');
+        infoContainer.id = 'rInfoContainer_custom';
+        oldBox.parentNode.replaceChild(infoContainer, oldBox);
+    }
+    infoContainer.innerHTML = timeBoxHtml + `<div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 2px solid var(--border-dark); font-size: 14px;"><p style="margin: 8px 0; border-bottom: 1px solid var(--border-dark); padding-bottom: 5px;"><strong>👨‍🎓 Sĩ tử:</strong> ${currentStudentId} (${currentStudentName})</p><p style="margin: 8px 0;"><strong>📚 Khảo hạch:</strong> ${fullTitle} - ${unitTitle}</p></div>`;
+
+    let errBox = document.getElementById('rErrorsDetail');
+    if(exactErrorDetails.length === 0) {
+        errBox.innerHTML = `Chân nhân bất lộ tướng! Nội công đạt mức thượng thừa, không một vết xước!`;
+        errBox.style.borderLeftColor = "var(--accent-green)"; errBox.style.background = "rgba(46,213,115,0.1)"; errBox.style.color = "var(--accent-green)";
+    } else {
+        let errHtml = `<ul style="margin:0; padding-left:20px;">`;
+        exactErrorDetails.forEach((err, idx) => {
+            errHtml += `<li style="margin-bottom: 15px; color: var(--border-dark);"><b>Câu ${idx+1}:</b> [${err.q}]<br>${err.htmlDetails}</li>`;
+        });
+        errBox.innerHTML = errHtml + `</ul>`;
+        errBox.style.borderLeftColor = "var(--accent-red)"; errBox.style.background = "white"; errBox.style.color = "var(--border-dark)";
+    }
+
+    let zaloBox = document.getElementById('zaloShareContainer');
+    if (zaloBox) zaloBox.style.display = 'none';
+
+    // ĐÃ FIX: CHÈN NÚT "GẠ BÙA" THAY VÌ NÚT "VỀ SẢNH" VÀO CUỐI BÁO CÁO THÁM THÍNH
+    let actionBox = document.getElementById('resultActionContainer');
+    if(actionBox) {
+        window.isThamThinh = false; 
+        actionBox.innerHTML = `<button class="btn btn-yellow" style="width: 100%; border-color: #b45309; padding: 18px; font-size: 16px;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT TÍNH VÀNG</button>`;
+    }
+
+    switchScreen('resultScreen');
+}
+
+function triggerSpellUpsale() {
+    let invCheck = getInventory();
+    if (invCheck['ITM4'] && invCheck['ITM4'] > 0) {
+        showToast("✨ Đã kích hoạt Bùa Ngưng Đọng sẵn có trong Balo!");
+        setTimeout(() => { 
+            consumeInventoryItem('ITM4', 1);
+            currentIsOfficial = true; 
+            setupSessionBackupForOfficial(true); // ĐÃ FIX: Gọi thẳng Test giữ nguyên Đề
+        }, 1000);
+    } else {
+        document.getElementById('upsaleFreezeModal').style.display = 'flex';
+        document.querySelector('#upsaleFreezeModal .modal-content').innerHTML = `
+        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase; font-size: 20px;"><i class="fa-solid fa-skull fa-shake"></i> THÁI PHÓ TÀNG HÌNH!</h2>
+        <div style="font-size: 14px; color: #f8fafc; line-height: 1.6; text-align: left; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 2px dashed #ef4444; margin-bottom: 15px;">
+            Trí nhớ của ngươi có trụ được không? Thái Phó đang niệm chú 'Bát Quái Trận Đồ' để <b>XÁO TUNG</b> toàn bộ vị trí câu hỏi!
+        </div>
+        <div style="font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: left; margin-bottom: 20px;">
+            Ném <b>2.000 Vàng</b> mua Bùa Ngưng Đọng để phong ấn trận pháp, giữ nguyên vị trí Thám Thính lúc nãy! Bấm KHÔNG MUA để tự sinh tự diệt!
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color:#b45309;" onclick="buyUpsaleFreeze()"><i class="fa-solid fa-unlock-keyhole"></i> ĐÓNG BĂNG TRẬN PHÁP (2000V)</button>
+            <button class="btn btn-outline" style="width: 100%; padding: 15px; color:#94a3b8; border-color:#475569;" onclick="closeModal('upsaleFreezeModal'); currentIsOfficial = true; setupSessionBackupForOfficial(false);">TỰ TIN TRÍ NHỚ, KHÔNG XÀI BÙA</button>
+        </div>`;
+    }
+}
+
+// BỘ NÃO PHỤ: Chuyển trực tiếp Thám Thính sang Thi Thật (Tái sử dụng bộ câu hỏi đã tải)
+function setupSessionBackupForOfficial(hasFreezeBuff) {
+    window.isSessionFinished = false; 
+    clearInterval(timerInterval); exactErrorDetails = []; cheatWarnings = 0; testStartTime = Date.now();
+    sessionMaxCombo = 0; currentCombo = 0; sessionFixedErrors = 0; sessionErrorWords = [];
+    currentQIndex = 0;
+
+    // ĐÃ FIX: Lấy chính xác mảng ĐÃ ĐƯỢC XÁO TRỘN LÚC NHÁP
+    let formattedData = JSON.parse(JSON.stringify(window.thamThinhBackup || []));
+    
+    if (hasFreezeBuff) {
+        console.log("❄️ Đã kích hoạt Bùa Ngưng Đọng! Đề thi Lần 1 giữ nguyên vị trí lúc Nháp.");
+    } else {
+        formattedData = shuffleArray(formattedData);
+        // Thuật toán tách giãn cách các câu có đáp án y hệt nhau
+        for (let i = 0; i < formattedData.length - 1; i++) {
+            let currentAns = String(formattedData[i].en).trim().toLowerCase();
+            let nextAns = String(formattedData[i+1].en).trim().toLowerCase();
+            if (currentAns === nextAns) {
+                for (let j = i + 2; j < formattedData.length; j++) {
+                    let farAns = String(formattedData[j].en).trim().toLowerCase();
+                    if (farAns !== currentAns) {
+                        let temp = formattedData[i+1];
+                        formattedData[i+1] = formattedData[j];
+                        formattedData[j] = temp;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    questionsQueue = formattedData; 
+    totalQuestionsCount = questionsQueue.length; 
+    
+    if (currentType === 'grammar') { 
+        userAnswersArray = questionsQueue.map(() => null); 
+        renderGrammarQuestion(); 
+        switchScreen('grammarTestScreen'); 
+    } else { 
+        startTypingTestPhase(); 
+    }
+}
 
 function renderGrammarQuestion() { 
     if(currentQIndex >= questionsQueue.length) { evaluateGrammarTest(); return; } 
@@ -3789,6 +3927,12 @@ function finishSession(score, typeName, cheatMsg) {
     localStorage.removeItem(getIsoKey('item_shield'));
     localStorage.removeItem(getIsoKey('item_practice'));
 
+    // ĐÃ FIX: Trả lại nút "VỀ SẢNH CHÍNH" cho màn hình Thi Thật / Tự Luyện bình thường
+    let actionBox = document.getElementById('resultActionContainer');
+    if(actionBox) {
+        actionBox.innerHTML = `<button class="btn btn-outline" style="width: 100%; border-color: var(--border-dark);" onclick="goHome()"><i class="fa-solid fa-house"></i> VỀ SẢNH CHÍNH</button>`;
+    }
+
     switchScreen('resultScreen');
 }
 
@@ -4070,41 +4214,19 @@ window.syncBlackbookToServer = function() {
 
 if (typeof window.originalSwitchScreenForBackup === 'undefined') {
     window.originalSwitchScreenForBackup = window.switchScreen;
-    // Ghi đè hàm switchScreen cực nhẹ để tự động kéo Backup Data & Lịch sử về khi HS ra Sảnh
     window.switchScreen = function(screenId) {
         if (window.originalSwitchScreenForBackup) window.originalSwitchScreenForBackup(screenId);
 
-        if (screenId === 'dashboardScreen' && typeof currentStudentId !== 'undefined' && currentStudentId !== 'T11') {
+        if (screenId === 'dashboardScreen' && typeof currentStudentId !== 'undefined') {
             if (!window.hasFetchedBackup) {
                 window.hasFetchedBackup = true;
-                showToast("⏳ Đang đồng bộ hóa dữ liệu từ Đám Mây..."); // Thêm thông báo cho xịn
-                
+                showToast("⏳ Đang đồng bộ hóa dữ liệu từ Đám Mây..."); 
                 if (typeof fetchWithFallback === 'function') {
                     fetchWithFallback(getScriptUrl(), "getBackupData", { blackbook: "[]", redeemed: "[]", gold: -1, logs: [] }, "&studentId=" + currentStudentId)
                     .then(res => {
-                        if (res) {
-                            // 1. Phục hồi Sổ đen & Phục thù
-                            if (res.blackbook && res.blackbook !== "[]") localStorage.setItem(getIsoKey('blackbook'), res.blackbook);
-                            if (res.redeemed && res.redeemed !== "[]") localStorage.setItem(getIsoKey('redeemed'), res.redeemed);
-                            
-                            // 1.5 Phục hồi Vàng (Giữ nguyên cấu trúc economy của bạn)
-                            if (res.gold !== undefined && res.gold !== -1) {
-                                localStorage.setItem(getIsoKey('gold'), res.gold);
-                                let eco = JSON.parse(localStorage.getItem(getIsoKey('eco')) || "{}");
-                                eco.dailyGold = res.gold;
-                                localStorage.setItem(getIsoKey('eco'), JSON.stringify(eco));
-                                let uiGold = document.getElementById('uiGold');
-                                if (uiGold) uiGold.innerHTML = parseInt(res.gold).toLocaleString('vi-VN') + ' <i class="fa-solid fa-coins"></i>';
-                            }
-
-                            // 2. Phục hồi Full Lịch sử Test mà không làm hỏng biến gốc
-                            if (res.logs && res.logs.length > 0) {
-                                allLogsCache.length = 0; 
-                                res.logs.forEach(row => allLogsCache.push(row)); 
-                            }
-                            
+                        if (res && typeof window.processSyncData === 'function') {
+                            window.processSyncData(res); // Gọi thẳng Bộ Não Trung Tâm
                             showToast("✅ Đã khôi phục dữ liệu thành công!");
-                            // Render lại bảng UI
                             if(typeof checkMissingTasks === 'function') checkMissingTasks(currentStudentId);
                             if(typeof calcRivalAnchor === 'function') calcRivalAnchor();
                         }
@@ -4872,7 +4994,13 @@ function openBlackbook() {
         redeemed = (redeemed && redeemed.fixed && Array.isArray(redeemed.fixed)) ? redeemed.fixed : [];
         localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(redeemed));
     }
-    redeemed.forEach(w => globalBlackbookMap.delete(w));
+    // ĐÃ FIX HÌNH BỘ: Dò đúng chữ bất chấp Hoa/Thường để xóa sổ từ đã cứu rỗi
+    redeemed.forEach(w => {
+        globalBlackbookMap.delete(w);
+        for (let [key, value] of globalBlackbookMap.entries()) {
+            if (key.toLowerCase() === w.toLowerCase()) globalBlackbookMap.delete(key);
+        }
+    });
 
     let errorArr = Array.from(globalBlackbookMap.values());
     
@@ -5270,5 +5398,421 @@ function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => showToast("✅ Đã copy Báo cáo! Mở Zalo dán ngay!")).catch(() => showToast("Lỗi copy!"));
 }
 </script>
+
+
+
+
+
+<script>
+// =========================================================================
+// BỘ NÃO TRUNG TÂM: ĐỒNG BỘ MỌI DỮ LIỆU & MÁY CHÉM TÁI SINH
+// =========================================================================
+window.processSyncData = function(data) {
+    if (!data) return;
+    
+    // 1. LỌC ĐÚNG LỊCH SỬ CỦA HỌC SINH ĐỂ NHẬN DIỆN TÁI SINH (100% CHÍNH XÁC)
+    let myLogs = (data.logs && Array.isArray(data.logs)) ? data.logs.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase()) : [];
+    let isResetAccount = (myLogs.length === 0) && (data.gold === undefined || data.gold === 0);
+
+    if (isResetAccount) {
+        // 🔥 MÁY CHÉM TÁI SINH THẦN ĐAN: Nổ tung mọi tàn dư trong điện thoại
+        localStorage.setItem(getIsoKey('inventory'), "{}");
+        localStorage.setItem(getIsoKey('blackbook'), "[]");
+        localStorage.setItem(getIsoKey('redeemed'), "[]");
+        localStorage.setItem(getIsoKey('membox'), '{"vocab":[],"prep":[],"wordform":[]}');
+        localStorage.setItem(getIsoKey('logs'), "[]");
+        allLogsCache = [];
+        
+        if (currentStudentId !== 'T11') {
+            userEconomy = { gold: 0, streak: 0, lastLogin: 0, dailyGold: 0, dailyFarmGold: 0, lastPlayDate: "" };
+            localStorage.setItem(getIsoKey('gold'), "0");
+            localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
+        }
+        
+        let prefix = "_G" + currentSelectedGrade + "_" + currentStudentId;
+        let keysToWipe = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            // ĐÃ FIX: Đưa thêm 'itm1_count' (Giới hạn mua Gương) vào danh sách Nổ tung!
+            if (key && key.includes(prefix) && (key.includes('buy_count') || key.includes('itm1_count') || key.includes('item_') || key.includes('revenge_date'))) {
+                keysToWipe.push(key);
+            }
+        }
+        keysToWipe.forEach(k => localStorage.removeItem(k));
+        console.log("🧹 TÁI SINH THẦN ĐAN: Đã dọn dẹp sạch sẽ tài khoản!");
+    } else {
+        // 🌿 PHỤC HỒI DỮ LIỆU BÌNH THƯỜNG KHÔNG BỊ TÁI SINH
+        if (data.memoryBoxData) localStorage.setItem(getIsoKey('membox'), typeof data.memoryBoxData === 'string' ? data.memoryBoxData : JSON.stringify(data.memoryBoxData));
+        
+        if (data.blackbookData) {
+            let bbData = typeof data.blackbookData === 'string' ? JSON.parse(data.blackbookData) : data.blackbookData;
+            localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bbData.errors || []));
+            localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(bbData.fixed || []));
+        }
+
+        if (data.gold !== undefined && data.gold !== -1) {
+            userEconomy.gold = data.gold;
+            localStorage.setItem(getIsoKey('gold'), data.gold);
+            localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
+            let uiGold = document.getElementById('uiGold');
+            if (uiGold) uiGold.innerHTML = parseInt(data.gold).toLocaleString('vi-VN') + ' <i class="fa-solid fa-coins"></i>';
+        }
+
+        if (data.logs && Array.isArray(data.logs) && data.logs.length > 0) {
+            allLogsCache = data.logs;
+            localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
+        }
+
+        // DỊCH NGƯỢC BALO TỪ SHEET
+        if (data.inventory && data.inventory.trim() !== "" && data.inventory.trim() !== "CHƯA CÓ") {
+            let parsedInv = {};
+            let reverseTierMap = { 'Gương Tiền Tri': 'ITM1', 'Đan Dược Cuồng Nộ': 'ITM2', 'Hộ Thể Kim Chung': 'ITM3', 'Bùa Ngưng Đọng': 'ITM4', 'Thánh Chỉ Ân Xá': 'ITM5' };
+            data.inventory.split(',').forEach(item => {
+                let match = item.match(/(.+?)\s*\[(\d+)\]/);
+                if (match) {
+                    let name = match[1].trim();
+                    let itemId = reverseTierMap[name] || name;
+                    parsedInv[itemId] = parseInt(match[2]);
+                }
+            });
+            localStorage.setItem(getIsoKey('inventory'), JSON.stringify(parsedInv));
+        } else {
+            // ĐIỆP VIÊN NGẦM: Balo trên Sheet trắng, nhưng máy có đồ -> Bắn lên
+            let localInv = localStorage.getItem(getIsoKey('inventory'));
+            if (localInv && localInv !== "{}" && localInv !== "[]") {
+                setTimeout(() => { if (typeof window.syncBlackbookToServer === 'function') window.syncBlackbookToServer(); }, 2500);
+            }
+        }
+    }
+
+    if (data.inbox) renderStudentInbox(data.inbox);
+    window.hasFetchedBackup = true; 
+};
+
+// AUTO SYNC BALO LÊN SHEET
+window.syncBlackbookToServer = function() {
+    let bb = localStorage.getItem(getIsoKey('blackbook')) || "[]";
+    let rd = localStorage.getItem(getIsoKey('redeemed')) || "[]";
+    let eco = JSON.parse(localStorage.getItem(getIsoKey('eco')) || "{}");
+    let gold = eco.gold !== undefined ? eco.gold : (localStorage.getItem(getIsoKey('gold')) || 0);
+    
+    let rawInv = JSON.parse(localStorage.getItem(getIsoKey('inventory'))) || {};
+    let tierMap = { 'ITM1': 'Gương Tiền Tri', 'ITM2': 'Đan Dược Cuồng Nộ', 'ITM3': 'Hộ Thể Kim Chung', 'ITM4': 'Bùa Ngưng Đọng', 'ITM5': 'Thánh Chỉ Ân Xá' };
+    let invArray = [];
+    for(let key in rawInv) {
+        let name = tierMap[key] || key;
+        invArray.push(`${name} [${rawInv[key]}]`); 
+    }
+    let invString = invArray.join(', ');
+
+    if (getScriptUrl() && getScriptUrl().startsWith("http") && typeof currentStudentId !== 'undefined') {
+        fetch(getScriptUrl(), {
+            method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ mode: "syncBlackbook", studentId: currentStudentId, blackbook: bb, redeemed: rd, gold: gold, inventory: invString })
+        }).catch(e=>{});
+    }
+};
+
+window.saveInventory = function(inv) { 
+    localStorage.setItem(getIsoKey('inventory'), JSON.stringify(inv)); 
+    window.syncBlackbookToServer(); 
+};
+function addInventoryItem(id, qty) { let inv = getInventory(); inv[id] = (inv[id] || 0) + qty; window.saveInventory(inv); }
+function consumeInventoryItem(id, qty = 1) { 
+    let inv = getInventory(); 
+    if ((inv[id] || 0) >= qty) { 
+        inv[id] -= qty; 
+        if (inv[id] <= 0) delete inv[id]; 
+        window.saveInventory(inv); 
+        return true; 
+    } 
+    return false; 
+}
+</script>
+
+<!-- MODAL KẺ TRỘM KÝ ỨC -->
+<div class="modal-overlay" id="ghostThiefModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
+    <div class="modal-content" style="max-width: 450px; background: #0f172a; border: 4px solid #10b981; box-shadow: 8px 8px 0px #047857; padding: 25px; text-align: center;">
+        <i class="fa-solid fa-ghost fa-bounce" style="font-size: 60px; color: #10b981; margin-bottom: 15px;"></i>
+        <h2 style="color: #10b981; margin-top: 0; text-transform: uppercase;">KẺ TRỘM KÝ ỨC ĐÒI MẠNG!</h2>
+        <p style="color: #f8fafc; font-size: 14px; line-height: 1.6; margin-bottom: 20px; font-weight: bold;">
+            Ngươi từng dùng Thánh Chỉ để xóa tội, nhưng Yêu tinh Khấu Trừ đã bắt lại được 1 tử tù! Hắn đang giam giữ chữ:<br><br>
+            <span id="ghostVnWord" style="color:#facc15; font-size: 24px; font-weight:900; background: #334155; padding: 5px 15px; border-radius: 8px; border: 2px dashed #facc15;">Tiếng Việt</span><br><br>
+            Hãy gõ Tiếng Anh để siêu thoát cho hắn! Gõ sai hoặc bỏ chạy, chữ này sẽ về lại Sổ Đen!
+        </p>
+        <input type="text" id="ghostEnInput" class="input-brutal" placeholder="Gõ Tiếng Anh vào đây..." style="margin-bottom: 15px;">
+        <button class="btn btn-green" style="width: 100%; padding: 15px;" onclick="checkGhostWord()">🔥 SIÊU THOÁT (+50 Vàng)</button>
+    </div>
+</div>
+
+<script>
+let currentGhostTarget = null;
+
+// Lệnh này được kích hoạt khi Đăng Nhập
+function checkGhostThiefEncounter() {
+    if(currentStudentId === 'T11') return;
+    let loginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
+    loginCount++;
+    localStorage.setItem(getIsoKey('login_count'), loginCount);
+
+    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+    if (ghosts.length > 0 && loginCount % 3 === 0) { // Cứ 3 lần đăng nhập thì tóm 1 lần
+        let randIdx = Math.floor(Math.random() * ghosts.length);
+        currentGhostTarget = ghosts[randIdx];
+        
+        document.getElementById('ghostVnWord').innerText = currentGhostTarget.vn;
+        document.getElementById('ghostEnInput').value = "";
+        document.getElementById('ghostThiefModal').style.display = 'flex';
+    }
+}
+
+function checkGhostWord() {
+    let input = document.getElementById('ghostEnInput').value.trim().toLowerCase().replace(/\s+/g, '');
+    let target = currentGhostTarget.en.toLowerCase().replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '').replace(/\s+/g, '');
+    
+    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+    ghosts = ghosts.filter(g => g.vn !== currentGhostTarget.vn); // Xóa khỏi hàng đợi Yêu Tinh
+    localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
+
+    if (input === target || target.includes(input)) {
+        showToast("✨ Siêu thoát thành công! Kẻ trộm trả lại ngươi 50 Vàng!");
+        addEconomyLog("✨ Trừ Tà: Siêu thoát Ký ức", 50);
+        closeModal('ghostThiefModal');
+    } else {
+        showToast("💀 SAI RỒI! Yêu tinh đã ném từ này về lại Sổ Đen Hình Bộ!");
+        let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        bb.push(currentGhostTarget.vn + "::" + currentGhostTarget.en + "::");
+        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
+        if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
+        closeModal('ghostThiefModal');
+    }
+}
+</script>
+
+<!-- MODAL KẺ TRỘM KÝ ỨC -->
+<div class="modal-overlay" id="ghostThiefModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
+    <div class="modal-content" style="max-width: 450px; background: #0f172a; border: 4px solid #10b981; box-shadow: 8px 8px 0px #047857; padding: 25px; text-align: center;">
+        <i class="fa-solid fa-ghost fa-bounce" style="font-size: 60px; color: #10b981; margin-bottom: 15px;"></i>
+        <h2 style="color: #10b981; margin-top: 0; text-transform: uppercase;">KẺ TRỘM KÝ ỨC ĐÒI MẠNG!</h2>
+        <p style="color: #f8fafc; font-size: 14px; line-height: 1.6; margin-bottom: 20px; font-weight: bold;">
+            Ngươi từng dùng Thánh Chỉ xóa tội, nhưng Yêu tinh Khấu Trừ đã bắt lại được 1 tử tù! Hắn đang giam giữ chữ:<br><br>
+            <span id="ghostVnWord" style="color:#facc15; font-size: 24px; font-weight:900; background: #334155; padding: 5px 15px; border-radius: 8px; border: 2px dashed #facc15;">Tiếng Việt</span><br><br>
+            Hãy gõ Tiếng Anh để siêu thoát cho hắn! Gõ sai hoặc bỏ chạy, chữ này sẽ bị ném về lại Hình Bộ!
+        </p>
+        <input type="text" id="ghostEnInput" class="input-brutal" placeholder="Gõ Tiếng Anh vào đây..." style="margin-bottom: 15px; text-transform: lowercase;">
+        <button class="btn btn-green" style="width: 100%; padding: 15px;" onclick="checkGhostWord()">🔥 SIÊU THOÁT (+50 Vàng)</button>
+    </div>
+</div>
+
+<script>
+let currentGhostTarget = null;
+function checkGhostThiefEncounter() {
+    if(currentStudentId === 'T11') return;
+    let loginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
+    loginCount++;
+    localStorage.setItem(getIsoKey('login_count'), loginCount);
+
+    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+    if (ghosts.length > 0 && loginCount % 3 === 0) { 
+        let randIdx = Math.floor(Math.random() * ghosts.length);
+        currentGhostTarget = ghosts[randIdx];
+        document.getElementById('ghostVnWord').innerText = currentGhostTarget.vn;
+        document.getElementById('ghostEnInput').value = "";
+        document.getElementById('ghostThiefModal').style.display = 'flex';
+    }
+}
+
+function checkGhostWord() {
+    let input = document.getElementById('ghostEnInput').value.trim().toLowerCase().replace(/\s+/g, '');
+    let target = currentGhostTarget.en.toLowerCase().replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '').replace(/\s+/g, '');
+    
+    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+    ghosts = ghosts.filter(g => g.vn !== currentGhostTarget.vn); 
+    localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
+
+    if (input === target || target.includes(input)) {function evaluateVocabTest(isForce = false) { 
+    if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; 
+    let wrongCount = exactErrorDetails.length; 
+    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); 
+    
+    if (window.isThamThinh) {
+        window.isThamThinh = false; clearInterval(timerInterval);
+        document.getElementById('vtFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
+        return;
+    }
+    finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
+}
+
+function evaluateGrammarTest(isForce = false) { 
+    if (isForce) { exactErrorDetails = [{ q: "Thu bài do gian lận", htmlDetails: "<span style='color: var(--accent-red); font-weight: bold;'>Con nhập: (Rời tab) - Đáp án chuẩn: N/A</span>" }]; }
+    let wrongCount = exactErrorDetails.length; 
+    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10) / 10); 
+    
+    if (window.isThamThinh) {
+        window.isThamThinh = false; clearInterval(timerInterval);
+        document.getElementById('grammarFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
+        return;
+    }
+    finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
+}
+
+function triggerSpellUpsale() {
+    let invCheck = getInventory();
+    if (invCheck['ITM4'] && invCheck['ITM4'] > 0) {
+        showToast("✨ Đã kích hoạt Bùa Ngưng Đọng sẵn có trong Balo!");
+        setTimeout(() => { currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part); }, 1000);
+    } else {
+        document.getElementById('upsaleFreezeModal').style.display = 'flex';
+        document.querySelector('#upsaleFreezeModal .modal-content').innerHTML = `
+        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase; font-size: 20px;"><i class="fa-solid fa-skull fa-shake"></i> THÁI PHÓ TÀNG HÌNH!</h2>
+        <div style="font-size: 14px; color: #f8fafc; line-height: 1.6; text-align: left; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 2px dashed #ef4444; margin-bottom: 15px;">
+            Trí nhớ của ngươi có trụ được không? Thái Phó đang niệm chú 'Bát Quái Trận Đồ' để <b>XÁO TUNG</b> toàn bộ vị trí câu hỏi!
+        </div>
+        <div style="font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: left; margin-bottom: 20px;">
+            Ném <b>2.000 Vàng</b> ném Bùa Ngưng Đọng để phong ấn trận pháp, giữ nguyên vị trí Thám Thính lúc nãy! Bấm KHÔNG MUA để tự sinh tự diệt!
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color:#b45309;" onclick="buyUpsaleFreeze()"><i class="fa-solid fa-unlock-keyhole"></i> ĐÓNG BĂNG TRẬN PHÁP (2000V)</button>
+            <button class="btn btn-outline" style="width: 100%; padding: 15px; color:#94a3b8; border-color:#475569;" onclick="closeModal('upsaleFreezeModal'); currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part);">TỰ TIN TRÍ NHỚ, KHÔNG XÀI BÙA</button>
+        </div>`;
+    }
+}function evaluateVocabTest(isForce = false) { 
+    if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; 
+    let wrongCount = exactErrorDetails.length; 
+    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); 
+    
+    if (window.isThamThinh) {
+        window.isThamThinh = false; clearInterval(timerInterval);
+        document.getElementById('vtFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
+        return;
+    }
+    finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
+}
+
+function evaluateGrammarTest(isForce = false) { 
+    if (isForce) { exactErrorDetails = [{ q: "Thu bài do gian lận", htmlDetails: "<span style='color: var(--accent-red); font-weight: bold;'>Con nhập: (Rời tab) - Đáp án chuẩn: N/A</span>" }]; }
+    let wrongCount = exactErrorDetails.length; 
+    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10) / 10); 
+    
+    if (window.isThamThinh) {
+        window.isThamThinh = false; clearInterval(timerInterval);
+        document.getElementById('grammarFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
+        return;
+    }
+    finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
+}
+
+function triggerSpellUpsale() {
+    let invCheck = getInventory();
+    if (invCheck['ITM4'] && invCheck['ITM4'] > 0) {
+        showToast("✨ Đã kích hoạt Bùa Ngưng Đọng sẵn có trong Balo!");
+        setTimeout(() => { currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part); }, 1000);
+    } else {
+        document.getElementById('upsaleFreezeModal').style.display = 'flex';
+        document.querySelector('#upsaleFreezeModal .modal-content').innerHTML = `
+        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase; font-size: 20px;"><i class="fa-solid fa-skull fa-shake"></i> THÁI PHÓ TÀNG HÌNH!</h2>
+        <div style="font-size: 14px; color: #f8fafc; line-height: 1.6; text-align: left; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 2px dashed #ef4444; margin-bottom: 15px;">
+            Trí nhớ của ngươi có trụ được không? Thái Phó đang niệm chú 'Bát Quái Trận Đồ' để <b>XÁO TUNG</b> toàn bộ vị trí câu hỏi!
+        </div>
+        <div style="font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: left; margin-bottom: 20px;">
+            Ném <b>2.000 Vàng</b> ném Bùa Ngưng Đọng để phong ấn trận pháp, giữ nguyên vị trí Thám Thính lúc nãy! Bấm KHÔNG MUA để tự sinh tự diệt!
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color:#b45309;" onclick="buyUpsaleFreeze()"><i class="fa-solid fa-unlock-keyhole"></i> ĐÓNG BĂNG TRẬN PHÁP (2000V)</button>
+            <button class="btn btn-outline" style="width: 100%; padding: 15px; color:#94a3b8; border-color:#475569;" onclick="closeModal('upsaleFreezeModal'); currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part);">TỰ TIN TRÍ NHỚ, KHÔNG XÀI BÙA</button>
+        </div>`;
+    }
+}
+        showToast("✨ Siêu thoát thành công! Kẻ trộm để lại 50 Vàng!");
+        addEconomyLog("✨ Trừ Tà: Siêu thoát Ký ức", 50);
+        closeModal('ghostThiefModal');
+    } else {
+        showToast("💀 SAI RỒI! Yêu tinh đã ném từ này về lại Sổ Đen Hình Bộ!");
+        let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        bb.push(currentGhostTarget.vn + "::" + currentGhostTarget.en + "::");
+        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
+        if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
+        closeModal('ghostThiefModal');
+    }
+}
+</script>
+
+<!-- MODAL CẢNH BÁO THÁNH CHỈ ÂN XÁ (THÁI PHÓ GHI SỔ) -->
+<div class="modal-overlay" id="holyDecreeWarningModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
+    <div class="modal-content" style="max-width: 500px; background: #fffbeb; border: 4px solid #b45309; box-shadow: 8px 8px 0px #78350f; padding: 25px; text-align: center;">
+        <i class="fa-solid fa-book-open fa-beat-fade" style="font-size: 60px; color: #b45309; margin-bottom: 15px;"></i>
+        <h2 style="color: #b45309; margin-top: 0; text-transform: uppercase;">THÁNH CHỈ ĐÃ BAN!</h2>
+        <div style="font-size: 14px; color: #111; line-height: 1.6; text-align: left; background: rgba(217, 119, 6, 0.1); padding: 15px; border-radius: 8px; border: 2px dashed #b45309; margin-bottom: 15px;">
+            Hối lộ thành công! Thái Phó đã miễn cưỡng xóa các từ sau khỏi Hình Bộ:<br>
+            <div id="decreeWordsList" style="color: #ef4444; font-size: 18px; font-weight: 900; text-align: center; margin: 15px 0;"></div>
+            Sổ đen tạm thời sạch sẽ... <b>NHƯNG ĐỪNG VỘI MỪNG!</b>
+        </div>
+        <p style="color: #475569; font-size: 13px; line-height: 1.6; text-align: left; margin-bottom: 20px;">
+            Thái Phó rất thù dai và không dễ bị qua mặt đâu. Ngài đã lén chép lại các từ này vào <b>"Sổ Tay Thù Vặt"</b>!<br><br>
+            Lâu lâu ngay lúc Đăng nhập, Thái Phó sẽ vỗ vai gọi lên trả bài đột xuất. Trả lời sai thì ăn đòn và từ vựng đó lại bị tống vào Hình Bộ. Lo mà học thuộc đi!
+        </p>
+        <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color: #78350f; color: #111;" onclick="closeModal('holyDecreeWarningModal')">DẠ, CON ĐÃ RÕ LỜI DẶN!</button>
+    </div>
+</div>
+
+<!-- MODAL THÁI PHÓ KIỂM TRA ĐỘT XUẤT -->
+<div class="modal-overlay" id="ghostThiefModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
+    <div class="modal-content" style="max-width: 450px; background: #fef2f2; border: 4px solid #ef4444; box-shadow: 8px 8px 0px #b91c1c; padding: 25px; text-align: center;">
+        <i class="fa-solid fa-ruler fa-shake" style="font-size: 60px; color: #ef4444; margin-bottom: 15px;"></i>
+        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase;">THÁI PHÓ TRẢ BÀI ĐỘT XUẤT!</h2>
+        <p style="color: #111; font-size: 14px; line-height: 1.6; margin-bottom: 20px; font-weight: bold;">
+            Ngươi từng dùng Thánh Chỉ xóa án, nhưng ta đã ghim ngươi rồi! Hãy đọc to nghĩa Tiếng Anh của từ này:<br><br>
+            <span id="ghostVnWord" style="color:#b91c1c; font-size: 24px; font-weight:900; background: #fee2e2; padding: 5px 15px; border-radius: 8px; border: 2px dashed #ef4444;">Tiếng Việt</span><br><br>
+            Gõ đúng thì ta tha! Gõ sai hoặc bỏ chạy, ta tống lại vào Sổ Đen Hình Bộ ngay lập tức!
+        </p>
+        <input type="text" id="ghostEnInput" class="input-brutal" placeholder="Gõ Tiếng Anh vào đây..." style="margin-bottom: 15px; text-transform: lowercase;">
+        <button class="btn btn-red" style="width: 100%; padding: 15px;" onclick="checkGhostWord()">NỘP BÀI CHO THÁI PHÓ</button>
+    </div>
+</div>
+
+<script>
+let currentGhostTarget = null;
+
+// Lệnh này được kích hoạt tự động ở hàm login() Sếp đã cài đặt trước đó
+function checkGhostThiefEncounter() {
+    if(currentStudentId === 'T11') return;
+    let loginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
+    loginCount++;
+    localStorage.setItem(getIsoKey('login_count'), loginCount);
+
+    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+    if (ghosts.length > 0 && loginCount % 3 === 0) { 
+        let randIdx = Math.floor(Math.random() * ghosts.length);
+        currentGhostTarget = ghosts[randIdx];
+        document.getElementById('ghostVnWord').innerText = currentGhostTarget.vn;
+        document.getElementById('ghostEnInput').value = "";
+        document.getElementById('ghostThiefModal').style.display = 'flex';
+    }
+}
+
+function checkGhostWord() {
+    let input = document.getElementById('ghostEnInput').value.trim().toLowerCase().replace(/\s+/g, '');
+    let target = currentGhostTarget.en.toLowerCase().replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '').replace(/\s+/g, '');
+    
+    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+    ghosts = ghosts.filter(g => g.vn !== currentGhostTarget.vn); 
+    localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
+
+    if (input === target || target.includes(input)) {
+        showToast("✨ Tốt lắm! Coi như ngươi có học bài. Thưởng 50 Vàng!");
+        addEconomyLog("✨ Trả bài đột xuất thành công", 50);
+        closeModal('ghostThiefModal');
+    } else {
+        showToast("💢 SAI RỒI! Dám lười biếng à? Vào lại Sổ Đen Hình Bộ mau!");
+        let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        bb.push(currentGhostTarget.vn + "::" + currentGhostTarget.en + "::");
+        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
+        if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
+        closeModal('ghostThiefModal');
+    }
+}
+</script>
+
+
 </body>
 </html>
