@@ -1121,24 +1121,16 @@ function closeVirtualKeyboard() {
 
 function vkType(char) { 
     if(window.activeVKInput) {
-        let start = window.activeVKInput.selectionStart;
-        let end = window.activeVKInput.selectionEnd;
-        let val = window.activeVKInput.value;
-        window.activeVKInput.value = val.substring(0, start) + char + val.substring(end);
-        window.activeVKInput.setSelectionRange(start + 1, start + 1); // ĐÃ FIX: Chèn chuẩn vị trí con trỏ
+        // Đưa về nguyên thủy: Chèn thẳng chữ vào cuối cùng, cấm can thiệp cursor gây lỗi ngược chữ
+        window.activeVKInput.value += char; 
     } 
 }
 function vkBack() { 
     if(window.activeVKInput) {
-        let start = window.activeVKInput.selectionStart;
-        let end = window.activeVKInput.selectionEnd;
         let val = window.activeVKInput.value;
-        if (start === end && start > 0) {
-            window.activeVKInput.value = val.substring(0, start - 1) + val.substring(end);
-            window.activeVKInput.setSelectionRange(start - 1, start - 1);
-        } else if (start !== end) {
-            window.activeVKInput.value = val.substring(0, start) + val.substring(end);
-            window.activeVKInput.setSelectionRange(start, start);
+        // Đưa về nguyên thủy: Cắt bỏ ký tự cuối cùng
+        if (val.length > 0) {
+            window.activeVKInput.value = val.slice(0, -1);
         }
     } 
 }
@@ -1150,14 +1142,27 @@ function vkEnter() {
     }
 }
 
+// ==========================================
+// CẤP CỨU FIX LỖI GÕ NGƯỢC CHỮ (FAT -> TAF) 
+// ==========================================
 // Hỗ trợ gõ phím cứng trên Máy tính (PC/Laptop)
 window.addEventListener('keydown', function(e) {
     if (!window.activeVKInput) return;
+    
+    // NẾU INPUT ĐANG LÀ PHÍM CƠ NATIVE (Không có readonly) -> ĐỂ TRÌNH DUYỆT TỰ LO!
+    // Tuyệt đối không can thiệp vkType() để tránh xung đột với Unikey/EVKey làm lùi con trỏ (FAT -> TAF)
+    if (!window.activeVKInput.hasAttribute('readonly')) {
+        if (e.key === 'Enter') { e.preventDefault(); vkEnter(); return; }
+        return; // Thoát luôn, cho gõ native 100%
+    }
+
+    // Dành cho Mobile/Tablet bật phím ảo (Input đang là Readonly)
     if (e.key === 'Enter') { e.preventDefault(); vkEnter(); return; }
     if (e.key === 'Backspace') { e.preventDefault(); vkBack(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key.length === 1) { e.preventDefault(); vkType(e.key); }
 });
+
 // Hàm biến đổi chuỗi "23h59p T2 (21/7)" thành thời gian chuẩn của máy tính
 function parseCustomDeadline(dlStr) {
     if (!dlStr) return null;
@@ -2841,9 +2846,9 @@ function setupSession(data, part = 0) {
     
     // FIX SO SÁNH ID LỖI: Ép kiểu chuỗi tuyệt đối để không bị lỗi số vs chuỗi
     allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase()).forEach(r => { 
-        if(r[13]) r[13].toString().split(',').forEach(w => { 
+        if(r[14]) r[14].toString().split(',').forEach(w => { 
             let vn = w.split('::')[0].trim(); 
-            if(vn) pastStudentErrors.add(vn.toLowerCase()); // ĐÃ FIX: Ép về in thường
+            if(vn) pastStudentErrors.add(vn.toLowerCase()); // ĐÃ FIX: Đọc chuẩn Cột 14 (Danh sách lỗi) thay vì Cột 13
         }); 
     });
     
@@ -4955,10 +4960,10 @@ function openBlackbook() {
     
     globalBlackbookMap.clear();
     
-    if (typeof allLogsCache !== 'undefined' && Array.isArray(allLogsCache)) {
+   if (typeof allLogsCache !== 'undefined' && Array.isArray(allLogsCache)) {
         allLogsCache.forEach(row => {
-            if (String(row[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && row[13]) {
-                let errWords = row[13].toString().split(',');
+            if (String(row[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && row[14]) {
+                let errWords = row[14].toString().split(',');
                 errWords.forEach(w => {
                     let parts = w.split('::'); 
                     let vn = parts[0] ? parts[0].trim() : "";
@@ -5434,7 +5439,7 @@ window.processSyncData = function(data) {
         for (let i = 0; i < localStorage.length; i++) {
             let key = localStorage.key(i);
             // ĐÃ FIX: Đưa thêm 'itm1_count' (Giới hạn mua Gương) vào danh sách Nổ tung!
-            if (key && key.includes(prefix) && (key.includes('buy_count') || key.includes('itm1_count') || key.includes('item_') || key.includes('revenge_date'))) {
+            if (key && key.includes(prefix) && (key.includes('buy_count') || key.includes('itm1_count') || key.includes('item_') || key.includes('revenge_date') || key.includes('ghost_'))) {
                 keysToWipe.push(key);
             }
         }
@@ -5530,289 +5535,350 @@ function consumeInventoryItem(id, qty = 1) {
 }
 </script>
 
-<!-- MODAL KẺ TRỘM KÝ ỨC -->
-<div class="modal-overlay" id="ghostThiefModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
-    <div class="modal-content" style="max-width: 450px; background: #0f172a; border: 4px solid #10b981; box-shadow: 8px 8px 0px #047857; padding: 25px; text-align: center;">
-        <i class="fa-solid fa-ghost fa-bounce" style="font-size: 60px; color: #10b981; margin-bottom: 15px;"></i>
-        <h2 style="color: #10b981; margin-top: 0; text-transform: uppercase;">KẺ TRỘM KÝ ỨC ĐÒI MẠNG!</h2>
-        <p style="color: #f8fafc; font-size: 14px; line-height: 1.6; margin-bottom: 20px; font-weight: bold;">
-            Ngươi từng dùng Thánh Chỉ để xóa tội, nhưng Yêu tinh Khấu Trừ đã bắt lại được 1 tử tù! Hắn đang giam giữ chữ:<br><br>
-            <span id="ghostVnWord" style="color:#facc15; font-size: 24px; font-weight:900; background: #334155; padding: 5px 15px; border-radius: 8px; border: 2px dashed #facc15;">Tiếng Việt</span><br><br>
-            Hãy gõ Tiếng Anh để siêu thoát cho hắn! Gõ sai hoặc bỏ chạy, chữ này sẽ về lại Sổ Đen!
-        </p>
-        <input type="text" id="ghostEnInput" class="input-brutal" placeholder="Gõ Tiếng Anh vào đây..." style="margin-bottom: 15px;">
-        <button class="btn btn-green" style="width: 100%; padding: 15px;" onclick="checkGhostWord()">🔥 SIÊU THOÁT (+50 Vàng)</button>
-    </div>
-</div>
-
-<script>
-let currentGhostTarget = null;
-
-// Lệnh này được kích hoạt khi Đăng Nhập
-function checkGhostThiefEncounter() {
-    if(currentStudentId === 'T11') return;
-    let loginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
-    loginCount++;
-    localStorage.setItem(getIsoKey('login_count'), loginCount);
-
-    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
-    if (ghosts.length > 0 && loginCount % 3 === 0) { // Cứ 3 lần đăng nhập thì tóm 1 lần
-        let randIdx = Math.floor(Math.random() * ghosts.length);
-        currentGhostTarget = ghosts[randIdx];
-        
-        document.getElementById('ghostVnWord').innerText = currentGhostTarget.vn;
-        document.getElementById('ghostEnInput').value = "";
-        document.getElementById('ghostThiefModal').style.display = 'flex';
-    }
-}
-
-function checkGhostWord() {
-    let input = document.getElementById('ghostEnInput').value.trim().toLowerCase().replace(/\s+/g, '');
-    let target = currentGhostTarget.en.toLowerCase().replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '').replace(/\s+/g, '');
-    
-    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
-    ghosts = ghosts.filter(g => g.vn !== currentGhostTarget.vn); // Xóa khỏi hàng đợi Yêu Tinh
-    localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
-
-    if (input === target || target.includes(input)) {
-        showToast("✨ Siêu thoát thành công! Kẻ trộm trả lại ngươi 50 Vàng!");
-        addEconomyLog("✨ Trừ Tà: Siêu thoát Ký ức", 50);
-        closeModal('ghostThiefModal');
-    } else {
-        showToast("💀 SAI RỒI! Yêu tinh đã ném từ này về lại Sổ Đen Hình Bộ!");
-        let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
-        bb.push(currentGhostTarget.vn + "::" + currentGhostTarget.en + "::");
-        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
-        if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
-        closeModal('ghostThiefModal');
-    }
-}
-</script>
-
-<!-- MODAL KẺ TRỘM KÝ ỨC -->
-<div class="modal-overlay" id="ghostThiefModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
-    <div class="modal-content" style="max-width: 450px; background: #0f172a; border: 4px solid #10b981; box-shadow: 8px 8px 0px #047857; padding: 25px; text-align: center;">
-        <i class="fa-solid fa-ghost fa-bounce" style="font-size: 60px; color: #10b981; margin-bottom: 15px;"></i>
-        <h2 style="color: #10b981; margin-top: 0; text-transform: uppercase;">KẺ TRỘM KÝ ỨC ĐÒI MẠNG!</h2>
-        <p style="color: #f8fafc; font-size: 14px; line-height: 1.6; margin-bottom: 20px; font-weight: bold;">
-            Ngươi từng dùng Thánh Chỉ xóa tội, nhưng Yêu tinh Khấu Trừ đã bắt lại được 1 tử tù! Hắn đang giam giữ chữ:<br><br>
-            <span id="ghostVnWord" style="color:#facc15; font-size: 24px; font-weight:900; background: #334155; padding: 5px 15px; border-radius: 8px; border: 2px dashed #facc15;">Tiếng Việt</span><br><br>
-            Hãy gõ Tiếng Anh để siêu thoát cho hắn! Gõ sai hoặc bỏ chạy, chữ này sẽ bị ném về lại Hình Bộ!
-        </p>
-        <input type="text" id="ghostEnInput" class="input-brutal" placeholder="Gõ Tiếng Anh vào đây..." style="margin-bottom: 15px; text-transform: lowercase;">
-        <button class="btn btn-green" style="width: 100%; padding: 15px;" onclick="checkGhostWord()">🔥 SIÊU THOÁT (+50 Vàng)</button>
-    </div>
-</div>
-
-<script>
-let currentGhostTarget = null;
-function checkGhostThiefEncounter() {
-    if(currentStudentId === 'T11') return;
-    let loginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
-    loginCount++;
-    localStorage.setItem(getIsoKey('login_count'), loginCount);
-
-    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
-    if (ghosts.length > 0 && loginCount % 3 === 0) { 
-        let randIdx = Math.floor(Math.random() * ghosts.length);
-        currentGhostTarget = ghosts[randIdx];
-        document.getElementById('ghostVnWord').innerText = currentGhostTarget.vn;
-        document.getElementById('ghostEnInput').value = "";
-        document.getElementById('ghostThiefModal').style.display = 'flex';
-    }
-}
-
-function checkGhostWord() {
-    let input = document.getElementById('ghostEnInput').value.trim().toLowerCase().replace(/\s+/g, '');
-    let target = currentGhostTarget.en.toLowerCase().replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '').replace(/\s+/g, '');
-    
-    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
-    ghosts = ghosts.filter(g => g.vn !== currentGhostTarget.vn); 
-    localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
-
-    if (input === target || target.includes(input)) {function evaluateVocabTest(isForce = false) { 
-    if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; 
-    let wrongCount = exactErrorDetails.length; 
-    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); 
-    
-    if (window.isThamThinh) {
-        window.isThamThinh = false; clearInterval(timerInterval);
-        document.getElementById('vtFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
-        return;
-    }
-    finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
-}
-
-function evaluateGrammarTest(isForce = false) { 
-    if (isForce) { exactErrorDetails = [{ q: "Thu bài do gian lận", htmlDetails: "<span style='color: var(--accent-red); font-weight: bold;'>Con nhập: (Rời tab) - Đáp án chuẩn: N/A</span>" }]; }
-    let wrongCount = exactErrorDetails.length; 
-    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10) / 10); 
-    
-    if (window.isThamThinh) {
-        window.isThamThinh = false; clearInterval(timerInterval);
-        document.getElementById('grammarFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
-        return;
-    }
-    finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
-}
-
-function triggerSpellUpsale() {
-    let invCheck = getInventory();
-    if (invCheck['ITM4'] && invCheck['ITM4'] > 0) {
-        showToast("✨ Đã kích hoạt Bùa Ngưng Đọng sẵn có trong Balo!");
-        setTimeout(() => { currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part); }, 1000);
-    } else {
-        document.getElementById('upsaleFreezeModal').style.display = 'flex';
-        document.querySelector('#upsaleFreezeModal .modal-content').innerHTML = `
-        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase; font-size: 20px;"><i class="fa-solid fa-skull fa-shake"></i> THÁI PHÓ TÀNG HÌNH!</h2>
-        <div style="font-size: 14px; color: #f8fafc; line-height: 1.6; text-align: left; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 2px dashed #ef4444; margin-bottom: 15px;">
-            Trí nhớ của ngươi có trụ được không? Thái Phó đang niệm chú 'Bát Quái Trận Đồ' để <b>XÁO TUNG</b> toàn bộ vị trí câu hỏi!
-        </div>
-        <div style="font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: left; margin-bottom: 20px;">
-            Ném <b>2.000 Vàng</b> ném Bùa Ngưng Đọng để phong ấn trận pháp, giữ nguyên vị trí Thám Thính lúc nãy! Bấm KHÔNG MUA để tự sinh tự diệt!
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color:#b45309;" onclick="buyUpsaleFreeze()"><i class="fa-solid fa-unlock-keyhole"></i> ĐÓNG BĂNG TRẬN PHÁP (2000V)</button>
-            <button class="btn btn-outline" style="width: 100%; padding: 15px; color:#94a3b8; border-color:#475569;" onclick="closeModal('upsaleFreezeModal'); currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part);">TỰ TIN TRÍ NHỚ, KHÔNG XÀI BÙA</button>
-        </div>`;
-    }
-}function evaluateVocabTest(isForce = false) { 
-    if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; 
-    let wrongCount = exactErrorDetails.length; 
-    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); 
-    
-    if (window.isThamThinh) {
-        window.isThamThinh = false; clearInterval(timerInterval);
-        document.getElementById('vtFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
-        return;
-    }
-    finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
-}
-
-function evaluateGrammarTest(isForce = false) { 
-    if (isForce) { exactErrorDetails = [{ q: "Thu bài do gian lận", htmlDetails: "<span style='color: var(--accent-red); font-weight: bold;'>Con nhập: (Rời tab) - Đáp án chuẩn: N/A</span>" }]; }
-    let wrongCount = exactErrorDetails.length; 
-    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10) / 10); 
-    
-    if (window.isThamThinh) {
-        window.isThamThinh = false; clearInterval(timerInterval);
-        document.getElementById('grammarFeedback').innerHTML = `<div style="background:#0f172a; padding:20px; border:4px solid #facc15; border-radius:12px; color:white; text-align:center; margin-bottom: 20px;"><h2 style="margin:0 0 15px 0; color:#facc15;">THÁM THÍNH HOÀN TẤT</h2><p style="font-size:14px; margin-bottom:20px;">Ngươi đã thuộc vị trí chưa? Bấm nút bên dưới để tiến vào <b>THI THẬT TÍNH VÀNG</b> ngay lập tức!</p><button class="btn btn-yellow" style="width:100%; border-color:#facc15;" onclick="triggerSpellUpsale()"><i class="fa-solid fa-khanda fa-spin"></i> TIẾN VÀO THI THẬT</button></div>`;
-        return;
-    }
-    finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
-}
-
-function triggerSpellUpsale() {
-    let invCheck = getInventory();
-    if (invCheck['ITM4'] && invCheck['ITM4'] > 0) {
-        showToast("✨ Đã kích hoạt Bùa Ngưng Đọng sẵn có trong Balo!");
-        setTimeout(() => { currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part); }, 1000);
-    } else {
-        document.getElementById('upsaleFreezeModal').style.display = 'flex';
-        document.querySelector('#upsaleFreezeModal .modal-content').innerHTML = `
-        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase; font-size: 20px;"><i class="fa-solid fa-skull fa-shake"></i> THÁI PHÓ TÀNG HÌNH!</h2>
-        <div style="font-size: 14px; color: #f8fafc; line-height: 1.6; text-align: left; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 2px dashed #ef4444; margin-bottom: 15px;">
-            Trí nhớ của ngươi có trụ được không? Thái Phó đang niệm chú 'Bát Quái Trận Đồ' để <b>XÁO TUNG</b> toàn bộ vị trí câu hỏi!
-        </div>
-        <div style="font-size: 13px; color: #94a3b8; line-height: 1.6; text-align: left; margin-bottom: 20px;">
-            Ném <b>2.000 Vàng</b> ném Bùa Ngưng Đọng để phong ấn trận pháp, giữ nguyên vị trí Thám Thính lúc nãy! Bấm KHÔNG MUA để tự sinh tự diệt!
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color:#b45309;" onclick="buyUpsaleFreeze()"><i class="fa-solid fa-unlock-keyhole"></i> ĐÓNG BĂNG TRẬN PHÁP (2000V)</button>
-            <button class="btn btn-outline" style="width: 100%; padding: 15px; color:#94a3b8; border-color:#475569;" onclick="closeModal('upsaleFreezeModal'); currentIsOfficial = true; startFlow(tempTestParams.unit, tempTestParams.part);">TỰ TIN TRÍ NHỚ, KHÔNG XÀI BÙA</button>
-        </div>`;
-    }
-}
-        showToast("✨ Siêu thoát thành công! Kẻ trộm để lại 50 Vàng!");
-        addEconomyLog("✨ Trừ Tà: Siêu thoát Ký ức", 50);
-        closeModal('ghostThiefModal');
-    } else {
-        showToast("💀 SAI RỒI! Yêu tinh đã ném từ này về lại Sổ Đen Hình Bộ!");
-        let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
-        bb.push(currentGhostTarget.vn + "::" + currentGhostTarget.en + "::");
-        localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
-        if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
-        closeModal('ghostThiefModal');
-    }
-}
-</script>
+<!-- ========================================== -->
+<!-- SỔ TAY THÙ VẶT CỦA THÁI PHÓ (HOÀN THIỆN)   -->
+<!-- ========================================== -->
 
 <!-- MODAL CẢNH BÁO THÁNH CHỈ ÂN XÁ (THÁI PHÓ GHI SỔ) -->
 <div class="modal-overlay" id="holyDecreeWarningModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
     <div class="modal-content" style="max-width: 500px; background: #fffbeb; border: 4px solid #b45309; box-shadow: 8px 8px 0px #78350f; padding: 25px; text-align: center;">
-        <i class="fa-solid fa-book-open fa-beat-fade" style="font-size: 60px; color: #b45309; margin-bottom: 15px;"></i>
+        <i class="fa-solid fa-scroll fa-beat-fade" style="font-size: 60px; color: #b45309; margin-bottom: 15px;"></i>
         <h2 style="color: #b45309; margin-top: 0; text-transform: uppercase;">THÁNH CHỈ ĐÃ BAN!</h2>
         <div style="font-size: 14px; color: #111; line-height: 1.6; text-align: left; background: rgba(217, 119, 6, 0.1); padding: 15px; border-radius: 8px; border: 2px dashed #b45309; margin-bottom: 15px;">
-            Hối lộ thành công! Thái Phó đã miễn cưỡng xóa các từ sau khỏi Hình Bộ:<br>
+            🎉 Hối lộ thành công! Hệ thống đã nhắm mắt làm ngơ, tạm xóa các từ sau khỏi Hình Bộ:<br>
             <div id="decreeWordsList" style="color: #ef4444; font-size: 18px; font-weight: 900; text-align: center; margin: 15px 0;"></div>
-            Sổ đen tạm thời sạch sẽ... <b>NHƯNG ĐỪNG VỘI MỪNG!</b>
+            Sổ đen tạm thời sạch sẽ... <b>NHƯNG KHOAN ĐÃ!</b>
         </div>
         <p style="color: #475569; font-size: 13px; line-height: 1.6; text-align: left; margin-bottom: 20px;">
-            Thái Phó rất thù dai và không dễ bị qua mặt đâu. Ngài đã lén chép lại các từ này vào <b>"Sổ Tay Thù Vặt"</b>!<br><br>
-            Lâu lâu ngay lúc Đăng nhập, Thái Phó sẽ vỗ vai gọi lên trả bài đột xuất. Trả lời sai thì ăn đòn và từ vựng đó lại bị tống vào Hình Bộ. Lo mà học thuộc đi!
+            Thái Phó rất thù dai và không dễ bị qua mặt. Ngài đã lén chép lại các từ này vào <b>"Sổ Tay Thù Vặt"</b>!<br><br>
+            Trong <b>4 đến 6 lần đăng nhập</b> tới, Thái Phó sẽ gõ thước bắt lên trả bài đột xuất. <b>Thuộc thì xóa án vĩnh viễn + Thưởng Vàng</b>. Còn gõ sai thì ăn đòn và tống cổ ngược lại vào Hình Bộ. Ráng mà học thuộc đi!
         </p>
-        <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color: #78350f; color: #111;" onclick="closeModal('holyDecreeWarningModal')">DẠ, CON ĐÃ RÕ LỜI DẶN!</button>
+        <button class="btn btn-yellow" style="width: 100%; padding: 15px; border-color: #78350f; color: #111;" onclick="closeModal('holyDecreeWarningModal')">DẠ, CON SẼ ÔN TẬP KỸ!</button>
     </div>
 </div>
 
-<!-- MODAL THÁI PHÓ KIỂM TRA ĐỘT XUẤT -->
-<div class="modal-overlay" id="ghostThiefModal" style="z-index: 10010; background: rgba(0,0,0,0.95);">
-    <div class="modal-content" style="max-width: 450px; background: #fef2f2; border: 4px solid #ef4444; box-shadow: 8px 8px 0px #b91c1c; padding: 25px; text-align: center;">
-        <i class="fa-solid fa-ruler fa-shake" style="font-size: 60px; color: #ef4444; margin-bottom: 15px;"></i>
-        <h2 style="color: #ef4444; margin-top: 0; text-transform: uppercase;">THÁI PHÓ TRẢ BÀI ĐỘT XUẤT!</h2>
-        <p style="color: #111; font-size: 14px; line-height: 1.6; margin-bottom: 20px; font-weight: bold;">
-            Ngươi từng dùng Thánh Chỉ xóa án, nhưng ta đã ghim ngươi rồi! Hãy đọc to nghĩa Tiếng Anh của từ này:<br><br>
-            <span id="ghostVnWord" style="color:#b91c1c; font-size: 24px; font-weight:900; background: #fee2e2; padding: 5px 15px; border-radius: 8px; border: 2px dashed #ef4444;">Tiếng Việt</span><br><br>
-            Gõ đúng thì ta tha! Gõ sai hoặc bỏ chạy, ta tống lại vào Sổ Đen Hình Bộ ngay lập tức!
+<!-- MODAL THÁI PHÓ KIỂM TRA ĐỘT XUẤT (UI CHUẨN THI THỰC TẾ) -->
+<div class="modal-overlay" id="ghostThiefModal" style="z-index: 10010; background: rgba(15, 23, 42, 0.95);">
+    <div class="modal-content" style="max-width: 450px; background: white; border: 4px solid var(--border-dark); box-shadow: 8px 8px 0px var(--border-dark); padding: 25px; text-align: center; border-radius: 12px;">
+        <h2 style="color: var(--accent-blue); margin-top: 0; text-transform: uppercase; font-size: 20px; border-bottom: 3px solid var(--border-dark); padding-bottom: 10px;" id="ghostModalTitle"><i class="fa-solid fa-user-tie fa-shake"></i> KHẢO BÀI [TỪ VỰNG]</h2>
+        
+        <p style="color: var(--accent-red); font-size: 13px; line-height: 1.6; margin-bottom: 10px; font-weight: bold;">
+            "Hôm trước xài Thánh chỉ trốn bài đúng không? Gõ đáp án theo GỢI Ý dưới đây cho ta!"
         </p>
-        <input type="text" id="ghostEnInput" class="input-brutal" placeholder="Gõ Tiếng Anh vào đây..." style="margin-bottom: 15px; text-transform: lowercase;">
-        <button class="btn btn-red" style="width: 100%; padding: 15px;" onclick="checkGhostWord()">NỘP BÀI CHO THÁI PHÓ</button>
+
+        <div style="font-weight: 900; font-size: 14px; color: white; background: var(--border-dark); padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 15px;" id="ghostProgress">Tội Phạm Thứ 1/2</div>
+
+        <!-- KHUNG HIỂN THỊ TỪ TIẾNG VIỆT & GỢI Ý CHUẨN BÀI TEST -->
+        <div style="background: #f8fafc; border: 3px dashed var(--accent-blue); border-radius: 8px; padding: 20px 10px; margin-bottom: 20px; box-shadow: inset 3px 3px 0px rgba(0,0,0,0.05);">
+            <div id="ghostVnWord" style="color:var(--accent-red); font-size: 26px; font-weight:900; text-transform: uppercase; margin-bottom: 5px;">TIẾNG VIỆT</div>
+            <div id="ghostVnMeaning" style="font-size: 13px; color: #64748b; font-weight: bold; padding: 0 10px;">[Gợi ý nghĩa]</div>
+        </div>
+
+        <div id="ghostInputArea" style="width: 100%; display: flex; flex-direction: column; gap: 15px; align-items: center; margin-bottom: 20px;">
+            <!-- Box nhập liệu sẽ tự động gen ra ở đây -->
+        </div>
+
+        <button class="btn btn-blue" style="width: 100%; padding: 15px; font-size: 16px;" id="btnSubmitGhost" onclick="closeVirtualKeyboard(); checkGhostWord()"><i class="fa-solid fa-pen-nib"></i> HẠ BÚT TRẢ BÀI</button>
     </div>
 </div>
 
 <script>
+let ghostTestQueue = [];
+let ghostTotalCount = 0;
 let currentGhostTarget = null;
+window.sessionGhostWrong = 0; // Biến theo dõi số câu sai trong 1 đợt
 
-// Lệnh này được kích hoạt tự động ở hàm login() Sếp đã cài đặt trước đó
 function checkGhostThiefEncounter() {
-    if(currentStudentId === 'T11') return;
     let loginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
     loginCount++;
     localStorage.setItem(getIsoKey('login_count'), loginCount);
 
     let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
-    if (ghosts.length > 0 && loginCount % 3 === 0) { 
-        let randIdx = Math.floor(Math.random() * ghosts.length);
-        currentGhostTarget = ghosts[randIdx];
-        document.getElementById('ghostVnWord').innerText = currentGhostTarget.vn;
-        document.getElementById('ghostEnInput').value = "";
-        document.getElementById('ghostThiefModal').style.display = 'flex';
+    let targetLogin = parseInt(localStorage.getItem(getIsoKey('ghost_target_login')));
+
+    if (ghosts.length > 0 && targetLogin && loginCount >= targetLogin) { 
+        // Lọc trùng lặp để chắc chắn không gọi 2 từ y hệt nhau
+        let uniqueGhosts = [];
+        let seenVn = new Set();
+        for (let g of ghosts) {
+            if (!seenVn.has(g.vn)) {
+                seenVn.add(g.vn);
+                uniqueGhosts.push(g);
+            }
+        }
+        
+        let shuffled = uniqueGhosts.sort(() => 0.5 - Math.random());
+        ghostTestQueue = shuffled.slice(0, 2); 
+        ghostTotalCount = ghostTestQueue.length;
+        window.sessionGhostWrong = 0; // Khởi tạo lại lỗi sai = 0
+        
+        renderGhostQuestion();
+        
+        setTimeout(() => {
+            document.getElementById('ghostThiefModal').style.display = 'flex';
+        }, 2000);
     }
+}
+
+function renderGhostQuestion() {
+    // 🔥 CHÌA KHÓA: MỞ KHÓA NÚT NGAY LẬP TỨC ĐỂ CHỐNG KẸT NÚT "ĐANG CHẤM"
+    let btnSubmit = document.getElementById('btnSubmitGhost');
+    if(btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-pen-nib"></i> HẠ BÚT TRẢ BÀI';
+    }
+
+    if(ghostTestQueue.length === 0) {
+        closeModal('ghostThiefModal');
+        
+        // KIỂM TRA TỔNG KẾT ĐỢT KHẢO BÀI
+        if (window.sessionGhostWrong > 0) {
+            showToast("📜 Khảo hạch xong! Còn từ sai bị tống vào Hình Bộ, lo mà học đi!");
+        } else {
+            showToast("✨ TỐT LẮM! Coi như đợt này có học bài. Thái Phó tha cho đi!");
+            if (typeof confetti === "function") confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+        
+        // Hẹn lịch đợt sau nếu còn từ
+        let remainingGhosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+        if(remainingGhosts.length > 0) {
+            let currentLoginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
+            let nextTarget = currentLoginCount + Math.floor(Math.random() * 2) + 1; 
+            localStorage.setItem(getIsoKey('ghost_target_login'), nextTarget.toString());
+        } else {
+            localStorage.removeItem(getIsoKey('ghost_target_login')); 
+        }
+        return;
+    }
+
+    currentGhostTarget = ghostTestQueue[0];
+    let qIndex = ghostTotalCount - ghostTestQueue.length + 1;
+    document.getElementById('ghostProgress').innerText = `Tội Phạm Thứ ${qIndex}/${ghostTotalCount}`;
+
+    let hintTextClean = currentGhostTarget.vn.replace(/\*/g, '');
+    let meanText = currentGhostTarget.meaning ? currentGhostTarget.meaning : "";
+
+    document.getElementById('ghostVnWord').innerText = hintTextClean;
+
+    // Đổi tiêu đề UI dựa trên Loại từ
+    let typeTitles = { 'wordform': 'WORD FORM', 'vocab': 'TỪ VỰNG', 'prep': 'PREP' };
+    let typeName = typeTitles[currentGhostTarget.type] || 'TỪ VỰNG';
+    document.getElementById('ghostModalTitle').innerHTML = `<i class="fa-solid fa-user-tie"></i> KHẢO BÀI [${typeName}]`;
+
+    // 🔥 HIỂN THỊ GỢI Ý CHÍNH XÁC YÊU CẦU CỦA SẾP
+    let meanEl = document.getElementById('ghostVnMeaning');
+    let huongDan = "";
+    if (currentGhostTarget.type === 'wordform') huongDan = "Tiểu chủ hãy gõ các DẠNG TỪ tương ứng vào các ô bên dưới!";
+    else if (currentGhostTarget.type === 'prep') huongDan = "Tiểu chủ hãy điền GIỚI TỪ (in, on, at...) tương ứng vào ô bên dưới!";
+    else huongDan = "Tiểu chủ hãy gõ TỪ VỰNG Tiếng Anh tương ứng vào ô bên dưới!";
+
+    let displayMeaning = meanText.trim() !== "" ? meanText : "Không có";
+    
+    meanEl.innerHTML = `Đây là từ vựng test <b>${typeName}</b>, nghĩa Tiếng Việt là: <span style="color:var(--accent-blue);">${displayMeaning}</span><br><span style="font-size: 11px; color: var(--text-muted); font-weight: normal; text-transform: none; display:block; margin-top:5px;">${huongDan}</span>`;
+
+    // Tự động Gen BOX NHẬP LIỆU y hệt lúc làm Test
+    let inputArea = document.getElementById('ghostInputArea');
+    inputArea.innerHTML = "";
+
+    if (currentGhostTarget.type === 'wordform') {
+        currentGhostTarget.en.split('|').forEach((p, i) => { 
+            let type = p.split(':')[0] || 'word'; 
+            inputArea.innerHTML += `<div style="width:100%; display:flex; gap:10px; align-items:center;">
+                <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:70px;">
+                    <span class="wf-type-label" style="font-weight:900; color:var(--accent-blue); text-transform:uppercase;">${type}</span>
+                </div>
+                <input type="text" class="input-brutal ghost-inp" id="ghostInput_${i}" style="margin:0; flex-grow:1; cursor:pointer;" data-ans="${p.split(':')[1] || p}" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">
+            </div>`; 
+        });
+    } else if (currentGhostTarget.type === 'prep') {
+        inputArea.innerHTML = `<input type="text" class="input-brutal ghost-inp" id="ghostInput_0" data-ans="${currentGhostTarget.en}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+    } else {
+        let cleanAns = currentGhostTarget.en.split('(')[0].trim().replace(/\*/g, ''); 
+        inputArea.innerHTML = `<input type="text" class="input-brutal ghost-inp" id="ghostInput_0" data-ans="${cleanAns}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+    }
+
+    // Tự động bung bàn phím ảo
+    setTimeout(() => { let inp = document.getElementById('ghostInput_0'); if(inp) openVirtualKeyboard(inp); }, 100);
 }
 
 function checkGhostWord() {
-    let input = document.getElementById('ghostEnInput').value.trim().toLowerCase().replace(/\s+/g, '');
-    let target = currentGhostTarget.en.toLowerCase().replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '').replace(/\s+/g, '');
-    
-    let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
-    ghosts = ghosts.filter(g => g.vn !== currentGhostTarget.vn); 
-    localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
+    let btnSubmit = document.getElementById('btnSubmitGhost');
+    if(btnSubmit.disabled) return;
 
-    if (input === target || target.includes(input)) {
-        showToast("✨ Tốt lắm! Coi như ngươi có học bài. Thưởng 50 Vàng!");
-        addEconomyLog("✨ Trả bài đột xuất thành công", 50);
-        closeModal('ghostThiefModal');
-    } else {
-        showToast("💢 SAI RỒI! Dám lười biếng à? Vào lại Sổ Đen Hình Bộ mau!");
-        let bb = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
-        bb.push(currentGhostTarget.vn + "::" + currentGhostTarget.en + "::");
+    let inputs = document.querySelectorAll('.ghost-inp');
+    
+    // Bắt giấy trắng
+    let hasEmpty = false;
+    inputs.forEach(i => { if(i.value.trim() === "") hasEmpty = true; });
+    if(hasEmpty) {
+        showToast("Đừng hòng nộp giấy trắng qua mặt ta! Gõ đáp án đi!");
+        return; 
+    }
+
+    // Khóa nút để tránh lỗi double click
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG CHẤM...';
+    inputs.forEach(inp => { inp.setAttribute('readonly', 'true'); inp.onkeypress = null; });
+
+    let isAllCorrect = true;
+
+    // CHẤM ĐIỂM
+    try {
+        if (currentGhostTarget.type === 'wordform') {
+            let expectedGroups = {}, userGroups = {};
+            currentGhostTarget.en.split('|').forEach(p => { 
+                let parts = p.split(':'), type = parts.length > 1 ? parts[0].trim().toLowerCase() : 'word', target = normalizeText(parts[1] || p).replace(/\*/g, ''); 
+                if(!expectedGroups[type]) expectedGroups[type] = []; 
+                expectedGroups[type].push(target); 
+            });
+            
+            inputs.forEach(inp => { 
+                let typeLabel = inp.previousElementSibling.querySelector('.wf-type-label');
+                let typeSpan = typeLabel ? typeLabel.innerText.toLowerCase() : inp.previousElementSibling.innerText.toLowerCase();
+                let answer = normalizeText(inp.value); 
+                if(!userGroups[typeSpan]) userGroups[typeSpan] = []; 
+                userGroups[typeSpan].push({ answer: answer, inp: inp }); 
+            });
+
+            for(let type in userGroups) {
+                let targets = expectedGroups[type] || [];
+                let matchedIndices = [];
+                userGroups[type].forEach(uObj => {
+                    let matchIdx = targets.findIndex((t, idx) => t.replace(/\s+/g, '').toLowerCase() === uObj.answer.replace(/\s+/g, '').toLowerCase() && !matchedIndices.includes(idx));
+                    if(matchIdx !== -1) { matchedIndices.push(matchIdx); uObj.inp.style.borderColor = "var(--accent-green)"; } 
+                    else { isAllCorrect = false; uObj.inp.style.borderColor = "var(--accent-red)"; }
+                });
+            }
+        } else {
+            inputs.forEach(inp => {
+                let answer = normalizeText(inp.value);
+                let target = normalizeText(inp.getAttribute('data-ans').replace(/\*/g, ''));
+                if (answer === target) {
+                    inp.style.borderColor = "var(--accent-green)";
+                } else {
+                    isAllCorrect = false;
+                    inp.style.borderColor = "var(--accent-red)";
+                }
+            });
+        }
+    } catch(e) {
+        console.error("Lỗi chấm điểm:", e);
+        isAllCorrect = false;
+    }
+
+    // TẠO ĐỘ TRỄ ĐỂ NHÌN THẤY MÀU VIỀN XANH/ĐỎ
+    setTimeout(() => {
+        try {
+            // Lấy từ khỏi Sổ thù vặt
+            let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+            ghosts = ghosts.filter(g => g.vn !== currentGhostTarget.vn); 
+            localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
+
+            if (isAllCorrect) {
+                showToast("✨ Tốt lắm! Đã gỡ án 1 từ, thưởng +50 Vàng!");
+                if (typeof addEconomyLog === 'function') addEconomyLog("✨ Trả bài đột xuất thành công", 50); 
+            } else {
+                window.sessionGhostWrong += 1; // Ghi nhận lỗi sai trong đợt này
+                showToast("💢 SAI BÉT! Chép phạt lại vào Hình Bộ mau!");
+                
+                // Đẩy vào sổ đen
+                let rawBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+                let bb = Array.isArray(rawBB) ? rawBB : (rawBB.errors ? rawBB.errors : []);
+                let meanStr = currentGhostTarget.meaning ? currentGhostTarget.meaning : "";
+                
+                let newEntry = currentGhostTarget.vn + "::" + currentGhostTarget.en + "::" + meanStr;
+                if (!bb.includes(newEntry)) {
+                    bb.push(newEntry);
+                }
+                
+                localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
+                if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
+            }
+
+            // MỞ KHÓA NÚT VÀ CHUYỂN CÂU LIỀN MẠCH
+            ghostTestQueue.shift(); 
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-pen-nib"></i> HẠ BÚT TRẢ BÀI';
+            renderGhostQuestion();
+
+        } catch(e) {
+            console.error("Lỗi đồng bộ: ", e);
+            ghostTestQueue.shift(); 
+            renderGhostQuestion();
+        }
+    }, 800);
+}
+
+function useItemFromBalo(id) {
+    if (!consumeInventoryItem(id, 1)) return;
+    
+    let isAdmin = (currentStudentId === 'T11');
+
+    if (id === 'ITM2') {
+        localStorage.setItem(getIsoKey('item_farmcap'), new Date().toLocaleDateString('vi-VN')); 
+        showToast("⚡ Máu cày cuốc sục sôi! Trần Farm nâng lên 2.500 Vàng trong hôm nay!");
+    } else if (id === 'ITM5') {
+        let rawBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        let bb = Array.isArray(rawBB) ? rawBB : (rawBB.errors ? rawBB.errors : []);
+        
+        // HỖ TRỢ ADMIN TEST
+        if (isAdmin && bb.length === 0) {
+            bb.push("Apple::Quả táo::Trái cây màu đỏ");
+            bb.push("History::adj:historic* | adj:historical | adv:historically::Thuộc về lịch sử");
+            bb.push("Famous*::for::Nổi tiếng về"); // Có dấu * để test PREP
+        }
+
+        if (bb.length === 0) { 
+            showToast("Sổ đen đang sạch, Thầy trả lại Thánh Chỉ vào Balo cho con!"); 
+            addInventoryItem('ITM5', 1); 
+            return; 
+        } 
+        
+        let ghosts = JSON.parse(localStorage.getItem(getIsoKey('ghost_words'))) || [];
+        let deletedWords = []; 
+        for(let i=0; i<3; i++) { 
+            if(bb.length > 0) {
+                let deleted = bb.splice(Math.floor(Math.random() * bb.length), 1)[0];
+                if(deleted) { 
+                    let parts = deleted.split('::');
+                    let vnStr = parts[0] || "";
+                    let enStr = parts[1] || "";
+                    
+                    // THUẬT TOÁN NHẬN DIỆN LOẠI TỪ CHUẨN XÁC 100%
+                    let inferredType = 'vocab';
+                    if (enStr.includes('|')) inferredType = 'wordform';
+                    else if (vnStr.includes('*')) inferredType = 'prep';
+                    
+                    // Tránh đẩy trùng lặp vào Sổ Thù Vặt
+                    if (!ghosts.some(g => g.vn === vnStr)) {
+                        ghosts.push({vn: vnStr, en: enStr, meaning: parts[2] || "", type: inferredType}); 
+                    }
+                    deletedWords.push(vnStr); 
+                }
+            } 
+        }
+        
+        // Lên lịch khảo cung
+        let currentLoginCount = parseInt(localStorage.getItem(getIsoKey('login_count'))) || 0;
+        let nextTarget = currentLoginCount + Math.floor(Math.random() * 2) + 1; 
+        localStorage.setItem(getIsoKey('ghost_target_login'), nextTarget.toString());
+        
+        localStorage.setItem(getIsoKey('ghost_words'), JSON.stringify(ghosts));
         localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
         if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
-        closeModal('ghostThiefModal');
+        
+        closeModal('backpackModal');
+        
+        let wordHtml = deletedWords.map(w => `<span style="display:inline-block; margin:5px; padding:5px 12px; background:#fef2f2; border:2px solid #ef4444; border-radius:6px; color:#b91c1c; box-shadow: 2px 2px 0px #ef4444;">${w}</span>`).join(" ");
+        document.getElementById('decreeWordsList').innerHTML = wordHtml;
+        document.getElementById('holyDecreeWarningModal').style.display = 'flex';
+        
+        if (typeof confetti === "function") confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        return; 
     }
+    openBackpackModal(); 
 }
 </script>
-
-
 </body>
 </html>
+
