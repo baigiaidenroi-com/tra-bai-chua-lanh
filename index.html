@@ -2545,32 +2545,28 @@ async function login() {
             }
         }
 
-       // TỰ ĐỘNG THƯỞNG VÀNG ĐIỂM DANH HÀNG NGÀY (CHỐNG LẠM PHÁT BỌC THÉP 3 LỚP)
-        let todayStr = new Date().toLocaleDateString('vi-VN');
+       // TỰ ĐỘNG THƯỞNG VÀNG ĐIỂM DANH HÀNG NGÀY (BỌC THÉP VĨNH CỬU LÊN CLOUD)
         if (id !== 'T11') {
-            let attendanceKey = getIsoKey('last_attendance_date');
-            let lastAttendDate = localStorage.getItem(attendanceKey);
+            let d = new Date();
+            let todayKey = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear(); // Chuẩn format độc nhất
+            let inv = getInventory(); // Kéo Balo vừa tải từ Google Sheet về
             
-            // Lọc log thật xem đã từng có giao dịch điểm danh trong ngày chưa (chống xóa cache)
-            let hasAttendedInLogs = allLogsCache.some(log => {
-                let logDateStr = typeof log[0] === 'string' ? log[0] : (log[0] instanceof Date ? log[0].toLocaleDateString('vi-VN') : "");
-                let isSameDay = logDateStr.includes(todayStr) || logDateStr.includes(todayStr.replace(/\//g, '-')); // Chống sai format
-                return isSameDay && log[3] && log[3].toString().includes("Thưởng Điểm Danh Ngày Mới");
-            });
-            
-            if (lastAttendDate !== todayStr && !hasAttendedInLogs) {
-                        // Khóa van ngay lập tức
-                        localStorage.setItem(attendanceKey, todayStr);
-                        userEconomy.lastLogin = todayStr;
-                        localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
-                        
-                        setTimeout(() => {
-                            addEconomyLog("🎁 Thưởng Điểm Danh Ngày Mới", 500);
-                            showToast("🎉 Chào ngày mới! Thái Phó ban thưởng +500 Vàng điểm danh!");
-                        }, 3000); 
-                    }
-                }
+            // Kiểm tra cờ điểm danh trong Balo
+            if (inv['_lastAttend'] !== todayKey) {
+                // Khóa van ngay lập tức và bắn cờ lên Google Sheet
+                inv['_lastAttend'] = todayKey;
+                saveInventory(inv);
+                
+                userEconomy.lastLogin = todayKey;
+                localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
+                
+                setTimeout(() => {
+                    addEconomyLog("🎁 Thưởng Điểm Danh Ngày Mới", 500);
+                    showToast("🎉 Chào ngày mới! Thái Phó ban thưởng +500 Vàng điểm danh!");
+                }, 3000); 
+            }
         }
+}
 // ================================================================
 
 function checkMissingTasks(studentId) {
@@ -2648,9 +2644,27 @@ function checkMissingTasks(studentId) {
 
 function calcRivalAnchor() {
     if(allLogsCache.length === 0 || currentStudentId === 'T11') return;
-    let scores = {};
-    allLogsCache.forEach(row => { if(row[1] && row[3] && row[3].toString().includes('[Thi Thật]')) scores[row[1]] = (scores[row[1]] || 0) + parseFloat(row[5]); });
-    let sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]).map(x => ({ id: x[0], score: x[1] }));
+    
+    // ĐÃ FIX: Thuật toán tính Điểm Trung Bình Lần 1 giống hệt Học Bá Hoàng Gia
+    let studentStats = {};
+    allLogsCache.forEach(row => { 
+        let sid = String(row[1]).trim().toUpperCase();
+        let act = row[3] ? row[3].toString() : "";
+        let attempt = parseInt(row[5]) || 1;
+        let score = parseFloat(row[6]) || 0;
+        
+        if (act.includes('[Thi Thật]') && attempt === 1) {
+            if (!studentStats[sid]) studentStats[sid] = { sum: 0, count: 0 };
+            studentStats[sid].sum += score;
+            studentStats[sid].count += 1;
+        }
+    });
+
+    let sorted = Object.entries(studentStats)
+        .filter(x => x[1].count >= 3) // Phải thi ít nhất 3 bài mới được lên mâm
+        .map(x => ({ id: x[0], score: x[1].sum / x[1].count }))
+        .sort((a,b) => b.score - a.score);
+        
     let myIdx = sorted.findIndex(x => x.id === currentStudentId);
     if(myIdx === -1) { document.getElementById('rivalAnchorBox').style.display = 'none'; return; }
     
@@ -4522,14 +4536,22 @@ function renderMatrixAttendance(type) {
         }
     });
 
-    let html = `<thead><tr><th rowspan="2" style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; z-index: 3;">HỌC SINH</th>`;
+    // ĐÃ FIX: Đóng băng toàn bộ khối Header không cho trôi khi cuộn
+    let html = `<thead><tr><th rowspan="2" style="background:var(--border-dark); color:var(--accent-yellow); min-width: 140px; border-right: 4px solid white; position: sticky; left: 0; top: 0; z-index: 12;">HỌC SINH</th>`;
     
     if(type === 'vocab') {
-        for(let u=1; u<=maxUnit; u++) html += `<th colspan="6" style="background:var(--border-dark); color:white; border-right: 4px solid white;">UNIT ${u}</th>`;
+        for(let u=1; u<=maxUnit; u++) html += `<th colspan="6" style="background:var(--border-dark); color:white; border-right: 4px solid white; position: sticky; top: 0; z-index: 11;">UNIT ${u}</th>`;
         html += `</tr><tr>`; 
-        for(let u=1; u<=maxUnit; u++) html += `<th style="background:#1e293b; color:#93c5fd; padding:2px 4px; font-size:10px;">WF1</th><th style="background:#1e293b; color:#93c5fd; padding:2px 4px; font-size:10px; border-right: 2px dashed rgba(255,255,255,0.2);">WF2</th><th style="background:#1e293b; color:#86efac; padding:2px 4px; font-size:10px;">TV1</th><th style="background:#1e293b; color:#86efac; padding:2px 4px; font-size:10px; border-right: 2px dashed rgba(255,255,255,0.2);">TV2</th><th style="background:#1e293b; color:#fca5a5; padding:2px 4px; font-size:10px;">PR1</th><th style="background:#1e293b; color:#fca5a5; padding:2px 4px; font-size:10px; border-right: 4px solid white;">PR2</th>`;
+        // Lớp thứ 2 Sticky cách đỉnh 32px (Bằng đúng chiều cao lớp 1) để khớp khối
+        for(let u=1; u<=maxUnit; u++) html += `
+            <th style="background:#1e293b; color:#93c5fd; padding:6px 4px; font-size:10px; position: sticky; top: 32px; z-index: 10;">WF1</th>
+            <th style="background:#1e293b; color:#93c5fd; padding:6px 4px; font-size:10px; border-right: 2px dashed rgba(255,255,255,0.2); position: sticky; top: 32px; z-index: 10;">WF2</th>
+            <th style="background:#1e293b; color:#86efac; padding:6px 4px; font-size:10px; position: sticky; top: 32px; z-index: 10;">TV1</th>
+            <th style="background:#1e293b; color:#86efac; padding:6px 4px; font-size:10px; border-right: 2px dashed rgba(255,255,255,0.2); position: sticky; top: 32px; z-index: 10;">TV2</th>
+            <th style="background:#1e293b; color:#fca5a5; padding:6px 4px; font-size:10px; position: sticky; top: 32px; z-index: 10;">PR1</th>
+            <th style="background:#1e293b; color:#fca5a5; padding:6px 4px; font-size:10px; border-right: 4px solid white; position: sticky; top: 32px; z-index: 10;">PR2</th>`;
     } else { 
-        for(let u=1; u<=maxUnit; u++) html += `<th style="background:var(--border-dark); color:white; border-right: 2px solid white;">UNIT ${u}</th>`; 
+        for(let u=1; u<=maxUnit; u++) html += `<th style="background:var(--border-dark); color:white; border-right: 2px solid white; position: sticky; top: 0; z-index: 11;">UNIT ${u}</th>`; 
     }
     html += `</tr></thead><tbody>`;
     
@@ -5336,9 +5358,11 @@ function speakQuickWord(e, accent = 'US') {
 }
 // ==================== BỘ NÃO PHÒNG THI PHỤC THÙ ====================
 function startRevengeMode() {
-    let today = new Date().toLocaleDateString('vi-VN');
-    let lastPlayed = localStorage.getItem(getIsoKey('revenge_date'));
-    if(lastPlayed === today && currentStudentId !== 'T11') {
+    let d = new Date();
+    let todayKey = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
+    let inv = getInventory();
+    
+    if(inv['_lastRevenge'] === todayKey && currentStudentId !== 'T11') {
         showToast("Hôm nay con đã dùng hết lượt Phục Thù! Ngày mai hãy quay lại nhé."); return;
     }
 
@@ -5364,7 +5388,12 @@ function startRevengeMode() {
     }
     // --- KẾT THÚC ---
 
-    localStorage.setItem(getIsoKey('revenge_date'), today); closeModal('blackbookModal');
+    // Đóng dấu cờ vào Balo bắn lên Cloud
+    inv['_lastRevenge'] = todayKey;
+    saveInventory(inv);
+    
+    localStorage.setItem(getIsoKey('revenge_date'), todayKey); // Backup local
+    closeModal('blackbookModal');
     currentType = 'revenge'; currentIsOfficial = false; // CHUYỂN SANG MODE PHỤC THÙ ĐỂ TRÁNH LỖI GỘP BOX 
     
     let formattedData = revengeQuestions.map(q => ({
