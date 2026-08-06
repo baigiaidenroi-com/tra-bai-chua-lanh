@@ -5640,8 +5640,16 @@ function startRevengeMode() {
     let d = new Date();
     let todayKey = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
     let inv = getInventory();
+    let isSpecialUnlock = false; // Cờ theo dõi Đặc xá từ Admin
     
-    if(inv['_lastRevenge'] === todayKey && currentStudentId !== 'T11') {
+    // 🔓 LỆNH BÀI ĐẶC XÁ: Đập nát ổ khóa Phục Thù
+    if (inv['_forceUnlockRevenge']) {
+        isSpecialUnlock = true; // Bật cờ để lát nữa miễn học phí
+        delete inv['_lastRevenge']; 
+        delete inv['_forceUnlockRevenge']; 
+        saveInventory(inv); 
+        showToast("✨ Lệnh bài Đặc xá đã kích hoạt! Miễn phí vào cửa 1 lần!");
+    } else if (inv['_lastRevenge'] === todayKey && currentStudentId !== 'T11') {
         showToast("Hôm nay con đã dùng hết lượt Phục Thù! Ngày mai hãy quay lại nhé."); return;
     }
 
@@ -5655,7 +5663,10 @@ function startRevengeMode() {
     let fee = 100 + (revengeQuestions.length * 50); 
     userEconomy.gold = parseFloat(userEconomy.gold) || 0;
     
-    if (userEconomy.gold < fee && currentStudentId !== 'T11') {
+    if (isSpecialUnlock) {
+        // NẾU CÓ ĐẶC XÁ TỪ ADMIN: FREE 100%, KHÔNG TRỪ TIỀN (Vẫn nhận full 100% thưởng)
+        window.isPhaoCuuSinh = false; 
+    } else if (userEconomy.gold < fee && currentStudentId !== 'T11') {
         window.isPhaoCuuSinh = true;
         showToast("Ngân khố cạn kiệt! Thái Phó ban PHAO CỨU SINH: Miễn phí vào cửa, nhưng Vàng thưởng giảm 50%!");
     } else {
@@ -5885,7 +5896,7 @@ window.processSyncData = function(data) {
             let parsedInv = {};
             let reverseTierMap = { 'Gương Tiền Tri': 'ITM1', 'Đan Dược Cuồng Nộ': 'ITM2', 'Hộ Thể Kim Chung': 'ITM3', 'Bùa Ngưng Đọng': 'ITM4', 'Thánh Chỉ Ân Xá': 'ITM5' };
             data.inventory.split(',').forEach(item => {
-                let match = item.match(/(.+?)\s*\[(.*?)\]/); // REGEX MỞ RỘNG
+                let match = item.match(/(.+?)\s*\[(.*?)\]/);
                 if (match) {
                     let name = match[1].trim();
                     let itemId = reverseTierMap[name] || name;
@@ -5901,12 +5912,6 @@ window.processSyncData = function(data) {
             if (localInv['_lastRevenge']) parsedInv['_lastRevenge'] = localInv['_lastRevenge'];
             if (localInv['_lastTax']) parsedInv['_lastTax'] = localInv['_lastTax'];
             
-            localStorage.setItem(getIsoKey('inventory'), JSON.stringify(parsedInv));
-        } else {
-                        parsedInv[itemId] = parseInt(val); // Trả về dạng Số cho Đan Dược, Bùa...
-                    }
-                }
-            });
             localStorage.setItem(getIsoKey('inventory'), JSON.stringify(parsedInv));
         } else {
             // ĐIỆP VIÊN NGẦM: Balo trên Sheet trắng, nhưng máy có đồ -> Bắn lên
