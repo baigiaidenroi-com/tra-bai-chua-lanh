@@ -3441,14 +3441,24 @@ function setupSession(data, part = 0) {
         }
     });
     
-    // Đã thêm trường meaning để hứng dữ liệu Tiếng Việt từ Apps Script
+  
+  // Đã thêm trường meaning để hứng dữ liệu Tiếng Việt từ Apps Script
     // ĐÃ FIX: Bảo toàn đúng phân loại (Wordform, Prep...) để máy tạo Box nhập liệu chuẩn xác
     let formattedData = data.map(q => { 
         if(currentType === 'grammar') return q; 
+        
+        let rawEn = String(q.answers || q.en || "").trim();
+        let finalType = q.type || currentType;
+        
+        // AI NHẬN DIỆN THÔNG MINH: Bắt chặt n:, v:, adj:, adv: ép thành Wordform dù không có dấu |
+        if (rawEn.includes('|') || /^\s*(n|v|adj|adv)\s*:/i.test(rawEn)) {
+            finalType = 'wordform';
+        }
+        
         return { 
             vn: q.baseWord || q.vn, 
-            en: q.answers || q.en, 
-            type: q.type || currentType, 
+            en: rawEn, 
+            type: finalType, 
             meaning: q.meaning || q.nghia || q.NghiaVN || "" 
         }; 
     });
@@ -4425,7 +4435,24 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
     // MIỄN NHIỄM SỔ ĐEN NẾU: Là Tự Luyện (Lần 4+) HOẶC Đang trả nợ trong Hình Bộ
     if (sessionErrorWords.length > 0 && attemptLogCount < 4 && !window.isRevengeMode) {
         let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
-        sessionErrorWords.forEach(w => { if(!localBB.includes(w)) localBB.push(w); });
+        
+        sessionErrorWords.forEach(w => { 
+            // 1. TRẠM GÁC: Tuyệt đối bỏ qua các câu có dấu (Đầu Hàng)
+            if (!w.includes("::(Đầu Hàng)")) {
+                
+                // 2. GỌT RÁC: Chỉ lấy 4 tham số gốc (VN::EN::MEAN::TYPE), vứt bỏ tham số thứ 5 (chữ học sinh gõ) để Sổ Đen không bị rác
+                let parts = w.split('::');
+                let bbFormat = parts.slice(0, 4).join('::'); 
+                
+                // 3. CHECK TRÙNG LẶP: Quét thông minh bằng gốc Tiếng Việt để chống nhân bản từ
+                let isExist = localBB.some(item => {
+                    return typeof item === 'string' && item.split('::')[0].trim().toLowerCase() === parts[0].trim().toLowerCase();
+                });
+                
+                if (!isExist) localBB.push(bbFormat);
+            }
+        });
+        
         localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(localBB));
         if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
     }
@@ -5219,8 +5246,8 @@ function surrenderTest(isForced = false) {
             // FIX BÁO CÁO ZALO: Bọc thép dấu phẩy để mảng không bị xé nát khi join
             let safeEn = String(q.en || "").replace(/,/g, ' -');
             let safeMean = String(q.meaning || "").replace(/,/g, ' -');
-            // ĐÃ FIX BÁO CÁO ZALO: Báo cáo rõ ràng là (Trống) do Đầu hàng
-            sessionErrorWords.push(cleanWordKey + "::" + safeEn + "::" + safeMean + "::" + (q.type || currentType || "vocab") + "::(Trống)");
+            // ĐÃ FIX BÁO CÁO ZALO: Báo cáo rõ ràng là (Đầu Hàng)
+            sessionErrorWords.push(cleanWordKey + "::" + safeEn + "::" + safeMean + "::" + (q.type || currentType || "vocab") + "::(Đầu Hàng)");
         }
     });
     questionsQueue = []; // Dọn sạch hàng đợi
@@ -5728,7 +5755,7 @@ function openBlackbook() {
             if(vn) {
                 let en = parts[1] ? parts[1].trim() : "";
                 // FIX CHUẨN TYPE: Đọc type lưu sẵn ở phần tử thứ 4, nếu không có thì mặc định là Vocab (chống nhầm Giới Từ)
-                let typeStr = parts[3] ? parts[3].trim() : (en.includes('|') ? 'wordform' : 'vocab');
+                let typeStr = parts[3] ? parts[3].trim() : (en.includes('|') || /^\s*(n|v|adj|adv)\s*:/i.test(en) ? 'wordform' : 'vocab');
                 globalBlackbookMap.set(vn, { 
                     vn: vn, 
                     en: en, 
@@ -5931,7 +5958,7 @@ function startRevengeMode() {
             let strEn = String(q.en || "");
             let strVn = String(q.vn || "");
             if (!inferredType || inferredType === "") {
-                if (strEn.includes('|')) inferredType = 'wordform';
+                if (strEn.includes('|') || /^\s*(n|v|adj|adv)\s*:/i.test(strEn)) inferredType = 'wordform';
                 else if (strVn.includes('*')) inferredType = 'prep';
                 else inferredType = 'vocab';
             }
