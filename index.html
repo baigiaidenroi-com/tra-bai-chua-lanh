@@ -256,17 +256,14 @@
 
 </style>
 
-<!-- 💣 SIÊU VŨ KHÍ V4: HỦY DIỆT MỌI TẦNG CACHE (LOCAL, SESSION, INDEXEDDB, SERVICE WORKER) -->
+<!-- 💣 SIÊU VŨ KHÍ V6: HỦY DIỆT DATA LỖI (LOCAL, SESSION, INDEXEDDB, SERVICE WORKER) -->
     <script>
-        if (!localStorage.getItem('nuke_cache_v5')) {
+        if (!localStorage.getItem('nuke_cache_v6')) {
             localStorage.clear();
             sessionStorage.clear();
-            // Đốt sạch Service Worker Cache
             if ('caches' in window) { caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key)))); }
-            // Đốt sạch IndexedDB
             if (window.indexedDB) { indexedDB.databases().then(dbs => dbs.forEach(db => indexedDB.deleteDatabase(db.name))); }
-            
-            localStorage.setItem('nuke_cache_v5', 'true'); 
+            localStorage.setItem('nuke_cache_v6', 'true'); 
             window.location.reload(); 
         }
     </script>
@@ -620,7 +617,8 @@ function buyUpsaleShield(cost, hits) {
 
 <div class="app-container">
    <!-- ĐÃ FIX: ĐẨY PADDING TOP MẠNH TAY HƠN ĐỂ CHỐNG CHE KHUẤT TRÊN MOBILE -->
-   <div id="globalTickerBox" style="position: relative; width: 100%; background: #000; border-bottom: 3px solid #eab308; z-index: 9999; display: flex; align-items: center; padding: 16px 10px 8px 10px; box-sizing: border-box; flex-shrink: 0; min-height: 46px; margin-top: env(safe-area-inset-top, 0px);">
+   <!-- ĐẠI PHẪU: Trả về margin-top 0 để dính khít mép trên, triệt tiêu viền đỏ -->
+   <div id="globalTickerBox" style="position: relative; width: 100%; background: #000; border-bottom: 3px solid #eab308; z-index: 9999; display: flex; align-items: center; padding: 16px 10px 8px 10px; box-sizing: border-box; flex-shrink: 0; min-height: 46px; margin-top: 0;">
        <div style="flex-grow: 1; overflow: hidden; color: #eab308; font-weight: bold; font-size: 13px; white-space: nowrap;">
            <marquee scrollamount="6" id="globalTickerContent">Đang hóng hớt tin tức thị phi từ Tàng Kinh Các...</marquee>
        </div>
@@ -685,10 +683,10 @@ function buyUpsaleShield(cost, hits) {
 
                 <label style="font-weight: 900; display: block; margin-bottom: 10px; color: var(--border-dark); text-transform: uppercase; font-size: 13px;">1. PHẨM GIAI CỦA NGƯƠI:</label>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px;" id="gradeSelector">
-                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('6', this)" style="padding: 10px; font-size: 12px;">TƯỚC ĐIỂU (Lớp 6)</button>
-                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('7', this)" style="padding: 10px; font-size: 12px;">MỘC LANG (Lớp 7)</button>
-                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('8', this)" style="padding: 10px; font-size: 12px;">HỎA KÌ LÂN (Lớp 8)</button>
-                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('9', this)" style="padding: 10px; font-size: 12px;">CHÂN LONG (Lớp 9)</button>
+                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('6', this)" style="padding: 12px 5px; font-size: 16px; font-weight: 900; flex-direction: column; gap: 4px; letter-spacing: 0.5px; -webkit-text-stroke: 1px currentColor;"><span>TƯỚC ĐIỂU</span><span>(LỚP 6)</span></button>
+                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('7', this)" style="padding: 12px 5px; font-size: 16px; font-weight: 900; flex-direction: column; gap: 4px; letter-spacing: 0.5px; -webkit-text-stroke: 1px currentColor;"><span>MỘC LANG</span><span>(LỚP 7)</span></button>
+                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('8', this)" style="padding: 12px 5px; font-size: 16px; font-weight: 900; flex-direction: column; gap: 4px; letter-spacing: 0.5px; -webkit-text-stroke: 1px currentColor;"><span>HỎA KÌ LÂN</span><span>(LỚP 8)</span></button>
+                    <button type="button" class="btn btn-outline class-btn" onclick="selectGrade('9', this)" style="padding: 12px 5px; font-size: 16px; font-weight: 900; flex-direction: column; gap: 4px; letter-spacing: 0.5px; -webkit-text-stroke: 1px currentColor;"><span>CHÂN LONG</span><span>(LỚP 9)</span></button>
                 </div>
 
                 <label style="font-weight: 900; display: block; margin-bottom: 10px; color: var(--border-dark); text-transform: uppercase; font-size: 13px;">2. LINH VỆ SĨ HỘ MỆNH:</label>
@@ -1027,7 +1025,7 @@ function buyUpsaleShield(cost, hits) {
     <div id="parentScreen" class="screen scrollable-area">
         <div class="top-bar"><h2 style="margin: 0; color: var(--accent-blue); text-transform: uppercase; font-size: 16px;"><i class="fa-solid fa-chart-line"></i> LONG MẠCH TÔNG ĐỒ</h2><button class="btn btn-outline" style="padding: 10px;" onclick="goHome()"><i class="fa-solid fa-times"></i></button></div>
         <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border: 3px solid var(--border-dark); box-shadow: var(--shadow-hard);"><div id="parentAvatarImg" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--border-dark); background: var(--surface-color); display: flex; align-items: center; justify-content: center; font-size: 35px;">🦊</div><div><div style="font-weight: 900; font-size: 18px; text-transform: uppercase;" id="parentStudentName">...</div><div style="color: var(--text-muted); font-size: 12px; font-weight: bold;">Thông tin liên kết minh bạch</div></div></div>
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;"><button class="btn btn-blue" style="flex:1; padding: 10px; font-size: 12px;" onclick="document.getElementById('pLineChart').style.display='block'; document.getElementById('pRadarChart').style.display='none';">Biên niên sử Điểm số</button><button class="btn btn-green" id="btnParentRadar" style="flex:1; padding: 10px; font-size: 12px;" onclick="document.getElementById('pLineChart').style.display='none'; document.getElementById('pRadarChart').style.display='block';">Mổ xẻ căn cốt Võ công</button></div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;"><button class="btn btn-blue" id="btnParentHistory" style="flex:1; padding: 10px; font-size: 12px; border: 3px solid #111;" onclick="switchParentTab('pLineChart', this)">Biên niên sử Điểm số</button><button class="btn btn-outline" id="btnParentRadar" style="flex:1; padding: 10px; font-size: 12px; border: 3px solid #111;" onclick="switchParentTab('pRadarChart', this)">Mổ xẻ căn cốt Võ công</button></div>
         <div id="pLineChart" class="chart-container"><p style="font-size: 11px; color:var(--text-muted); text-align:center; font-style:italic; margin: 0 0 10px 0;">*Biểu đồ so sánh chéo 3 môn theo tiến trình</p><canvas id="parentHistoryChart"></canvas></div>
         <div id="pRadarChart" class="chart-container" style="display:none;"><canvas id="parentRadarChart"></canvas></div>
         <div style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 15px 0; color:var(--accent-red); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-film"></i> NHẬT KÝ THĂNG TRẦM</h4><div id="parentTimelineBox" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div></div>
@@ -1089,7 +1087,7 @@ function buyUpsaleShield(cost, hits) {
 <!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM (ĐÃ FIX KHUYẾT ĐIỂM) ================= -->
 <!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM (ĐÃ FIX KHỔ LỚN) ================= -->
 <!-- ================= BÀN PHÍM ẢO (ĐÃ XÓA 3D, NẢY VÀ XÓA LIÊN TỤC) ================= -->
-<div id="neoKeyboard" style="position: fixed; bottom: -100%; left: 0; width: 100%; background: #facc15; border-top: 4px dashed #111; z-index: 100000; padding: 12px 6px 25px 6px; transition: bottom 0.2s ease-out; display: flex; flex-direction: column; gap: 8px;">
+<div id="neoKeyboard" style="position: fixed; bottom: -800px; left: 0; width: 100%; background: #facc15; border-top: 4px dashed #111; z-index: 100000; padding: 12px 6px 25px 6px; transition: bottom 0.2s ease-out; display: flex; flex-direction: column; gap: 8px;">
     <div style="display: flex; justify-content: space-between; padding: 0 8px 6px 8px; border-bottom: 3px dashed #111; margin-bottom: 2px;">
         <span style="font-weight: 900; color: #111; text-transform: uppercase; font-size: 13px;"><i class="fa-solid fa-keyboard"></i> Bàn Phím Sĩ Tử</span>
         <i class="fa-solid fa-chevron-down" style="font-size: 22px; color: #111; cursor: pointer; padding: 0 10px;" onclick="closeVirtualKeyboard()"></i>
@@ -1158,7 +1156,7 @@ function openVirtualKeyboard(inputEl) {
 
 function closeVirtualKeyboard() {
     window.activeVKInput = null;
-    let vk = document.getElementById('neoKeyboard'); if(vk) vk.style.bottom = '-100%';
+    let vk = document.getElementById('neoKeyboard'); if(vk) vk.style.bottom = '-800px';
     let activeScreen = document.querySelector('.screen.active-screen');
     if(activeScreen) activeScreen.style.paddingBottom = "80px"; 
     document.querySelectorAll('.input-brutal').forEach(el => { 
@@ -1231,7 +1229,7 @@ function parseCustomDeadline(dlStr) {
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
 const SYSTEM_APIS = {
-    "6": "https://script.google.com/macros/s/AKfycbyBr90l4DuCbYxPkTqr_ME75WcMeyuP-m01WXSOd6ya1GTOUQ0P_cSGmTHSBRBPH6hlOw/exec",
+    "6": "https://script.google.com/macros/s/AKfycbwFBGyqdX0rPLBvxsdRRWNzfrhb1bISrFSRe-Dlh3Tpv7VI7Sfb9gwc75pi__1eEWBD9g/exec",
     "7": "https://script.google.com/macros/s/AKfycbxFeyd4UHLhVuSdfIRS9b-guKdCOSRJGZHxXrys60wyCkWx-kWYuYvp6MXXcrGuORoHgw/exec",
     "8": "https://script.google.com/macros/s/AKfycbzH3bF4a44YeVESvjf9RGCCYN5VdSLz67NDbNYlXQCnkELmBBtCU8rLj9nkzZhDVljf/exec",
     "9": "https://script.google.com/macros/s/AKfycbyh96KJhiX7ysmWG8JzOQE-Dn856v3CqtHcdLNhyaobcSfs7g1tc7OvIdA7HNK8WhCGzg/exec"
@@ -1971,11 +1969,9 @@ function emergencyDataRescue() {
     if (localRD) { payload.redeemed = localRD; hasDataToRescue = true; }
     if (localMem) { payload.memoryBox = localMem; hasDataToRescue = true; }
     if (localGold) { payload.gold = localGold; hasDataToRescue = true; }
-    if (localInv) { 
-        let rawInv = JSON.parse(localInv); let tierMap = { 'ITM1': 'Gương Tiền Tri', 'ITM2': 'Đan Dược Cuồng Nộ', 'ITM3': 'Hộ Thể Kim Chung', 'ITM4': 'Bùa Ngưng Đọng', 'ITM5': 'Thánh Chỉ Ân Xá' };
-        let invArray = []; for(let key in rawInv) { let name = tierMap[key] || key; invArray.push(`${name} [${rawInv[key]}]`); }
-        payload.inventory = invArray.join(', ');
-    }
+    
+    // 🚫 ĐẠI PHẪU: Rút hoàn toàn Inventory ra khỏi gói cứu hộ SOS khi F5/Tắt App.
+    // Tránh tình trạng đẩy Balo cũ lên đè mất lệnh Đặc Xá của Admin!
 
     // Bốc luôn Queue Vàng chưa kịp gửi
     if (typeof offlineQueue !== 'undefined' && offlineQueue.length > 0) {
@@ -2160,6 +2156,22 @@ function showHumorousLock() { const msgs = ["Bình tĩnh! Thầy đang bế quan
 function showBlackMarketLock() { showToast("Nhà ngươi có bao nhiêu vàng, mà cả gan muốn vào Chợ Đen của Lão Tổng Quản ta?! Lo mà trả bài tích tài sản đi! Bùa chú, phép thuật ta không thiếu đâu!"); }
 function toggleTheme() { document.body.classList.toggle('dark-mode'); }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function switchParentTab(tabId, el) {
+    // ĐÃ FIX: Dùng classList an toàn, không xóa đè mất style hệ thống của Nút
+    let parent = el.parentElement;
+    parent.querySelectorAll('.btn').forEach(b => {
+        b.classList.remove('btn-blue', 'btn-green');
+        b.classList.add('btn-outline');
+    });
+    
+    el.classList.remove('btn-outline');
+    if (tabId === 'pLineChart') el.classList.add('btn-blue');
+    else el.classList.add('btn-green');
+
+    document.getElementById('pLineChart').style.display = tabId === 'pLineChart' ? 'block' : 'none';
+    document.getElementById('pRadarChart').style.display = tabId === 'pRadarChart' ? 'block' : 'none';
+}
 
 function openGossipFeed() {
     document.getElementById('gossipModal').style.display = 'flex';
@@ -2449,8 +2461,6 @@ function showThinhKinhOverlay(isShow) {
     overlay.style.display = isShow ? 'flex' : 'none';
 }
 
-window.isLogsLoaded = false;
-window.tuHuyetTimerDone = false;
 
 window.isLogsLoaded = false;
 window.tuHuyetTimerDone = false;
@@ -2471,13 +2481,17 @@ async function login() {
     try {
         let scriptUrl = getScriptUrl();
 
-        // 1. TẢI SỔ NAM TÀO (ID, PASS, VÀNG, TỬ HUYỆT) - SIÊU NHANH (1-2s)
-        let initData = await fetchWithFallback(scriptUrl, "init", { students: [] }, "", 1, 15000);
-        if (initData.error) throw new Error(initData.error);
+        // 1. TẢI SỔ NAM TÀO (ID, PASS, VÀNG, TỬ HUYỆT)
+        // ĐẠI PHẪU: Nâng Retries lên 2 lần để chống tình trạng Google Server ngủ gật (Cold Start) gây rớt mạng oan
+        let initData = await fetchWithFallback(scriptUrl, "init", { students: [] }, "", 2, 1000);
         
-        // ĐÃ FIX: Chặn đứng lỗi "Mã lệnh bài sai" ảo do đứt kết nối mạng
+        if (initData.error) {
+             throw new Error("API_ERROR: " + initData.error);
+        }
+        
+        // Bắt lỗi rạch ròi nếu Link API sai hoặc Google Sheet bị mất Tab
         if (!initData.students || initData.students.length === 0) {
-             throw new Error("Đường truyền đứt gãy, thỉnh kinh thất bại! Thử lại nha.");
+             throw new Error("Không tìm thấy dữ liệu Sĩ tử! Sếp hãy kiểm tra lại Tab 'Students' trên Google Sheet hoặc Link API đã dán đúng chưa.");
         }
 
         if (initData.students && initData.students.length > 0) {
@@ -2528,60 +2542,71 @@ async function login() {
         document.getElementById('dashAvatar').innerText = currentPet; 
         
         openTuHuyetPopup(isAttendance);
+        
+        // TASK 6: Kích hoạt Luật Giới Nghiêm (22h - 6h sáng)
+        if (id !== 'T11') {
+            let nowTime = new Date();
+            let curHour = nowTime.getHours();
+            if (curHour >= 22 || curHour < 6) {
+                let curfewKey = "curfew_" + nowTime.toLocaleDateString('vi-VN');
+                let curInv = getInventory();
+                if (curInv['_lastCurfew'] !== curfewKey) {
+                    curInv['_lastCurfew'] = curfewKey;
+                    saveInventory(curInv);
+                    addEconomyLog("🚨 Cấm Vệ Quân Phạt: Vi phạm Giới Nghiêm (22h-6h)", -500);
+                    setTimeout(() => {
+                        let ab = document.getElementById('securityAlert');
+                        if(ab) {
+                            ab.innerHTML = `<i class="fa-solid fa-moon fa-shake" style="font-size:24px;"></i> <span>LUẬT GIỚI NGHIÊM: Đã quá giờ Hợi (22h-6h)! Xâm nhập hoàng cung trái phép, phạt 500 Vàng!</span>`;
+                            ab.style.top = '20px'; setTimeout(() => { ab.style.top = '-100px'; }, 6000);
+                        }
+                    }, 2500);
+                }
+            }
+        }
 
-        // 5. 🚀 BỘ TẢI NGẦM NỐI TIẾP (CHAINING FETCH) - DỒN 100% BĂNG THÔNG CHO LOGS
+        // 5. 🚀 GIAI ĐOẠN 2: ÁM ĐỘ TRẦN THƯƠNG (BĂM NHỎ TASK CPU ĐỘC LẬP)
         window.isLogsLoaded = false;
         
         fetchWithFallback(scriptUrl, "getBackupData", { logs: [] }, `&studentId=${id}`, 1, 15000)
         .then(syncData => {
-            if (syncData && syncData.logs && Array.isArray(syncData.logs)) {
-                let expandedLogs = syncData.logs.map(row => {
-                    if (typeof row === 'string') {
-                        let parts = row.split('|'); let newRow = new Array(15).fill(""); 
-                        newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; 
-                        return newRow;
-                    } return row;
-                });
-                allLogsCache = expandedLogs;
-                    
-                    // MACRO-TASK 1: Nhường Main Thread cho UI, xử lý LocalStorage ngầm
-                    setTimeout(() => { 
-                        localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache)); 
-                        window.isLoginSyncing = false; // Mở khóa giao dịch ngầm
-                    }, 0);
-                    
-                    // MACRO-TASK 2: Chia nhỏ DOM Rendering chống Freeze
-                    setTimeout(() => { calcRivalAnchor(); }, 50);
-                    setTimeout(() => { checkMissingTasks(id); }, 100);
-                    setTimeout(() => { 
-                        window.isLogsLoaded = true; 
-                        unlockTuHuyetPopup(); 
-                    }, 150);
-                    
-                    } else {
-                        // Fallback nạp local nếu fetch rỗng
-                        let localLogs = JSON.parse(localStorage.getItem(getIsoKey('logs')));
-                        allLogsCache = (localLogs && Array.isArray(localLogs)) ? localLogs : [];
-                        window.isLogsLoaded = true; unlockTuHuyetPopup();
-                        window.isLoginSyncing = false; // Mở khóa
-                    }
-                    
-                    // 🚀 LUỒNG NỐI TIẾP: LOGS TẢI XONG 100% RỒI MỚI CHO TẢI PHONG THẦN (CHỐNG KẸT XE)
-                    setTimeout(() => {
-                        fetchWithFallback(scriptUrl, "getLeaderboard", { error: "Lỗi mạng" }, "", 1, 10000)
-                        .then(data => { if (!data.error && data.bxh1) window.leaderboardCache = data; });
-                        
-                        updateThiPhiTicker(); 
-                        // ĐÃ FIX: Dẹp bỏ Pre-rendering Bảng Vai Phụ ngầm và dời Khảo Bài sang lúc Xuất Quan để chống đứng máy CPU Mobile.
-                    }, 1000); // Trì hoãn 1s cho CPU nghỉ xả hơi
-
-                }).catch(() => {
-                // LỖI MẠNG CŨNG PHẢI MỞ KHÓA CHO HỌC SINH THOÁT
+            if (syncData && syncData.logs && Array.isArray(syncData.logs) && syncData.logs.length > 0) {
+                
+                setTimeout(() => {
+                    allLogsCache = syncData.logs.map(row => {
+                        if (typeof row === 'string') {
+                            let parts = row.split('|'); let newRow = new Array(15).fill(""); 
+                            newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; 
+                            return newRow;
+                        } return row;
+                    });
+                }, 50);
+                
+                setTimeout(() => { calcRivalAnchor(); }, 100);
+                setTimeout(() => { checkMissingTasks(id); }, 150);
+                
+                setTimeout(() => { 
+                    localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache)); 
+                    window.isLoginSyncing = false; 
+                    window.isLogsLoaded = true; 
+                    unlockTuHuyetPopup(); 
+                }, 200);
+                
+            } else {
+                // FALLBACK AN TOÀN: Ép vẽ lại Cái Gai từ Data Cũ để không bị tàng hình
                 let localLogs = JSON.parse(localStorage.getItem(getIsoKey('logs')));
                 allLogsCache = (localLogs && Array.isArray(localLogs)) ? localLogs : [];
+                calcRivalAnchor(); checkMissingTasks(id);
                 window.isLogsLoaded = true; unlockTuHuyetPopup();
-                window.isLoginSyncing = false; // Mở khóa
-            });
+                window.isLoginSyncing = false;
+            }
+        }).catch(() => {
+            let localLogs = JSON.parse(localStorage.getItem(getIsoKey('logs')));
+            allLogsCache = (localLogs && Array.isArray(localLogs)) ? localLogs : [];
+            calcRivalAnchor(); checkMissingTasks(id);
+            window.isLogsLoaded = true; unlockTuHuyetPopup();
+            window.isLoginSyncing = false;
+        });
 
         if (window.noteManualCache && window.noteManualCache.trim() !== "") {
             let noteBox = document.getElementById('manualNoteBox');
@@ -2590,7 +2615,18 @@ async function login() {
 
     } catch (err) {
         if (btnMaster) { btnMaster.innerHTML = '<i class="fa-solid fa-gavel fa-shake"></i> TIẾP CHỈ'; btnMaster.disabled = false; }
-        showToast(err.message.includes("Mã lệnh") ? "🛑 " + err.message : "Đứt cáp quang! Thử lại đi Tiểu chủ!");
+        
+        // Phân loại lỗi để Sếp dễ debug thay vì báo "Đứt cáp quang" chung chung
+        if (err.message.includes("Mã lệnh")) {
+            showToast("🛑 " + err.message);
+        } else if (err.message.includes("API_ERROR:")) {
+            showToast("❌ Lỗi từ Google Sheet: " + err.message.replace("API_ERROR:", ""));
+        } else if (err.message.includes("Không tìm thấy dữ liệu")) {
+            showToast("⚠️ " + err.message);
+        } else {
+            showToast("📶 Sóng yếu hoặc Google Script đang ngủ! Tiểu chủ bấm 'Tiếp Chỉ' lại lần nữa nhé!");
+        }
+        console.error("Login Error:", err);
     }
 }
 
@@ -2630,12 +2666,13 @@ function openTuHuyetPopup(isAttendance) {
             </h2>
             <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px; font-style:italic;">TOP TỪ VỰNG toàn dân thường sai:</p>
             
-            <div style="max-height: 250px; overflow-y: auto; padding-right: 5px; margin-bottom: 20px;">
+            <!-- ĐẠI PHẪU UI: Đổi 250px thành 60vh để tự động co giãn full văn bản theo chiều cao màn hình -->
+            <div style="max-height: 60vh; overflow-y: auto; padding-right: 5px; margin-bottom: 20px; text-align: left;">
                 ${tuHuyetHtml}
             </div>
 
-            <button id="btnTuHuyetClose" class="btn" style="width: 100%; background: #334155; color: #94a3b8; border-color: #0f172a; cursor: not-allowed; padding: 15px; font-size: 14px;" onclick="tryCloseTuHuyet()">
-                <i class="fa-solid fa-lock"></i> ✍️ THÁI PHÓ ĐANG MÀI MỰC SOẠN BÀI... (<span id="tuHuyetCountdown">6</span>s)
+            <button id="btnTuHuyetClose" class="btn" style="width: 100%; display: block; text-align: center; line-height: 1.5; background: #334155; color: #94a3b8; border-color: #0f172a; cursor: not-allowed; padding: 15px; font-size: 14px;" onclick="tryCloseTuHuyet()">
+                <i class="fa-solid fa-lock" style="margin-right: 5px;"></i> ✍️ TA THÁCH TIỂU CHỦ THUỘC HẾT SỐ TỪ TRÊN <span style="white-space: nowrap;">TRONG... (<span id="tuHuyetCountdown">6</span>s)</span>
             </button>
         </div>
     `;
@@ -2661,7 +2698,7 @@ function tryCloseTuHuyet() {
     if (!window.tuHuyetTimerDone || !window.isLogsLoaded) {
         if (rageClickTimer) return; // Debounce chống spam Toast
         let msgs = [
-            "🤬 Giám thị đang xét hồ sơ! Thuộc hết TOP TỪ VỰNG toàn dân thường sai kia chưa, cấm thoát!",
+            "🤬 Giám khảo quan đang xét hồ sơ! Thuộc hết TOP TỪ VỰNG toàn dân thường sai kia chưa, cấm thoát!",
             "🛑 Đừng bấm nữa hỏng chuột! Chờ hệ thống nạp Đan Điền!",
             "⚔️ Tính trốn hả? Thuộc hết xong Tử Huyệt mới được xuất quan!"
         ];
@@ -2670,11 +2707,46 @@ function tryCloseTuHuyet() {
         return;
     }
     document.getElementById('tuHuyetLoadingModal').style.display = 'none';
-    // ĐÃ FIX: Chỉ khi xuất quan an toàn mới cho phép Thái Phó hiện hồn khảo bài (Tránh kẹt Modal)
+    
+    // 🚀 GIAI ĐOẠN 3: KÍCH HOẠT KHẢO BÀI ĐỘT XUẤT (NẾU CÓ)
     setTimeout(() => {
         if (typeof checkGhostThiefEncounter === 'function') checkGhostThiefEncounter();
     }, 500);
-}
+
+    // 🚀 GIAI ĐOẠN 4: HẬU CẦN CHẠY NGẦM (IDLE FETCHING) TẠI SẢNH CHÍNH
+    let scriptUrl = getScriptUrl();
+    if (scriptUrl && currentStudentId !== 'T11') {
+        // T+1s: Tải Bảng Phong Thần
+        setTimeout(() => {
+            fetchWithFallback(scriptUrl, "getLeaderboard", { error: "Lỗi mạng" }, "", 1, 10000)
+            .then(data => { if (!data.error && data.bxh1) window.leaderboardCache = data; });
+        }, 1000);
+
+        // T+2s: Tải Tin Tức Thị Phi
+        setTimeout(() => {
+            updateThiPhiTicker();
+        }, 2000);
+
+        // T+4s: XE TẢI NGẦM ZERO LAG (Gom trọn gói Kho Từ Vựng 1 lần duy nhất)
+        setTimeout(async () => {
+            let localBank = JSON.parse(localStorage.getItem('localBankCache')) || {};
+            
+            // Nếu Ổ cứng chưa có data, lấy xe tải đi cào 1 lần toàn bộ Server
+            if (Object.keys(localBank).length === 0) {
+                try {
+                    let data = await fetchWithFallback(scriptUrl, 'getAllBank', { bank: {} }, "", 1, 15000);
+                    if (data && data.bank && Object.keys(data.bank).length > 0) {
+                        localStorage.setItem('localBankCache', JSON.stringify(data.bank));
+                        window.bankCache = data.bank; // Nạp thẳng vào RAM
+                    }
+                } catch(e) { console.error("Lỗi cào data xe tải:", e); }
+            } else {
+                // Đã có data ở Ổ cứng thì chỉ nạp lên RAM sử dụng
+                window.bankCache = localBank;
+            }
+        }, 4000);
+    }
+    }
 
 function unlockTuHuyetPopup() {
     // Nút [X] chỉ sáng lên khi thõa mãn cả 2 điều kiện sinh tử
@@ -2685,7 +2757,8 @@ function unlockTuHuyetPopup() {
             btn.style.color = '#fff';
             btn.style.borderColor = '#14532d';
             btn.style.cursor = 'pointer';
-            btn.innerHTML = '<i class="fa-solid fa-door-open"></i> TA ĐÃ THÔNG HIỂU! XUẤT QUAN!';
+            // ĐÃ FIX: Chèn thẻ <br> để ép chữ XUẤT QUAN xuống dòng
+            btn.innerHTML = '<i class="fa-solid fa-door-open"></i> HAHA! TA ĐÃ THÔNG HIỂU!<br>XUẤT QUAN!';
             btn.classList.add('btn-green');
         }
     }
@@ -2778,7 +2851,8 @@ function calcRivalAnchor() {
         let attempt = parseInt(row[5]) || 1;
         let score = parseFloat(row[6]) || 0;
         
-        if (act.includes('[Thi Thật]') && attempt === 1) {
+        // FIX BẢNG CÁI GAI: Mở rộng lưới quét để bắt các log đã nén siêu nhẹ
+        if ((act.includes('[Thi Thật]') || act.includes('Thi ')) && !act.includes('[Tự Luyện]') && attempt === 1) {
             if (!studentStats[sid]) studentStats[sid] = { sum: 0, count: 0 };
             studentStats[sid].sum += score;
             studentStats[sid].count += 1;
@@ -2790,13 +2864,20 @@ function calcRivalAnchor() {
         .map(x => ({ id: x[0], score: x[1].sum / x[1].count }))
         .sort((a,b) => b.score - a.score);
         
-    let myIdx = sorted.findIndex(x => x.id === currentStudentId);
-    if(myIdx === -1) { document.getElementById('rivalAnchorBox').style.display = 'none'; return; }
-    
     let tBox = document.getElementById('uiGlobalTreasury');
     if(tBox) {
         let taxValue = window.globalTreasuryTax || 0;
         tBox.innerHTML = taxValue.toLocaleString('vi-VN') + ' <i class="fa-solid fa-coins"></i>';
+    }
+
+    let myIdx = sorted.findIndex(x => x.id === currentStudentId);
+    
+    // ĐẠI PHẪU UI: Nếu chưa thi, ép hiện bảng với thông báo khịa, không được giấu bảng đi làm vỡ layout
+    if(myIdx === -1) { 
+        document.getElementById('rivalList').innerHTML = `<div style="text-align:center; padding: 20px 10px; color: var(--text-muted); font-weight: bold; line-height: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;"><i class="fa-solid fa-ghost fa-2x" style="margin-bottom: 10px; opacity: 0.5;"></i>Sĩ tử chưa có tên trên giang hồ!<br>Hãy hoàn thành 1 bài [Thi Thật Lần 1]<br>để khai mở tính năng này.</div>`;
+        document.getElementById('rivalGaze').innerText = "Vô danh tiểu tốt, chưa đối thủ nào thèm để mắt tới!";
+        document.getElementById('rivalAnchorBox').style.display = 'flex';
+        return; 
     }
 
     // LUÔN LUÔN LẤY ĐÚNG 5 NGƯỜI (Top trên và Top dưới)
@@ -3249,7 +3330,6 @@ function shuffleArray(array) { let cur = array.length, ran; while (cur > 0) { ra
 window.bankCache = window.bankCache || {};
 
 async function startFlow(unit, part = 0) {
-    // KHÓA IDEMPOTENCY: Chặn double click gây chồng chéo giao diện
     if (window.isFetchingUnit) return;
     window.isFetchingUnit = true;
     
@@ -3258,19 +3338,24 @@ async function startFlow(unit, part = 0) {
     let isGrammar = currentType === 'grammar', apiMode = isGrammar ? 'getBank' : 'getTraBai';
     let cacheKey = `${apiMode}_${currentType}_U${unit}`;
 
-    // LAZY LOAD TỪ RAM: Nếu Đề đã tải rồi thì mở NGAY LẬP TỨC!
+    // 🚀 ĐẠI PHẪU ZERO LAG: Kéo thẳng từ Ổ Cứng (LocalStorage) do Bot tải ngầm gánh vác
+    let localBank = JSON.parse(localStorage.getItem('localBankCache')) || {};
+    if (localBank[cacheKey]) {
+        window.bankCache[cacheKey] = localBank[cacheKey];
+    }
+
+    // LAZY LOAD: CÓ DATA LÀ MỞ NGAY LẬP TỨC (KHÔNG BAO GIỜ XOAY XOAY)
     if (window.bankCache[cacheKey]) {
         window.isFetchingUnit = false;
         setupSession(window.bankCache[cacheKey], part);
         return;
     }
 
-    // --- BẮT ĐẦU FIX: BỌC THÉP NÚT BẤM, BỎ MÀN HÌNH ĐEN ÉT Ô ÉT ---
+    // --- CHỈ HIỆN XOAY XOAY NẾU HỌC SINH BẤM QUÁ NHANH KHI BOT CHƯA KỊP TẢI ---
     let loadingBtn = null;
     let originalText = "";
     let isModalTrigger = document.getElementById('preTestModal').style.display === 'flex';
     
-    // Tìm đúng cái nút vừa bị bấm để xoay Loading
     if (isModalTrigger) {
         loadingBtn = document.querySelector('#parentPinSection .btn-red') || document.getElementById('btnFarmGold');
         if (loadingBtn && loadingBtn.closest('#parentPinSection')?.style.display !== 'none' || loadingBtn.style.display !== 'none') {
@@ -3288,21 +3373,41 @@ async function startFlow(unit, part = 0) {
         }
     }
 
-    const MOCK_VOCAB = [{ baseWord: "Nghệ nhân*", answers: "artisan", type: "vocab" }, { baseWord: "HISTORY", answers: "adj:historic* | adj:historical | adv:historically", type: "wordform" }, { baseWord: "Famous*", answers: "for", type: "prep" }, { baseWord: "Balance*", answers: "n:balance | adj:balanced", type: "wordform" }];
+    // BỔ SUNG ĐẦY ĐỦ NGHĨA TIẾNG VIỆT CHO BỘ CẤP CỨU
+    const MOCK_VOCAB = [
+        { baseWord: "Nghệ nhân*", answers: "artisan", type: "vocab", meaning: "Người làm nghề thủ công" }, 
+        { baseWord: "HISTORY", answers: "adj:historic* | adj:historical | adv:historically", type: "wordform", meaning: "Mang tính lịch sử | Thuộc về lịch sử | Về mặt lịch sử" }, 
+        { baseWord: "Famous*", answers: "for", type: "prep", meaning: "Nổi tiếng về" }, 
+        { baseWord: "Balance*", answers: "n:balance | adj:balanced", type: "wordform", meaning: "Sự cân bằng | Cân bằng" }
+    ];
     let mockFallback = MOCK_VOCAB.filter(q => q.type === currentType);
     
-    let data = await fetchWithFallback(getScriptUrl(), apiMode, { questions: mockFallback }, `&type=${isGrammar ? 'grammar' : currentType}&unit=${unit}`);
-    let fetchedQuestions = data.questions && data.questions.length > 0 ? data.questions : mockFallback;
+    let data = await fetchWithFallback(getScriptUrl(), apiMode, { questions: [] }, `&type=${isGrammar ? 'grammar' : currentType}&unit=${unit}`);
     
-    // TRẢ LẠI GIAO DIỆN NÚT BẤM SAU KHI TẢI XONG
+    let isMock = false;
+    let fetchedQuestions = [];
+    if (data && data.questions && data.questions.length > 0) {
+        fetchedQuestions = data.questions;
+    } else {
+        fetchedQuestions = mockFallback;
+        isMock = true; // Bật cờ cảnh báo: Đây là đồ giả!
+        showToast("⚠️ Mạng quá chậm! Đang dùng tạm dữ liệu cấp cứu...");
+    }
+    
+    window.isFetchingUnit = false;
     if (loadingBtn) {
         loadingBtn.innerHTML = originalText;
         loadingBtn.style.opacity = '1';
         document.querySelectorAll('#unitGridContainer .btn').forEach(b => b.style.pointerEvents = 'auto');
     }
 
-    window.bankCache[cacheKey] = fetchedQuestions;
-    window.isFetchingUnit = false;
+    // 🚫 ĐẠI PHẪU: TUYỆT ĐỐI KHÔNG LƯU DATA GIẢ VÀO Ổ CỨNG! CHỈ LƯU DATA THẬT!
+    if (!isMock) {
+        window.bankCache[cacheKey] = fetchedQuestions;
+        localBank[cacheKey] = fetchedQuestions;
+        try { localStorage.setItem('localBankCache', JSON.stringify(localBank)); } catch(e){}
+    }
+
     setupSession(fetchedQuestions, part);
 }
 
@@ -3472,7 +3577,6 @@ function flipCard() {
     let el = document.getElementById('flashcardEl'); 
     if(el) {
         el.classList.toggle('is-flipped'); 
-        if (el.classList.contains('is-flipped')) setTimeout(() => speakCurrentWord(null, 'US'), 300); 
     }
 }
 
@@ -3619,7 +3723,6 @@ function flipCard() {
         el.classList.toggle('is-flipped'); 
         if (el.classList.contains('is-flipped')) {
             if(window.fcFlippedCards) window.fcFlippedCards.add(currentQIndex); // ĐÁNH DẤU THẺ NÀY ĐÃ ĐƯỢC LẬT
-            setTimeout(() => speakCurrentWord(null, 'US'), 300); 
         }
     } 
 }
@@ -3667,19 +3770,21 @@ function speakCurrentWord(e, accent = 'US') {
     let finalWord = formatWordForSpeech(q, currentType);
     
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); 
+        // ĐẠI PHẪU: Chỉ cancel nếu ĐANG nói. Gọi cancel() mù quáng sẽ làm cháy luồng Audio trên iOS/Android
+        if (window.speechSynthesis.speaking) window.speechSynthesis.cancel(); 
+        
         let msg = new SpeechSynthesisUtterance(finalWord); 
         msg.lang = accent === 'UK' ? 'en-GB' : 'en-US'; 
         
-        // GIỌNG ĐỌC TỰ NHIÊN: Gỡ bỏ hoàn toàn lệnh ép thanh quản cực đoan
-        msg.rate = 0.85; // Tốc độ vừa phải dễ nghe
-        msg.pitch = 1.0; // Cao độ tự nhiên của điện thoại
+        msg.rate = 0.85; 
+        msg.pitch = 1.0; 
         msg.volume = 1.0; 
         
         let voice = getBestVoice(accent);
         if(voice) msg.voice = voice;
         
-        window.speechSynthesis.speak(msg); 
+        // ĐẠI PHẪU MOBILE: Hủy ngay lệnh trì hoãn. Phát âm thanh ĐỒNG BỘ lập tức để Safari/Chrome không block.
+        window.speechSynthesis.speak(msg);
     }
 }
 
@@ -3779,52 +3884,76 @@ function navVocabLearn(dir) {
 function startTypingTestPhase() { exactErrorDetails = []; totalQuestionsCount = questionsQueue.length; renderTypingTest(); switchScreen('vocabTestScreen'); }
 
 function renderTypingTest() {
-    window.isCheckingAnswer = false; // MỞ KHÓA LUỒNG TÍNH ĐIỂM
-    if(questionsQueue.length === 0) { evaluateVocabTest(); return; }
-    let q = questionsQueue[0]; document.getElementById('vtProgress').innerText = `Câu ${totalQuestionsCount - questionsQueue.length + 1}/${totalQuestionsCount}`;
-    
-    let inputArea = document.getElementById('vtInputArea'); inputArea.innerHTML = ""; let hintTextClean = q.vn.replace(/\*/g, '');
-    let meanText = q.meaning ? q.meaning : "";
+    try {
+        window.isCheckingAnswer = false; // MỞ KHÓA LUỒNG TÍNH ĐIỂM
+        if(!questionsQueue || questionsQueue.length === 0) { evaluateVocabTest(); return; }
+        
+        let q = questionsQueue[0]; 
+        // BỌC THÉP: Nếu từ vựng bị rỗng hoặc lỗi data, tự động đá văng sang câu tiếp theo, KHÔNG BAO GIỜ TREO MÁY!
+        if (!q || !q.vn || !q.en) { questionsQueue.shift(); renderTypingTest(); return; } 
 
-    let inputCount = (q.type === 'wordform') ? String(q.en).split('|').length : 1;
-    timeLeft = inputCount * 30; 
-    
-    let timerEl = document.getElementById('vtTimer'); timerEl.innerText = timeLeft; timerEl.classList.remove('urgent');
-    clearInterval(timerInterval); timerInterval = setInterval(() => { timeLeft--; timerEl.innerText = timeLeft; if(timeLeft <= 5) timerEl.classList.add('urgent'); if(timeLeft <= 0) { clearInterval(timerInterval); closeVirtualKeyboard(); checkVocabAnswer(true); } }, 1000);
+        document.getElementById('vtProgress').innerText = `Câu ${totalQuestionsCount - questionsQueue.length + 1}/${totalQuestionsCount}`;
+        let inputArea = document.getElementById('vtInputArea'); 
+        inputArea.innerHTML = ""; 
+        
+        // Ép kiểu String chống lỗi crash replace
+        let hintTextClean = String(q.vn).replace(/\*/g, '');
+        let meanText = q.meaning ? q.meaning : "";
 
-    // MA TRẬN NHẬN DIỆN THÔNG MINH CHO CẢ THI THẬT LẪN PHỤC THÙ
-    if (q.type === 'wordform') {
-        // WORDFORM: Hiện Từ gốc Tiếng Việt
-        document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
-        document.getElementById('vtSubHint').innerText = window.isRevengeMode ? "" : "Điền Tiếng Anh theo từng loại từ";
-        let meanings = meanText.split('|');
-        q.en.split('|').forEach((p, i) => { 
-            let type = p.split(':')[0] || 'word'; 
-            let m = meanings[i] ? meanings[i].trim() : '';
-            inputArea.innerHTML += `<div style="width:100%; display:flex; gap:10px; align-items:center;">
-                <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:80px;">
-                    <span class="wf-type-label" style="font-weight:900; color:var(--accent-blue); text-transform:uppercase; font-size:15px;">${type}</span>
-                    ${m ? `<span style="font-size:11px; color:var(--accent-red); font-weight:900; margin-top:2px;">[${m}]</span>` : ''}
-                </div>
-                <input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0; flex-grow:1; cursor:pointer;" data-ans="${p.split(':')[1] || p}" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">
-            </div>`; 
-        });
-    } else if (q.type === 'prep') {
-        // GIỚI TỪ: Luôn hiện Từ Tiếng Anh gốc (to) + Gợi ý Nghĩa (nhỏ đỏ)
-        document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
-        document.getElementById('vtSubHint').innerHTML = meanText ? `<span style="color:var(--accent-red); font-size:14px; font-weight:900; text-transform:uppercase;">[${meanText}]</span>` : `<span style="color:var(--accent-red); font-size:14px; font-weight:900; text-transform:uppercase;">[Điền giới từ phù hợp]</span>`; 
-        inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
-    } else {
-        // VOCAB: Hiện thuần Tiếng Việt (Tuyệt đối KHÔNG hiện thêm subhint gì cả, kể cả ở Hình Bộ)
-        document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
-        document.getElementById('vtSubHint').innerText = ""; 
-        let cleanAns = q.en.split('(')[0].trim().replace(/\*/g, ''); 
-        inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+        let inputCount = (q.type === 'wordform') ? String(q.en).split('|').length : 1;
+        timeLeft = inputCount * 30; 
+        
+        let timerEl = document.getElementById('vtTimer'); 
+        if (timerEl) { timerEl.innerText = timeLeft; timerEl.classList.remove('urgent'); }
+        
+        clearInterval(timerInterval); 
+        timerInterval = setInterval(() => { 
+            timeLeft--; 
+            if(timerEl) timerEl.innerText = timeLeft; 
+            if(timeLeft <= 5 && timerEl) timerEl.classList.add('urgent'); 
+            if(timeLeft <= 0) { clearInterval(timerInterval); closeVirtualKeyboard(); checkVocabAnswer(true); } 
+        }, 1000);
+
+        // MA TRẬN NHẬN DIỆN THÔNG MINH CHO CẢ THI THẬT LẪN PHỤC THÙ
+        if (q.type === 'wordform') {
+            document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
+            document.getElementById('vtSubHint').innerText = window.isRevengeMode ? "" : "Điền Tiếng Anh theo từng loại từ";
+            let meanings = meanText.split('|');
+            String(q.en).split('|').forEach((p, i) => { 
+                let type = p.split(':')[0] || 'word'; 
+                let m = meanings[i] ? meanings[i].trim() : '';
+                inputArea.innerHTML += `<div style="width:100%; display:flex; gap:10px; align-items:center;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:80px;">
+                        <span class="wf-type-label" style="font-weight:900; color:var(--accent-blue); text-transform:uppercase; font-size:15px;">${type}</span>
+                        ${m ? `<span style="font-size:11px; color:var(--accent-red); font-weight:900; margin-top:2px;">[${m}]</span>` : ''}
+                    </div>
+                    <input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0; flex-grow:1; cursor:pointer;" data-ans="${p.split(':')[1] || p}" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">
+                </div>`; 
+            });
+        } else if (q.type === 'prep') {
+            document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
+            document.getElementById('vtSubHint').innerHTML = meanText ? `<span style="color:var(--accent-red); font-size:14px; font-weight:900; text-transform:uppercase;">[${meanText}]</span>` : `<span style="color:var(--accent-red); font-size:14px; font-weight:900; text-transform:uppercase;">[Điền giới từ phù hợp]</span>`; 
+            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+        } else {
+            document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
+            document.getElementById('vtSubHint').innerText = ""; 
+            let cleanAns = String(q.en).split('(')[0].trim().replace(/\*/g, ''); 
+            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+        }
+        
+        setTimeout(() => { let inp = document.getElementById('vtInput_0'); if(inp) { openVirtualKeyboard(inp); } }, 100); 
+        let fb = document.getElementById('vtFeedback'); if(fb) fb.innerHTML = ""; 
+        let btnSubmit = document.getElementById('btnVtSubmit'); 
+        if(btnSubmit) {
+            btnSubmit.innerHTML = 'HẠ BÚT ĐIỂM NHÃN'; 
+            btnSubmit.className = "btn btn-blue"; 
+            btnSubmit.onclick = () => { closeVirtualKeyboard(); checkVocabAnswer(false); };
+        }
+    } catch (err) {
+        console.error("LỖI CÂU HỎI:", err);
+        questionsQueue.shift(); 
+        renderTypingTest(); // Đá văng lỗi, tự động nối câu mới để cứu app
     }
-    setTimeout(() => { let inp = document.getElementById('vtInput_0'); if(inp) { openVirtualKeyboard(inp); } }, 100); 
-    document.getElementById('vtFeedback').innerHTML = ""; 
-    let btnSubmit = document.getElementById('btnVtSubmit'); btnSubmit.innerHTML = 'HẠ BÚT ĐIỂM NHÃN'; btnSubmit.className = "btn btn-blue"; 
-    btnSubmit.onclick = () => { closeVirtualKeyboard(); checkVocabAnswer(false); };
 }
 
 function checkVocabAnswer(isTimeout) {
@@ -3894,9 +4023,23 @@ function checkVocabAnswer(isTimeout) {
         // Phục thù Sổ đen
         if(pastStudentErrors.has(cleanWordKey)) {
             sessionFixedErrors++; pastStudentErrors.delete(cleanWordKey); 
+            
+            // TASK 2: Ghi nhận chính xác 100% từ đã Phục thù
+            if (!window.sessionFixedWords) window.sessionFixedWords = [];
+            window.sessionFixedWords.push(cleanWordKey);
+            
             let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
             if(!redeemed.includes(cleanWordKey)) redeemed.push(cleanWordKey);
             localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(redeemed));
+            
+            // TASK 1 FIX: Trục xuất hoàn toàn khỏi mảng blackbook để không bị hoàn sinh
+            let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+            let newBB = localBB.filter(w => {
+                let wKey = typeof w === 'string' ? w.split('::')[0].trim().toLowerCase() : "";
+                return wKey !== cleanWordKey.toLowerCase();
+            });
+            localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(newBB));
+            
             if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
         }
 
@@ -3978,12 +4121,30 @@ function checkVocabAnswer(isTimeout) {
 
     } else {
      // ==========================================
-        // PHẦN 3: XỬ LÝ LỖI SAI (CẮT COMBO)
-        // ==========================================
-        currentCombo = 0; 
-        let enStr = q.en || ""; let meanStr = q.meaning || "";
-        sessionErrorWords.push(cleanWordKey + "::" + enStr + "::" + meanStr);
-        let errHtml = specificErrors.join("<br>"); 
+    // PHẦN 3: XỬ LÝ LỖI SAI (CẮT COMBO)
+    // ==========================================
+    currentCombo = 0; 
+
+    // ĐÃ FIX BÁO CÁO ZALO: Lấy chính xác những gì học sinh gõ (Nếu bỏ trống thì ghi (Trống))
+    let userTypedStr = "(Trống)";
+    if (isTimeout) {
+        userTypedStr = "(Hết giờ)";
+    } else {
+        let inputs = document.querySelectorAll('#vtInputArea input');
+        let vals = [];
+        inputs.forEach(inp => {
+            let v = inp.value.trim();
+            vals.push(v === "" ? "(Trống)" : v);
+        });
+        userTypedStr = vals.join(" | ").replace(/,/g, ' - ');
+    }
+
+    // FIX BÁO CÁO ZALO: Khử nhiễu dấu phẩy trong Word Form
+    let enStr = String(q.en || "").replace(/,/g, ' -'); 
+    let meanStr = String(q.meaning || "").replace(/,/g, ' -');
+    // Nhét thêm chuỗi học sinh gõ (userTypedStr) vào vị trí số 5
+    sessionErrorWords.push(cleanWordKey + "::" + enStr + "::" + meanStr + "::" + (q.type || "vocab") + "::" + userTypedStr);
+    let errHtml = specificErrors.join("<br>");
         exactErrorDetails.push({ q: cleanWordKey, htmlDetails: errHtml });
         
       // --- BẮT ĐẦU: NGHIỆP QUẬT HÌNH BỘ & BALO BẢO HIỂM ---
@@ -4140,6 +4301,7 @@ function setupSessionBackupForOfficial(hasFreezeBuff) {
     window.isSessionFinished = false; 
     clearInterval(timerInterval); exactErrorDetails = []; cheatWarnings = 0; testStartTime = Date.now();
     sessionMaxCombo = 0; currentCombo = 0; sessionFixedErrors = 0; sessionErrorWords = [];
+    window.sessionFixedWords = []; // Khởi tạo mảng hứng từ phục thù
     currentQIndex = 0;
 
     // ĐÃ FIX: Lấy chính xác mảng ĐÃ ĐƯỢC XÁO TRỘN LÚC NHÁP
@@ -4235,16 +4397,26 @@ function finishSession(score, typeName, cheatMsg) {
     let cpNum = parseInt(currentPart);
     let partText = cpNum === 0 ? "" : (cpNum === 1 ? " - P1" : " - P2");
     
-    let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]", fullTitle = `Thi ${typeTitles[currentType] || typeName}${logModeTag}`, unitTitle = `Unit ${currentUnit}${partText}`;
+let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
+    let fullTitle = `Thi ${typeTitles[currentType] || typeName}${logModeTag}`;
+    let unitTitle = `Unit ${currentUnit}${partText}`;
 
-    let baseCategory = fullTitle.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "");
-    let attemptLogCount = allLogsCache.filter(r => 
+    // ĐẠI PHẪU: Ép chuẩn Tiêu đề cho Hình Bộ
+    if (window.isRevengeMode) {
+        fullTitle = "PHỤC THÙ HÌNH BỘ";
+        unitTitle = "Toàn bộ Sổ Đen";
+    }
+
+    let baseCategory = fullTitle.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace(" [Phục Thù]", "");    let attemptLogCount = allLogsCache.filter(r => 
         String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && 
         r[3] && r[3].toString().includes(baseCategory) && 
         r[4].toString().trim() === unitTitle
     ).length + 1;
     
-    let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, fullTitle, unitTitle, attemptLogCount.toString(), score.toString(), (totalQuestionsCount - exactErrorDetails.length).toString(), exactErrorDetails.length.toString(), totalQuestionsCount.toString(), cheatMsg, durStr, sessionMaxCombo, sessionFixedErrors, sessionErrorWords.join(',') ];
+    // ĐẠI PHẪU: Lưu danh sách chữ (turn, feed) thay vì lưu con số nếu là Hình Bộ
+    let fixedDataToSave = (window.isRevengeMode && window.sessionFixedWords) ? window.sessionFixedWords.join(', ') : sessionFixedErrors;
+
+    let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, fullTitle, unitTitle, attemptLogCount.toString(), score.toString(), (totalQuestionsCount - exactErrorDetails.length).toString(), exactErrorDetails.length.toString(), totalQuestionsCount.toString(), cheatMsg, durStr, sessionMaxCombo, fixedDataToSave, sessionErrorWords.join(',') ];
     allLogsCache.push(localLog);
     // FIX: Bắt buộc lưu lịch sử mới ngay xuống bộ nhớ Local
     localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
@@ -4425,57 +4597,72 @@ function finishSession(score, typeName, cheatMsg) {
     infoContainer.innerHTML = timeBoxHtml + `<div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 2px solid var(--border-dark); font-size: 14px;"><p style="margin: 8px 0; border-bottom: 1px solid var(--border-dark); padding-bottom: 5px;"><strong>👨‍🎓 Sĩ tử:</strong> ${currentStudentId} (${currentStudentName})</p><p style="margin: 8px 0;"><strong>📚 Khảo hạch:</strong> ${fullTitle} - ${unitTitle}</p></div>`;
 
     let errBox = document.getElementById('rErrorsDetail');
-    if(exactErrorDetails.length === 0) { 
-        errBox.innerHTML = `Chân nhân bất lộ tướng! Nội công đạt mức thượng thừa, không một vết xước!`; 
-        errBox.style.borderLeftColor = "var(--accent-green)"; errBox.style.background = "rgba(46,213,115,0.1)"; errBox.style.color = "var(--accent-green)"; 
-    } else { 
-        let errHtml = `<ul style="margin:0; padding-left:20px;">`; 
-        exactErrorDetails.forEach((err, idx) => { 
-            errHtml += `<li style="margin-bottom: 15px; color: var(--border-dark);"><b>Câu ${idx+1}:</b> [${err.q}]<br>${err.htmlDetails}</li>`; 
-        }); 
-        errBox.innerHTML = errHtml + `</ul>`; 
-        errBox.style.borderLeftColor = "var(--accent-red)"; errBox.style.background = "white"; errBox.style.color = "var(--border-dark)"; 
+    let errorPlainText = "";
+    
+    if (window.isRevengeMode) {
+        let fixedWordsList = (window.sessionFixedWords && window.sessionFixedWords.length > 0) ? window.sessionFixedWords.join(", ") : "Không có";
+        let stillErrorWordsList = (sessionErrorWords && sessionErrorWords.length > 0) ? sessionErrorWords.map(w => w.split("::")[0]).join(", ") : "Không có";
+        
+        // 1. RENDER LÊN UI MÀN HÌNH BÁO CÁO
+        errBox.innerHTML = `<div style="font-size: 15px; line-height: 1.8;"><b>🔥 KẾT QUẢ PHỤC THÙ:</b><br><span style="color: var(--accent-green);">✔️ Đã tiêu diệt thành công: [${fixedWordsList}]</span><br><span style="color: var(--accent-red);">❌ Tội phạm còn tẩu thoát: [${stillErrorWordsList}]</span></div>`;
+        errBox.style.borderLeftColor = "var(--border-dark)"; errBox.style.background = "white"; errBox.style.color = "var(--border-dark)";
+        
+        // 2. RENDER LÊN TEXT GỬI ZALO
+        errorPlainText = `\n🔥 KẾT QUẢ PHỤC THÙ:\n✔️ Đã tiêu diệt thành công: [${fixedWordsList}]\n❌ Tội phạm còn tẩu thoát: [${stillErrorWordsList}]\n`;
+    } else {
+        if(exactErrorDetails.length === 0) { 
+            errBox.innerHTML = `Chân nhân bất lộ tướng! Nội công đạt mức thượng thừa, không một vết xước!`; 
+            errBox.style.borderLeftColor = "var(--accent-green)"; errBox.style.background = "rgba(46,213,115,0.1)"; errBox.style.color = "var(--accent-green)"; 
+        } else { 
+            let errHtml = `<ul style="margin:0; padding-left:20px;">`; 
+            exactErrorDetails.forEach((err, idx) => { 
+                errHtml += `<li style="margin-bottom: 15px; color: var(--border-dark);"><b>Câu ${idx+1}:</b> [${err.q}]<br>${err.htmlDetails}</li>`; 
+            }); 
+            errBox.innerHTML = errHtml + `</ul>`; 
+            errBox.style.borderLeftColor = "var(--accent-red)"; errBox.style.background = "white"; errBox.style.color = "var(--border-dark)"; 
+        }
+        
+        if (exactErrorDetails.length > 0) {
+            errorPlainText = "\n❌ CHI TIẾT LỖI SAI:\n";
+            exactErrorDetails.forEach((err, idx) => {
+                let cleanQ = err.q.replace(/<[^>]+>/g, '').trim(); 
+                let cleanDetails = err.htmlDetails.replace(/<i[^>]*fa-arrow-right[^>]*><\/i>/g, ' => ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').replace(/Đáp án chuẩn phải là:/g, 'Đáp án:').replace(/Đáp án đúng:/g, 'Đáp án:').trim();
+                errorPlainText += `- Câu ${idx + 1} : [${cleanQ}] ${cleanDetails}\n`;
+            });
+        }
     }
 
     // ========================================================
     // TẠO NỘI DUNG ZALO CHUẨN FORM BÁO CÁO CHI TIẾT
     // ========================================================
     let attemptText = attemptLogCount === 1 ? "LẦN 1 - TRẢ BÀI CHUẨN DUY NHẤT" : `LẦN ${attemptLogCount} - CÀY VÀNG BÙ ĐẮP`;
-    let displayTypeMapping = { "vocab": "TỪ VỰNG: VOCAB", "grammar": "NGỮ PHÁP: GRAMMAR", "wordform": "DẠNG TỪ: WORD FORM", "prep": "GIỚI TỪ: PREP" };
-    let partTextText = cpNum === 0 ? "" : (cpNum === 1 ? " - PHẦN 1" : " - PHẦN 2");
-    let subjectText = `TEST UNIT ${currentUnit} - ${displayTypeMapping[currentType] || currentType.toUpperCase()}${partTextText} ✨ NEW ✨`;
+    let subjectText = `TEST UNIT ${currentUnit} - ${currentType.toUpperCase()} ✨ NEW ✨`;
+    
+    // ĐẠI PHẪU: ÉP CHUẨN TIÊU ĐỀ CHO HÌNH BỘ
+    if (window.isRevengeMode) {
+        attemptText = "TRẢ BÀI CHỮA LÀNH";
+        subjectText = `PHỤC THÙ HÌNH BỘ (SỔ ĐEN)`;
+    } else {
+        let displayTypeMapping = { "vocab": "TỪ VỰNG: VOCAB", "grammar": "NGỮ PHÁP: GRAMMAR", "wordform": "DẠNG TỪ: WORD FORM", "prep": "GIỚI TỪ: PREP" };
+        let partTextText = cpNum === 0 ? "" : (cpNum === 1 ? " - PHẦN 1" : " - PHẦN 2");
+        subjectText = `TEST UNIT ${currentUnit} - ${displayTypeMapping[currentType] || currentType.toUpperCase()}${partTextText} ✨ NEW ✨`;
+    }
     
     let cCount = totalQuestionsCount - exactErrorDetails.length;
     let wCount = exactErrorDetails.length;
-
-    let errorPlainText = "";
-    if (wCount > 0) {
-        errorPlainText = "\n❌ CHI TIẾT LỖI SAI:\n";
-        exactErrorDetails.forEach((err, idx) => {
-            let cleanQ = err.q.replace(/<[^>]+>/g, '').trim(); 
-            let cleanDetails = err.htmlDetails
-                .replace(/<i[^>]*fa-arrow-right[^>]*><\/i>/g, ' => ')
-                .replace(/<[^>]+>/g, '') 
-                .replace(/\s+/g, ' ') 
-                .replace(/Đáp án chuẩn phải là:/g, 'Đáp án:')
-                .replace(/Đáp án đúng:/g, 'Đáp án:')
-                .trim();
-            errorPlainText += `- Câu ${idx + 1} : [${cleanQ}] ${cleanDetails}\n`;
-        });
-    }
-
     let remarkText = score === 10 ? "Xuất sắc! Nắm vững hoàn toàn." : (score >= 8 ? "Khá giỏi, cần phát huy!" : (score >= 5 ? "Đạt yêu cầu, nhưng cần ôn lại." : "Chưa đạt! Cần đôn đốc khẩn cấp."));
     
-    window.pendingZaloShareText = `BÁO CÁO KẾT QUẢ CHI TIẾT [${attemptText}] của ${currentStudentId}\n${subjectText}\nCon làm bài vào NGÀY ${dateStr}\n⏳ Thời gian làm bài: ${durStr}   -  Bắt đầu: ${startStr} => Kết thúc: ${endStr}\n🎯 Điểm: ${score}/10 (Đúng: ${cCount}, Sai: ${wCount})\n${errorPlainText}\n👩‍🏫 Đánh giá: ${remarkText}`;
-
+    window.pendingZaloShareText = `BÁO CÁO KẾT QUẢ CHI TIẾT [${attemptText}]\nSĩ tử: ${currentStudentId}\n${subjectText}\nCon làm bài vào NGÀY ${dateStr}\n⏳ Thời gian làm bài: ${durStr}   -  Bắt đầu: ${startStr} => Kết thúc: ${endStr}\n🎯 Điểm: ${score}/10 (Đúng: ${cCount}, Sai: ${wCount})\n${errorPlainText}\n👩‍🏫 Đánh giá: ${remarkText}`;
+    
+    // ĐẢM BẢO NÚT ZALO LUÔN HIỂN THỊ NẾU LÀ HÌNH BỘ HOẶC THI LẦN 1
     let zaloBox = document.getElementById('zaloShareContainer');
     if (zaloBox) {
         zaloBox.innerHTML = `<button class="btn btn-blue" style="width: 100%; font-size: 14px; background: #0088FF; color: white; border-color: var(--border-dark);" onclick="shareZalo()"><i class="fa-solid fa-paper-plane fa-bounce"></i> BÁO NGAY KẾT QUẢ CHO BA MẸ [Dán vào ZALO!]</button>`;
-        zaloBox.style.display = attemptLogCount === 1 ? 'block' : 'none';
+        zaloBox.style.display = (attemptLogCount === 1 || window.isRevengeMode) ? 'block' : 'none';
     }
 
     if (getScriptUrl().startsWith("http")) {
-        fetch(getScriptUrl(), { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, attempt: attemptLogCount, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: cheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: sessionFixedErrors, errorWords: sessionErrorWords.join(',') }) }).then(() => checkMissingTasks(currentStudentId)).catch(e=>{});
+        fetch(getScriptUrl(), { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, attempt: attemptLogCount, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: cheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: fixedDataToSave, errorWords: sessionErrorWords.join(',') }) }).then(() => checkMissingTasks(currentStudentId)).catch(e=>{});
     }
     
     // THU HỒI ẤN TÍN SAU KHI THI XONG (Chống xài chùa)
@@ -4525,7 +4712,8 @@ function loginParentPortal() {
     document.getElementById('parentStudentName').innerHTML = `${sName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName || 'Chưa chọn'}</b></div>`;
     
     let studentRows = allLogsCache.filter(row => String(row[1]).trim().toUpperCase() === String(id).trim().toUpperCase());
-    let vocabRowsAsc = studentRows.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ")));
+    // ĐẠI PHẪU: Cho phép "PHỤC THÙ" lọt qua lưới lọc để hiển thị lên bảng
+    let vocabRowsAsc = studentRows.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ") || r[3].toString().includes("PHỤC THÙ")));
     let vocabRowsDesc = [...vocabRowsAsc].reverse(); 
     
     let vocabHtml = "", grammarHtml = "", totalVocabScore = 0, vocabCount = 0, totalGrammarScore = 0, grammarCount = 0;
@@ -4537,6 +4725,8 @@ function loginParentPortal() {
     let idxC = headers.indexOf("Số câu đúng") > -1 ? headers.indexOf("Số câu đúng") : 7;
     let idxW = headers.indexOf("Số câu sai") > -1 ? headers.indexOf("Số câu sai") : 8;
     let idxDur = headers.indexOf("Thời gian làm bài") > -1 ? headers.indexOf("Thời gian làm bài") : 11;
+    // Khai báo thêm Cột 13 (Lỗi đã sửa) để móc danh sách từ đã Tiêu Diệt ra
+    let idxFixed = headers.indexOf("Lỗi đã sửa") > -1 ? headers.indexOf("Lỗi đã sửa") : 13;
     let idxErr = headers.indexOf("Danh sách lỗi") > -1 ? headers.indexOf("Danh sách lỗi") : 14;
 
     let timelineHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
@@ -4567,15 +4757,22 @@ function loginParentPortal() {
         let wCount = row[idxW] ? row[idxW].toString() : "0";
         let durStr = row[idxDur] ? row[idxDur].toString() : "--";
         
-        let rowStyle = attempt === "1" ? "border: 4px solid #ff4757; box-shadow: inset 0 0 10px rgba(239,68,68,0.2); background: #fff5f5; position: relative;" : "border-bottom: 2px solid var(--border-dark); position: relative;";
-        let badge = attempt === "1" ? `<div style="background:#ff4757; color:white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; display: inline-block;">THI CHUẨN</div>` : `<div style="background:#cbd5e1; color:#0f172a; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">Cày Vàng</div>`;
+        let isRevenge = category.includes("PHỤC THÙ");
+        let rowStyle = (attempt === "1" || isRevenge) ? "border: 4px solid #ff4757; box-shadow: inset 0 0 10px rgba(239,68,68,0.2); background: #fff5f5; position: relative;" : "border-bottom: 2px solid var(--border-dark); position: relative;";
+        let badge = `<div style="background:#cbd5e1; color:#0f172a; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">Cày Vàng</div>`;
+        if (attempt === "1") badge = `<div style="background:#ff4757; color:white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; display: inline-block;">THI CHUẨN</div>`;
+        if (isRevenge) badge = `<div style="background:#000; color:#ef4444; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; display: inline-block; border: 1px solid #ef4444;">PHỤC THÙ</div>`;
 
-        if(category.includes("Word Form")) { sumWF += score; cWF++; }
-        if(category.includes("Giới từ")) { sumPrep += score; cPrep++; }
-        if(category.includes("Từ Vựng")) { sumVocab += score; cVocab++; }
+        // Không cộng trung bình điểm Phục thù vào biểu đồ năng lực
+        if (!isRevenge) {
+            if(category.includes("Word Form")) { sumWF += score; cWF++; }
+            if(category.includes("Giới từ")) { sumPrep += score; cPrep++; }
+            if(category.includes("Từ Vựng")) { sumVocab += score; cVocab++; }
+        }
 
         let cleanType = "";
-        if (category.includes("Word Form")) cleanType = "WORDFORM";
+        if (isRevenge) cleanType = "SỔ ĐEN";
+        else if (category.includes("Word Form")) cleanType = "WORDFORM";
         else if (category.includes("Từ Vựng")) cleanType = "VOCAB";
         else if (category.includes("Giới từ")) cleanType = "PREP";
 
@@ -4585,6 +4782,11 @@ function loginParentPortal() {
         let unitTextZalo = unitInfo.replace("Unit ", "UNIT ").replace(" - P", " - PHẦN ");
         let subjectTextZalo = `TEST ${unitTextZalo} - DẠNG TỪ VỰNG: ${cleanType} ✨ NEW ✨`;
         
+        if (isRevenge) {
+            attemptTextZalo = "TRẢ BÀI CHỮA LÀNH";
+            subjectTextZalo = `PHỤC THÙ HÌNH BỘ (SỔ ĐEN)`;
+        }
+
         // BÓC TÁCH NGÀY GIỜ BẤT TỬ CHỐNG CRASH
         let logDate = new Date(timeStr);
         let dateStrZalo = "Không rõ";
@@ -4594,6 +4796,8 @@ function loginParentPortal() {
         if (!isNaN(logDate.getTime())) {
             dateStrZalo = `NGÀY ${logDate.getDate().toString().padStart(2,'0')} THÁNG ${(logDate.getMonth()+1).toString().padStart(2,'0')} NĂM ${logDate.getFullYear()}`;
             hourPart = logDate.toLocaleTimeString('vi-VN', {hour12: false});
+            timeStr = logDate.toLocaleTimeString('vi-VN', {hour12: false, hour:'2-digit', minute:'2-digit'}) + ' - ' + logDate.toLocaleDateString('vi-VN');
+            
             let durMatch = durStr.match(/(\d+)p\s*(\d+)s/);
             if(durMatch) {
                 let mins = parseInt(durMatch[1]), secs = parseInt(durMatch[2]);
@@ -4606,17 +4810,36 @@ function loginParentPortal() {
             hourPart = timeParts.find(p => p.includes(':')) || "Không rõ";
         }
 
-        // RENDER DANH SÁCH LỖI SAI
+        // RENDER DANH SÁCH LỖI SAI / ZALO HÌNH BỘ TẠI CỔNG PHỤ HUYNH
         let errData = row[idxErr] ? row[idxErr].toString() : "";
+        let fixedData = row[idxFixed] ? row[idxFixed].toString() : "";
         let errorPlainText = "";
-        if (errData && wCount > 0) {
-            errorPlainText = "\n❌ CHI TIẾT LỖI SAI:\n";
-            errData.split(',').forEach((e, idx) => {
-                let parts = e.split('::');
-                if(parts[0]) {
-                    errorPlainText += `- Câu ${idx + 1} : [${parts[0].trim()}] Con nhập: (Trống/Sai) => Đáp án: ${parts[1] ? parts[1].trim() : ''}\n`;
-                }
-            });
+        
+        if (isRevenge) {
+            let failedWords = [];
+            if (errData) {
+                errData.split(',').forEach(e => {
+                    let parts = e.split('::');
+                    if(parts[0]) failedWords.push(parts[0].trim());
+                });
+            }
+            // Đọc mảng từ đã diệt từ Cột 13 (Lỗi đã sửa), nếu không có thì đọc biến toàn cục RAM (cho log mới làm xong)
+            let fixedWordsStr = fixedData && isNaN(fixedData) ? fixedData : (window.sessionFixedWords && index === 0 ? window.sessionFixedWords.join(", ") : `${cCount} từ`);
+            let failedWordsStr = failedWords.length > 0 ? failedWords.join(", ") : "Không có";
+            
+            errorPlainText = `\n🔥 KẾT QUẢ PHỤC THÙ:\n✔️ Đã tiêu diệt thành công: [${fixedWordsStr}]\n❌ Tội phạm còn tẩu thoát: [${failedWordsStr}]\n`;
+        } else {
+            if (errData && wCount > 0) {
+                errorPlainText = "\n❌ CHI TIẾT LỖI SAI:\n";
+                errData.split(',').forEach((e, idx) => {
+                    let parts = e.split('::');
+                    if(parts[0]) {
+                        // ĐÃ FIX BÁO CÁO ZALO: Lấy chữ học sinh gõ (Tham số thứ 5), nếu bài test cũ không có thì mới ghi (Trống)
+                        let userTyped = parts[4] ? parts[4].trim() : "(Trống)";
+                        errorPlainText += `- Câu ${idx + 1} : [${parts[0].trim()}] Con nhập: ${userTyped} => Đáp án: ${parts[1] ? parts[1].trim() : ''}\n`;
+                    }
+                });
+            }
         }
         
         // GHÉP FORMAT CHUẨN ZALO
@@ -4625,7 +4848,8 @@ function loginParentPortal() {
         // 🚨 BÍ QUYẾT BẤT TỬ: Mã hóa toàn bộ chuỗi sang định dạng URI để không một ký tự nào (dấu nháy, ngoặc) có thể làm nổ HTML
         let safeEncodedText = encodeURIComponent(rawZaloText);
 
-        let btnZalo = attempt === "1" ? `<br><button style="background:#0088FF; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:900; font-size:11px; margin-top:8px; box-shadow: 2px 2px 0px #0f172a;" onclick="shareZalo(decodeURIComponent('${safeEncodedText}'))"><i class="fa-solid fa-share"></i> BÁO CÁO ZALO</button>` : "";
+        // ĐẠI PHẪU: Ép hiển thị Nút Zalo nếu là Thi Lần 1 HOẶC là bài Phục Thù Hình Bộ
+        let btnZalo = (attempt === "1" || isRevenge) ? `<br><button style="background:#0088FF; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:900; font-size:11px; margin-top:8px; box-shadow: 2px 2px 0px #0f172a;" onclick="shareZalo(decodeURIComponent('${safeEncodedText}'))"><i class="fa-solid fa-share"></i> BÁO CÁO ZALO</button>` : "";
 
         totalVocabScore += score; vocabCount++;
         vocabHtml += `<tr style="${rowStyle}"><td style="text-align:left; line-height: 1.4;">${newBadgeHtml}<b>${unitInfo}</b><br>${badge}<br><small style="color:var(--accent-blue); font-weight:bold;">${cleanType}</small></td><td style="font-size:11px;">${timeStr}</td><td><b style="color:var(--accent-red); font-size:15px;">Lần ${attempt}</b> ${btnZalo}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
@@ -4991,6 +5215,12 @@ function surrenderTest(isForced = false) {
         } else {
             let cleanWordKey = q.vn.replace(/\*/g, '').trim();
             exactErrorDetails.push({ q: cleanWordKey, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do Đầu Hàng)</span>` });
+            
+            // FIX BÁO CÁO ZALO: Bọc thép dấu phẩy để mảng không bị xé nát khi join
+            let safeEn = String(q.en || "").replace(/,/g, ' -');
+            let safeMean = String(q.meaning || "").replace(/,/g, ' -');
+            // ĐÃ FIX BÁO CÁO ZALO: Báo cáo rõ ràng là (Trống) do Đầu hàng
+            sessionErrorWords.push(cleanWordKey + "::" + safeEn + "::" + safeMean + "::" + (q.type || currentType || "vocab") + "::(Trống)");
         }
     });
     questionsQueue = []; // Dọn sạch hàng đợi
@@ -5256,9 +5486,9 @@ function applyRoleUI() {
     let btnAdmin = document.getElementById('btnAdminDashboard');
     if(btnAdmin) btnAdmin.style.display = isAdmin ? 'flex' : 'none';
     
-    // Ẩn/hiện Phân Tích Kỹ Năng (Cổng Phụ Huynh)
+    // ĐÃ FIX NÚT BẤM CỔNG PHỤ HUYNH: Cho phép Học Sinh xài cả 2 Tab biểu đồ (Line Chart và Radar Chart)
     let btnRadar = document.getElementById('btnParentRadar');
-    if(btnRadar) btnRadar.style.display = isAdmin ? 'block' : 'none';
+    if(btnRadar) btnRadar.style.display = 'block';
 
     // ĐỔI TÊN NÚT ĐIỂM DANH THÀNH "BẢNG VAI PHỤ" CHO HỌC SINH
     let btnAtt = document.getElementById('btnAttendanceDashboard');
@@ -5295,13 +5525,11 @@ function openAttendanceModal() {
         filterBtns.style.display = 'none'; 
     }
 
-    if (!isAlreadyRendered) {
-        // ĐÃ FIX: Trả lại nhịp thở cho CPU Mobile, hiện khung Loading 50ms trước khi vẽ Bảng siêu to khổng lồ
-        matrixTable.innerHTML = `<tr><td style="text-align:center; padding: 40px; color: var(--accent-blue);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Đang căng mắt dò tìm lịch sử...</td></tr>`;
-        setTimeout(() => {
-            renderMatrixAttendance('vocab');
-        }, 50);
-    }
+    // ĐÃ FIX BĂNG DATA: Bắt buộc vẽ lại bảng mỗi lần mở để cập nhật Data Test vừa làm xong!
+    matrixTable.innerHTML = `<tr><td style="text-align:center; padding: 40px; color: var(--accent-blue);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Đang dò lại lịch sử mới nhất...</td></tr>`;
+    setTimeout(() => {
+        renderMatrixAttendance('vocab');
+    }, 50);
 }
 
 // ==================== BỘ NÃO HỘP KÝ ỨC (FIXED) ====================
@@ -5498,10 +5726,14 @@ function openBlackbook() {
             let parts = w.split('::'); 
             let vn = parts[0] ? parts[0].trim() : "";
             if(vn) {
+                let en = parts[1] ? parts[1].trim() : "";
+                // FIX CHUẨN TYPE: Đọc type lưu sẵn ở phần tử thứ 4, nếu không có thì mặc định là Vocab (chống nhầm Giới Từ)
+                let typeStr = parts[3] ? parts[3].trim() : (en.includes('|') ? 'wordform' : 'vocab');
                 globalBlackbookMap.set(vn, { 
                     vn: vn, 
-                    en: parts[1] ? parts[1].trim() : "", 
-                    meaning: parts[2] ? parts[2].trim() : "" 
+                    en: en, 
+                    meaning: parts[2] ? parts[2].trim() : "",
+                    type: typeStr
                 });
             }
         }
@@ -5589,7 +5821,7 @@ function flipQuickCard() {
     let el = document.getElementById('quickFlashcardEl');
     if(el) {
         el.classList.toggle('is-flipped');
-        if (el.classList.contains('is-flipped')) speakQuickWord(null, 'US');
+        // Đã tháo lệnh speakQuickWord tự động theo yêu cầu
     }
 }
 
@@ -5620,79 +5852,95 @@ function speakQuickWord(e, accent = 'US') {
         }
         
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            let msg = new SpeechSynthesisUtterance(finalWord);
-            msg.lang = accent === 'UK' ? 'en-GB' : 'en-US'; 
-            
-            // GIỌNG ĐỌC TỰ NHIÊN: Tốc độ chậm lại một chút để nghe rõ, cao độ bình thường
-            msg.rate = 0.85; 
-            msg.pitch = 1.0;
-            msg.volume = 1.0;
-            
-            let voice = getBestVoice(accent);
-            if(voice) msg.voice = voice;
-            window.speechSynthesis.speak(msg);
-        }
+                    // ĐẠI PHẪU BẢO VỆ LUỒNG AUDIO MOBILE
+                    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+                    
+                    let msg = new SpeechSynthesisUtterance(finalWord);
+                    msg.lang = accent === 'UK' ? 'en-GB' : 'en-US'; 
+                    msg.rate = 0.85; 
+                    msg.pitch = 1.0;
+                    msg.volume = 1.0;
+                    
+                    let voice = getBestVoice(accent);
+                    if(voice) msg.voice = voice;
+                    
+                    // ĐẠI PHẪU MOBILE: Hủy ngay lệnh trì hoãn. Phát ĐỒNG BỘ lập tức.
+                    window.speechSynthesis.speak(msg);
+                }
     }
 }
 // ==================== BỘ NÃO PHÒNG THI PHỤC THÙ ====================
 function startRevengeMode() {
-    let d = new Date();
-    let todayKey = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
-    let inv = getInventory();
-    let isSpecialUnlock = false; // Cờ theo dõi Đặc xá từ Admin
+    let btn = document.getElementById('btnRevenge');
+    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG MỞ CỬA HÌNH BỘ...'; btn.style.pointerEvents = 'none'; }
     
-    // 🔓 LỆNH BÀI ĐẶC XÁ: Đập nát ổ khóa Phục Thù
-    if (inv['_forceUnlockRevenge']) {
-        isSpecialUnlock = true; // Bật cờ để lát nữa miễn học phí
-        delete inv['_lastRevenge']; 
-        delete inv['_forceUnlockRevenge']; 
-        saveInventory(inv); 
-        showToast("✨ Lệnh bài Đặc xá đã kích hoạt! Miễn phí vào cửa 1 lần!");
-    } else if (inv['_lastRevenge'] === todayKey && currentStudentId !== 'T11') {
-        showToast("Hôm nay con đã dùng hết lượt Phục Thù! Ngày mai hãy quay lại nhé."); return;
-    }
-
-    let revengeQuestions = Array.from(globalBlackbookMap.values()).filter(q => q.en !== "");
-    if(revengeQuestions.length === 0) {
-        showToast("Sổ Đen hiện tại chỉ chứa các từ CŨ (Không có data Tiếng Anh). Hãy thi Thực Chiến bài mới để nạp từ nhé!"); return;
-    }
-
-    // --- BẮT ĐẦU: KIẾN TRÚC TÀI CHÍNH HÌNH BỘ ---
-    window.isRevengeMode = true; 
-    let fee = 100 + (revengeQuestions.length * 50); 
-    userEconomy.gold = parseFloat(userEconomy.gold) || 0;
-    
-    if (isSpecialUnlock) {
-        // NẾU CÓ ĐẶC XÁ TỪ ADMIN: FREE 100%, KHÔNG TRỪ TIỀN (Vẫn nhận full 100% thưởng)
-        window.isPhaoCuuSinh = false; 
-    } else if (userEconomy.gold < fee && currentStudentId !== 'T11') {
-        window.isPhaoCuuSinh = true;
-        showToast("Ngân khố cạn kiệt! Thái Phó ban PHAO CỨU SINH: Miễn phí vào cửa, nhưng Vàng thưởng giảm 50%!");
-    } else {
-        window.isPhaoCuuSinh = false;
-        if (currentStudentId !== 'T11') {
-            addEconomyLog("Mở cửa Hình Bộ (Sổ Đen)", -fee);
-            showToast(`Đã thu ${fee} Vàng phí vào cửa! Chúc sống sót!`);
+    // FIX LAG: Bọc vào setTimeout để UI kịp render nút Loading trước khi chạy hàm nặng
+    setTimeout(() => {
+        let d = new Date();
+        let todayKey = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
+        let inv = getInventory();
+        let isSpecialUnlock = false;
+        
+        if (inv['_forceUnlockRevenge']) {
+            isSpecialUnlock = true;
+            delete inv['_lastRevenge']; 
+            delete inv['_forceUnlockRevenge']; 
+            saveInventory(inv); 
+            showToast("✨ Lệnh bài Đặc xá đã kích hoạt! Miễn phí vào cửa 1 lần!");
+        } else if (inv['_lastRevenge'] === todayKey && currentStudentId !== 'T11') {
+            showToast("Hôm nay con đã dùng hết lượt Phục Thù! Ngày mai hãy quay lại nhé."); 
+            if (btn) { btn.innerHTML = '🔥 VÀO PHÒNG PHỤC THÙ (1 Lần/Ngày)'; btn.style.pointerEvents = 'auto'; }
+            return;
         }
-    }
-    // --- KẾT THÚC ---
 
-    // Đóng dấu cờ vào Balo Cloud và kích hoạt đồng bộ ngầm (Tuyệt đối không xài saveInventory)
-    inv['_lastRevenge'] = todayKey;
-    localStorage.setItem(getIsoKey('inventory'), JSON.stringify(inv));
-    if (typeof window.syncBlackbookToServer === 'function') window.syncBlackbookToServer();
-    
-    localStorage.setItem(getIsoKey('revenge_date'), todayKey); // Backup local
-    closeModal('blackbookModal');
-    currentType = 'revenge'; currentAction = 'test'; currentIsOfficial = false; // ĐÃ FIX: ÉP MODE GÕ PHÍM (TEST) CHỐNG VĂNG FLASHCARD
-    
-    let formattedData = revengeQuestions.map(q => ({
-        vn: q.vn, en: q.en, meaning: q.meaning,
-        type: q.en.includes('|') ? 'wordform' : (q.en.includes(' ') ? 'prep' : 'vocab')
-    }));
-    
-    setupSession(formattedData, 0); 
+        let revengeQuestions = Array.from(globalBlackbookMap.values()).filter(q => q.en !== "");
+        if(revengeQuestions.length === 0) {
+            showToast("Sổ Đen hiện tại chỉ chứa các từ CŨ (Không có data Tiếng Anh). Hãy thi Thực Chiến bài mới để nạp từ nhé!"); 
+            if (btn) { btn.innerHTML = '🔥 VÀO PHÒNG PHỤC THÙ (1 Lần/Ngày)'; btn.style.pointerEvents = 'auto'; }
+            return;
+        }
+
+        window.isRevengeMode = true; 
+        let fee = 100 + (revengeQuestions.length * 50); 
+        userEconomy.gold = parseFloat(userEconomy.gold) || 0;
+        
+        if (isSpecialUnlock) {
+            window.isPhaoCuuSinh = false; 
+        } else if (userEconomy.gold < fee && currentStudentId !== 'T11') {
+            window.isPhaoCuuSinh = true;
+            showToast("Ngân khố cạn kiệt! Thái Phó ban PHAO CỨU SINH: Miễn phí vào cửa, Vàng giảm 50%!");
+        } else {
+            window.isPhaoCuuSinh = false;
+            if (currentStudentId !== 'T11') {
+                addEconomyLog("Mở cửa Hình Bộ (Sổ Đen)", -fee);
+                showToast(`Đã thu ${fee} Vàng phí vào cửa! Chúc sống sót!`);
+            }
+        }
+
+        inv['_lastRevenge'] = todayKey;
+        localStorage.setItem(getIsoKey('inventory'), JSON.stringify(inv));
+        if (typeof window.syncBlackbookToServer === 'function') window.syncBlackbookToServer();
+        
+        localStorage.setItem(getIsoKey('revenge_date'), todayKey); 
+        closeModal('blackbookModal');
+        currentType = 'revenge'; currentAction = 'test'; currentIsOfficial = false; 
+        
+        // BỌC THÉP: Ép kiểu String tuyệt đối để chống lỗi vỡ Object/Number từ Sổ Đen cũ
+        let formattedData = revengeQuestions.map(q => {
+            let inferredType = q.type;
+            let strEn = String(q.en || "");
+            let strVn = String(q.vn || "");
+            if (!inferredType || inferredType === "") {
+                if (strEn.includes('|')) inferredType = 'wordform';
+                else if (strVn.includes('*')) inferredType = 'prep';
+                else inferredType = 'vocab';
+            }
+            return { vn: strVn, en: strEn, meaning: q.meaning || "", type: inferredType };
+        });
+        
+        setupSession(formattedData, 0); 
+        if (btn) { btn.innerHTML = '🔥 VÀO PHÒNG PHỤC THÙ (1 Lần/Ngày)'; btn.style.pointerEvents = 'auto'; }
+    }, 50);
 }
 
 // ==================== BỘ NÃO BẢNG TIN THỊ PHI ====================
@@ -5883,11 +6131,20 @@ window.processSyncData = function(data) {
         }
 
         if (data.logs && Array.isArray(data.logs) && data.logs.length > 0) {
-            // Đã trả về Mảng chuẩn từ Server, nạp thẳng vào Cache để vẽ Bảng Vai Phụ và Cái Gai
-            allLogsCache = data.logs;
+            // FIX TẬN GỐC: Giãn nén lại toàn bộ Log bị nén thành mảng 15 cột để Bảng Cái Gai không bị ngáo số
+            let expandedLogs = data.logs.map(row => {
+                if (typeof row === 'string') {
+                    let parts = row.split('|'); let newRow = new Array(15).fill(""); 
+                    newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; 
+                    return newRow;
+                } return row;
+            });
+            allLogsCache = expandedLogs;
+            
             // MACRO-TASK: Giải phóng Main Thread chống Freeze UI Mobile
             setTimeout(() => {
                 localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
+                if(typeof calcRivalAnchor === 'function') calcRivalAnchor(); // Ép render lại Cái Gai ngay khi giãn nén xong
             }, 10);
         }
 
@@ -5908,6 +6165,12 @@ window.processSyncData = function(data) {
             
             // THUẬT TOÁN DEEP MERGE: Bảo tồn Cờ thời gian của máy Local (Chống Server chậm làm mất cờ)
             let localInv = JSON.parse(localStorage.getItem(getIsoKey('inventory'))) || {};
+            
+            // 🎯 ĐẠI PHẪU: Nếu Admin thả Đặc Xá từ Cloud, phải diệt trừ cờ khóa Phục Thù ở Local ngay lập tức!
+            if (parsedInv['_forceUnlockRevenge']) {
+                delete localInv['_lastRevenge'];
+            }
+            
             if (localInv['_lastAttend']) parsedInv['_lastAttend'] = localInv['_lastAttend'];
             if (localInv['_lastRevenge']) parsedInv['_lastRevenge'] = localInv['_lastRevenge'];
             if (localInv['_lastTax']) parsedInv['_lastTax'] = localInv['_lastTax'];
@@ -5934,13 +6197,16 @@ window.syncBlackbookToServer = function() {
     let gold = eco.gold !== undefined ? eco.gold : (localStorage.getItem(getIsoKey('gold')) || 0);
     
     let rawInv = JSON.parse(localStorage.getItem(getIsoKey('inventory'))) || {};
-    let tierMap = { 'ITM1': 'Gương Tiền Tri', 'ITM2': 'Đan Dược Cuồng Nộ', 'ITM3': 'Hộ Thể Kim Chung', 'ITM4': 'Bùa Ngưng Đọng', 'ITM5': 'Thánh Chỉ Ân Xá' };
-    let invArray = [];
-    for(let key in rawInv) {
-        let name = tierMap[key] || key;
-        invArray.push(`${name} [${rawInv[key]}]`); 
-    }
-    let invString = invArray.join(', ');
+            let tierMap = { 'ITM1': 'Gương Tiền Tri', 'ITM2': 'Đan Dược Cuồng Nộ', 'ITM3': 'Hộ Thể Kim Chung', 'ITM4': 'Bùa Ngưng Đọng', 'ITM5': 'Thánh Chỉ Ân Xá' };
+            let invArray = [];
+            for(let key in rawInv) {
+                // 🚫 LỌC CỜ INTERNAL: Cấm đẩy các cờ thời gian (_lastRevenge...) lên Sheet để tránh xung đột với lệnh Admin
+                if (key.startsWith('_') && key !== '_forceUnlockRevenge') continue;
+                
+                let name = tierMap[key] || key;
+                invArray.push(`${name} [${rawInv[key]}]`); 
+            }
+            let invString = invArray.join(', ');
 
     if (getScriptUrl() && getScriptUrl().startsWith("http") && typeof currentStudentId !== 'undefined') {
         fetch(getScriptUrl(), {
