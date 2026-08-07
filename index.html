@@ -1342,7 +1342,6 @@ let offlineQueue = [];
 let isSyncing = false;
 
 function initEconomySystem() {
-    // 1. FIX LỖI T11: Mở khóa cho T11 thấy Ví Vàng để tiêu xài
     if(!currentStudentId) {
         let wallet = document.getElementById('economyWalletBox');
         if(wallet) wallet.style.display = 'none'; 
@@ -1353,76 +1352,73 @@ function initEconomySystem() {
     let wallet = document.getElementById('economyWalletBox');
     if(wallet) wallet.style.display = 'flex';
     
-    // 2. THUẬT TOÁN "THUẾ NUÔI TÙ" (BẮT ĐẦU KÍCH HOẠT TỪ SÁNG THỨ BẢY 01/08/2026)
-    if (currentStudentId !== 'T11') {
-        let now = new Date();
-        // Cài mốc giờ hẹn: Năm 2026, Tháng 7 (Tháng 8 trong JS), Ngày 1, Giờ 0, Phút 1
-        let taxStartTime = new Date(2026, 7, 1, 0, 1, 0).getTime(); 
-        
-// Chỉ khi thời gian hiện tại VƯỢT QUA mốc Thứ 7 thì Thuế mới tính
-        if (now.getTime() >= taxStartTime) {
-            let today = now.toLocaleDateString('vi-VN');
-            let inv = getInventory(); // BỌC THÉP: Kéo Balo để check cờ Thuế trên Cloud (Chống đổi máy bị reset cờ)
-            let lastTaxDateStr = inv['_lastTax'] || localStorage.getItem(getIsoKey('last_tax_date'));
-            
-            if (lastTaxDateStr !== today) {
-                let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
-                if (!Array.isArray(localBB)) localBB = (localBB && localBB.errors) ? localBB.errors : [];
-                
-                if (localBB.length >= 10) {
-                    let missedDays = 1;
-                    if (lastTaxDateStr) {
-                        let parts = lastTaxDateStr.split('/');
-                        if(parts.length === 3) {
-                            let lastDate = new Date(parts[2], parts[1] - 1, parts[0]);
-                            let diffTime = Math.abs(now.getTime() - lastDate.getTime());
-                            missedDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                            if (missedDays < 1) missedDays = 1; 
-                        }
-                    }
-
-                    let taxAmount = localBB.length * 50 * missedDays;
-                    let oldGold = parseFloat(userEconomy.gold) || 0;
-                    let newGold = oldGold - taxAmount;
-                    userEconomy.gold = newGold;
-                    localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
-                    
-                    let visualTag = `[💰 ${oldGold} - ${taxAmount} = ${newGold}] `;
-                    let logItem = {
-                        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
-                        time: now.toLocaleString('vi-VN'),
-                        studentId: currentStudentId,
-                        studentName: currentStudentName,
-                        action: visualTag + `[⚖️ THUẾ HÌNH BỘ] Nuôi cơm ${localBB.length} tội phạm (Tích lũy ${missedDays} ngày)`, 
-                        goldDiff: -taxAmount 
-                    };
-                    offlineQueue.push(logItem);
-                    localStorage.setItem(getIsoKey('queue'), JSON.stringify(offlineQueue));
-                    
-                    setTimeout(() => {
-                        let ab = document.getElementById('securityAlert'); 
-                        if(ab) {
-                            ab.innerHTML = `<i class="fa-solid fa-handcuffs fa-shake" style="font-size:24px;"></i> <span>QUẢN NGỤC THU THUẾ: Bị trừ ${taxAmount} Vàng tiền nuôi ${localBB.length} tên tội phạm trong ${missedDays} ngày qua! Dọn sạch ngay!</span>`;
-                            ab.style.top = '20px'; 
-                            setTimeout(() => { ab.style.top = '-100px'; }, 6000);
-                        }
-                    }, 3500);
-                }
-                
-                // ĐÓNG DẤU CHUẨN CỜ THUẾ VÀO BALO CLOUD (Đồng bộ ngầm)
-                inv['_lastTax'] = today;
-                localStorage.setItem(getIsoKey('inventory'), JSON.stringify(inv));
-                localStorage.setItem(getIsoKey('last_tax_date'), today); 
-                if (typeof window.syncBlackbookToServer === 'function') window.syncBlackbookToServer();
-            }
-        }
-    }
-    
-    // RENDER KHO BẠC TỔNG LÊN MÀN HÌNH DASHBOARD
     let tBox = document.getElementById('uiGlobalTreasury');
     if(tBox) tBox.innerHTML = (window.globalTreasuryTax || 0).toLocaleString('vi-VN') + ' <i class="fa-solid fa-coins"></i>';
 
     updateGoldUI();
+}
+
+function checkAndApplyTax() {
+    if (currentStudentId === 'T11') return;
+    let now = new Date();
+    let taxStartTime = new Date(2026, 7, 1, 0, 1, 0).getTime(); 
+    if (now.getTime() < taxStartTime) return;
+
+    let today = now.toLocaleDateString('vi-VN');
+    let inv = getInventory(); 
+    let lastTaxDateStr = inv['_lastTax'] || localStorage.getItem(getIsoKey('last_tax_date'));
+    
+    if (lastTaxDateStr !== today) {
+        // Tới bước này thì Sổ Đen trong LocalStorage CHẮC CHẮN 100% đã là bản mới nhất từ Cloud
+        let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        if (!Array.isArray(localBB)) localBB = (localBB && localBB.errors) ? localBB.errors : [];
+        
+        if (localBB.length >= 10) {
+            let missedDays = 1;
+            if (lastTaxDateStr) {
+                let parts = lastTaxDateStr.split('/');
+                if(parts.length === 3) {
+                    let lastDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                    let diffTime = Math.abs(now.getTime() - lastDate.getTime());
+                    missedDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    if (missedDays < 1) missedDays = 1; 
+                }
+            }
+
+            let taxAmount = localBB.length * 50 * missedDays;
+            let oldGold = parseFloat(userEconomy.gold) || 0;
+            let newGold = oldGold - taxAmount;
+            userEconomy.gold = newGold;
+            localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
+            
+            let visualTag = `[💰 ${oldGold} - ${taxAmount} = ${newGold}] `;
+            let logItem = {
+                id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+                time: now.toLocaleString('vi-VN'),
+                studentId: currentStudentId,
+                studentName: currentStudentName,
+                action: visualTag + `[⚖️ THUẾ HÌNH BỘ] Nuôi cơm ${localBB.length} tội phạm (Tích lũy ${missedDays} ngày)`, 
+                goldDiff: -taxAmount 
+            };
+            offlineQueue.push(logItem);
+            localStorage.setItem(getIsoKey('queue'), JSON.stringify(offlineQueue));
+            
+            setTimeout(() => {
+                let ab = document.getElementById('securityAlert'); 
+                if(ab) {
+                    ab.innerHTML = `<i class="fa-solid fa-handcuffs fa-shake" style="font-size:24px;"></i> <span>QUẢN NGỤC THU THUẾ: Bị trừ ${taxAmount} Vàng tiền nuôi ${localBB.length} tên tội phạm trong ${missedDays} ngày qua! Dọn sạch ngay!</span>`;
+                    ab.style.top = '20px'; 
+                    setTimeout(() => { ab.style.top = '-100px'; }, 6000);
+                }
+            }, 3500);
+            updateGoldUI();
+        }
+        
+        inv['_lastTax'] = today;
+        localStorage.setItem(getIsoKey('inventory'), JSON.stringify(inv));
+        localStorage.setItem(getIsoKey('last_tax_date'), today); 
+        if (typeof window.syncBlackbookToServer === 'function') window.syncBlackbookToServer();
+    }
 }
 
 function showSyncOverlay(isShow) {
@@ -6141,6 +6137,9 @@ window.processSyncData = function(data) {
             localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bbData.errors || []));
             localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(bbData.fixed || []));
         }
+        
+        // KIỂM TOÁN THUẾ: Đã có Sổ Đen chuẩn từ Server, bóp cò kích hoạt quét Thuế!
+        if (typeof checkAndApplyTax === 'function') checkAndApplyTax();
 
         if (data.gold !== undefined && data.gold !== -1) {
             // ĐÃ FIX CHỐNG GIẬT LÙI VÀNG (RACE CONDITION): Cộng dồn Vàng Server với Vàng đang kẹt trong Queue
