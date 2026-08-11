@@ -3878,9 +3878,12 @@ function navVocabLearn(dir) {
             let hasLearnedBefore = allLogsCache.some(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && r[3] && r[3].toString().includes(catName) && r[4] && r[4].toString().includes(unitTitle));
             let isFirstTime = !hasLearnedBefore && !hasRewardedLocal && currentStudentId !== 'T11';
 
+            // ĐẠI PHẪU DỮ LIỆU: Format thời gian thực tế thay vì hardcode "Hoàn thành" để Báo cáo quét được % Flashcard
+            let finalDurStr = Math.floor(durSec/60) > 0 ? `${Math.floor(durSec/60)}p ${Math.floor(durSec%60)}s` : `${Math.floor(durSec)}s`;
+
             // Ghi nhận lên Google Sheet
             if (getScriptUrl() && getScriptUrl().startsWith("http")) { 
-                fetch(getScriptUrl(), { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: 1, score: 10, correctCount: totalCards, wrongCount: 0, totalCount: totalCards, cheat: "Nghiêm túc", duration: "Hoàn thành", maxCombo: 0, fixedErrors: 0, errorWords: "" }) }).catch(e=>{}); 
+                fetch(getScriptUrl(), { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: 1, score: 10, correctCount: totalCards, wrongCount: 0, totalCount: totalCards, cheat: "Nghiêm túc", duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" }) }).catch(e=>{}); 
             }
             
             goHome(); 
@@ -4837,6 +4840,9 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
         let wrongCountRow = parseInt(r[8]) || 0; // Cột số câu sai trong Logs
         let durStr = r[11] ? r[11].toString() : "";
         let sec = 0; let pm = durStr.match(/(\d+)p/); if(pm) sec += parseInt(pm[1])*60; let sm = durStr.match(/(\d+)s/); if(sm) sec += parseInt(sm[1]);
+        
+        // VÁ LỖI QUÁ KHỨ: Cứu vớt các log cũ ghi chữ "Hoàn thành" (mặc định cho 120s / 2 phút) để Flashcard không bị 0%
+        if (sec === 0 && durStr.includes("Hoàn thành")) sec = 120;
         
         let timeLogStr = "[Không rõ]"; let dObj = null; let dStr = String(r[0]);
         if (Object.prototype.toString.call(r[0]) === '[object Date]') { dObj = r[0]; } 
