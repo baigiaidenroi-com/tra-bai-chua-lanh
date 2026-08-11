@@ -1025,14 +1025,24 @@ function buyUpsaleShield(cost, hits) {
     <div id="parentScreen" class="screen scrollable-area">
         <div class="top-bar"><h2 style="margin: 0; color: var(--accent-blue); text-transform: uppercase; font-size: 16px;"><i class="fa-solid fa-chart-line"></i> LONG MẠCH TÔNG ĐỒ</h2><button class="btn btn-outline" style="padding: 10px;" onclick="goHome()"><i class="fa-solid fa-times"></i></button></div>
         <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border: 3px solid var(--border-dark); box-shadow: var(--shadow-hard);"><div id="parentAvatarImg" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--border-dark); background: var(--surface-color); display: flex; align-items: center; justify-content: center; font-size: 35px;">🦊</div><div><div style="font-weight: 900; font-size: 18px; text-transform: uppercase;" id="parentStudentName">...</div><div style="color: var(--text-muted); font-size: 12px; font-weight: bold;">Thông tin liên kết minh bạch</div></div></div>
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;"><button class="btn btn-blue" id="btnParentHistory" style="flex:1; padding: 10px; font-size: 12px; border: 3px solid #111;" onclick="switchParentTab('pLineChart', this)">Biên niên sử Điểm số</button><button class="btn btn-outline" id="btnParentRadar" style="flex:1; padding: 10px; font-size: 12px; border: 3px solid #111;" onclick="switchParentTab('pRadarChart', this)">Mổ xẻ căn cốt Võ công</button></div>
-        <div id="pLineChart" class="chart-container"><p style="font-size: 11px; color:var(--text-muted); text-align:center; font-style:italic; margin: 0 0 10px 0;">*Biểu đồ so sánh chéo 3 môn theo tiến trình</p><canvas id="parentHistoryChart"></canvas></div>
-        <div id="pRadarChart" class="chart-container" style="display:none;"><canvas id="parentRadarChart"></canvas></div>
-        <div style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 15px 0; color:var(--accent-red); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-film"></i> NHẬT KÝ THĂNG TRẦM</h4><div id="parentTimelineBox" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div></div>
-        <div style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 10px 0; color:var(--accent-blue); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-spell-check"></i> PHÂN MÔN: TỪ VỰNG & DẠNG TỪ (VOCAB/WF/PREP)</h4><div style="overflow-x:auto;"><table class="admin-table" style="margin-top:5px; font-size:11px;"><thead><tr><th>Nhiệm vụ</th><th>Làm bài lúc</th><th>Lần Thi</th><th>T.Gian</th><th>Điểm</th><th>Đúng</th><th>Sai</th></tr></thead><tbody id="parentVocabLogsBody"></tbody></table></div></div>
-        <div id="grammarParentContainer" style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard); display:none;"><h4 style="margin:0 0 10px 0; color:var(--accent-green); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-code-branch"></i> PHÂN MÔN: NGỮ PHÁP (GRAMMAR)</h4><div style="overflow-x:auto;"><table class="admin-table" style="margin-top:5px; font-size:11px;"><thead><tr><th>Nhiệm vụ</th><th>Làm bài lúc</th><th>Lần Thi</th><th>T.Gian</th><th>Điểm</th><th>Đúng</th><th>Sai</th></tr></thead><tbody id="parentGrammarLogsBody"></tbody></table></div></div>
-        <div style="background:white; padding:15px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 5px 0; color:var(--accent-purple); text-transform:uppercase; font-size:14px;"><i class="fa-solid fa-lightbulb"></i> LỜI PHÊ CỦA QUỐC SƯ & LIỀU THUỐC ĐỀ XUẤT:</h4><p id="parentRecommendationBox" style="font-size:13px; font-weight:bold; color:var(--text-dark); margin:5px 0 0 0; line-height:1.5;"></p></div>
-        <div style="background: white; padding: 20px; border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 20px; box-shadow: var(--shadow-hard);"><h4 style="margin: 0 0 10px 0; color: var(--border-dark); text-transform: uppercase; font-size: 14px; border-bottom: 2px dashed var(--border-dark); padding-bottom: 8px;"><i class="fa-solid fa-calendar-days"></i> QUYỂN TRỤC CHUYÊN CẦN (HEATMAP TỪ NGÀY TIẾN CUNG)</h4><div class="heatmap-grid" id="heatmapGrid"></div></div>
+        
+        <!-- HERO BOX ĐANH THÉP SẼ RENDER Ở ĐÂY -->
+        <div id="parentHeroBox"></div>
+
+        <!-- ACCORDION CUỘN GIẤU NHỮNG BẢNG BIỂU CHART CŨ -->
+        <details class="brutal-accordion" style="margin-bottom: 20px;">
+            <summary style="background: var(--accent-yellow); padding: 15px; border: 3px solid var(--border-dark); border-radius: 12px; font-weight: 900; font-size: 14px; text-transform: uppercase; cursor: pointer; box-shadow: var(--shadow-hard); outline: none; display: flex; align-items: center; justify-content: space-between;"><span style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-clock-rotate-left"></i> XEM LẠI LỊCH SỬ CŨ & BIỂU ĐỒ NĂNG LỰC</span><i class="fa-solid fa-caret-down"></i></summary>
+            <div style="padding-top: 20px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;"><button class="btn btn-blue" id="btnParentHistory" style="flex:1; padding: 10px; font-size: 12px; border: 3px solid #111;" onclick="switchParentTab('pLineChart', this)">Biên niên sử Điểm số</button><button class="btn btn-outline" id="btnParentRadar" style="flex:1; padding: 10px; font-size: 12px; border: 3px solid #111;" onclick="switchParentTab('pRadarChart', this)">Mổ xẻ căn cốt Võ công</button></div>
+                <div id="pLineChart" class="chart-container"><p style="font-size: 11px; color:var(--text-muted); text-align:center; font-style:italic; margin: 0 0 10px 0;">*Biểu đồ so sánh chéo 3 môn theo tiến trình</p><canvas id="parentHistoryChart"></canvas></div>
+                <div id="pRadarChart" class="chart-container" style="display:none;"><canvas id="parentRadarChart"></canvas></div>
+                <div style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 15px 0; color:var(--accent-red); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-film"></i> NHẬT KÝ THĂNG TRẦM</h4><div id="parentTimelineBox" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div></div>
+                <div style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 10px 0; color:var(--accent-blue); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-spell-check"></i> PHÂN MÔN: TỪ VỰNG & DẠNG TỪ (VOCAB/WF/PREP)</h4><div style="overflow-x:auto;"><table class="admin-table" style="margin-top:5px; font-size:11px;"><thead><tr><th>Nhiệm vụ</th><th>Làm bài lúc</th><th>Lần Thi</th><th>T.Gian</th><th>Điểm</th><th>Đúng</th><th>Sai</th></tr></thead><tbody id="parentVocabLogsBody"></tbody></table></div></div>
+                <div id="grammarParentContainer" style="background:white; padding:20px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard); display:none;"><h4 style="margin:0 0 10px 0; color:var(--accent-green); text-transform:uppercase; font-size:14px; border-bottom:2px dashed var(--border-dark); padding-bottom:8px;"><i class="fa-solid fa-code-branch"></i> PHÂN MÔN: NGỮ PHÁP (GRAMMAR)</h4><div style="overflow-x:auto;"><table class="admin-table" style="margin-top:5px; font-size:11px;"><thead><tr><th>Nhiệm vụ</th><th>Làm bài lúc</th><th>Lần Thi</th><th>T.Gian</th><th>Điểm</th><th>Đúng</th><th>Sai</th></tr></thead><tbody id="parentGrammarLogsBody"></tbody></table></div></div>
+                <div style="background:white; padding:15px; border-radius:12px; border:3px solid var(--border-dark); margin-bottom:20px; box-shadow:var(--shadow-hard);"><h4 style="margin:0 0 5px 0; color:var(--accent-purple); text-transform:uppercase; font-size:14px;"><i class="fa-solid fa-lightbulb"></i> LỜI PHÊ CỦA QUỐC SƯ & LIỀU THUỐC ĐỀ XUẤT:</h4><p id="parentRecommendationBox" style="font-size:13px; font-weight:bold; color:var(--text-dark); margin:5px 0 0 0; line-height:1.5;"></p></div>
+                <div style="background: white; padding: 20px; border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 20px; box-shadow: var(--shadow-hard);"><h4 style="margin: 0 0 10px 0; color: var(--border-dark); text-transform: uppercase; font-size: 14px; border-bottom: 2px dashed var(--border-dark); padding-bottom: 8px;"><i class="fa-solid fa-calendar-days"></i> QUYỂN TRỤC CHUYÊN CẦN (HEATMAP TỪ NGÀY TIẾN CUNG)</h4><div class="heatmap-grid" id="heatmapGrid"></div></div>
+            </div>
+        </details>
     </div>
 
     <!-- MÀN HÌNH QUẢN TRỊ ADMIN -->
@@ -1232,7 +1242,7 @@ const SYSTEM_APIS = {
     "6": "https://script.google.com/macros/s/AKfycbwFBGyqdX0rPLBvxsdRRWNzfrhb1bISrFSRe-Dlh3Tpv7VI7Sfb9gwc75pi__1eEWBD9g/exec",
     "7": "https://script.google.com/macros/s/AKfycbwDxR3LEvwJmTgnQ_l9kYGq5hOcqJcz1IJOpAbcNtu6dYZuYEskTZeSxOIXIM6l9nga8A/exec",
     "8": "https://script.google.com/macros/s/AKfycbysQI0utmwB9a6yFv6mAx6dOD6SbGfGeIEAXEwLLDhag8okJXUJ9s_tnsFG9eDbc2sL/exec",
-    "9": "https://script.google.com/macros/s/AKfycbzDAAqeJU25LzFQjP0_KsklmqXZ0nJssnkpRoYRy4jsR_eYQqX51uH1ytrkmRfA2eKatw/exec"
+    "9": "https://script.google.com/macros/s/AKfycbwL7jUwtd6xyoPM8FDiFm1dVEq7Twk9Kf64YK2_Xx4kYQ1P95UvJTbuotqGGufGulDpcg/exec"
 };
 
 let currentSelectedGrade = ""; // ÉP BUỘC PHẢI CHỌN LỚP MỚI CÓ DATA
@@ -2498,6 +2508,9 @@ async function login() {
             if (initData.totalTax !== undefined) window.globalTreasuryTax = initData.totalTax;
             if (initData.maxAvailableUnit) window.globalMaxUnit = initData.maxAvailableUnit;
             window.tuHuyetCacheData = initData.tuHuyet || []; 
+            
+            // ĐẠI PHẪU: ÉP APP NẠP CẤU HÌNH NGÀY SAO KÊ TỪ SERVER NGAY LÚC LOGIN!
+            if (initData.masterConfig) window.masterConfig = initData.masterConfig; 
         }
 
         if (id !== 'T11' && !studentDB[id]) throw new Error("Mã lệnh bài sai, không có trong danh sách lớp!");  
@@ -4712,20 +4725,495 @@ function shareZalo(customText = null) {
 
 // ==================== BỘ NÃO AUTO-LOGIN CỔNG PHỤ HUYNH ====================
 function autoEnterParentPortal() {
-    // Chốt chặn an toàn: Đảm bảo Data Logs tải ngầm đã xong mới cho vẽ Biểu đồ
+    // Tấm khiên bảo vệ 1: Chặn click nếu máy học sinh còn chưa kịp nối chuỗi dữ liệu (Data Hydration)
     if (!window.isLogsLoaded && currentStudentId !== 'T11') {
         showToast("⏳ Thái Phó đang xếp lại Hồ sơ học bạ, đợi 1-2 giây nhé!");
         return;
     }
     
-    // Tự động thao túng DOM: Điền ID của học sinh hiện tại vào form ẩn
+    // Tấm khiên bảo vệ 2 (Visual): Cứ để UI nháy icon một nhịp cực nhanh cho có cảm giác tương tác
+    let btnIcon = document.querySelector('[title="Cổng Phụ Huynh"] i');
+    if (btnIcon) btnIcon.className = "fa-solid fa-users"; 
+    
+    // ĐẠI PHẪU ZERO-LAG: Cắt đứt hoàn toàn API. Ép thẳng RAM lên DOM trong 0ms!
     document.getElementById('parentStudentId').value = currentStudentId;
     document.getElementById('parentPassword').value = "123";
-    
-    // Đóng Modal (nếu đang mở lỡ dở) và bóp cò chạy hàm Login
     closeModal('parentLoginModal');
     loginParentPortal();
 }
+
+// =========================================================================
+// BỘ NÃO RENDER BÁO CÁO INFOGRAPHIC (DÙNG CHUNG CHO GIAO DIỆN & XUẤT PDF)
+// =========================================================================
+window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf = false) {
+    let fcTimeSec = 0, testTimeSec = 0, attempt1Cheats = 0;
+    let unitStats = {}; 
+    
+    // TÌM MỐC THỜI GIAN "NOW" (Nếu là tải PDF Unit cũ, "Now" là ngày nộp bài cuối cùng của Unit đó)
+    let unitLogs = studentRows.filter(r => r[4] && r[4].toString().includes("Unit " + targetUnit));
+    let snapshotTime = new Date();
+    if (isForPdf && unitLogs.length > 0) {
+        let dRaw = unitLogs[unitLogs.length - 1][0];
+        if (Object.prototype.toString.call(dRaw) === '[object Date]') snapshotTime = dRaw;
+        else if (dRaw) {
+            let tMatch = dRaw.toString().match(/(\d{1,2})[\/\-](\d{1,2})[\/\-]\d{4}\s+(\d{1,2}):(\d{1,2})/);
+            if(tMatch) snapshotTime = new Date(new Date().getFullYear(), parseInt(tMatch[2])-1, parseInt(tMatch[1]), parseInt(tMatch[3]), parseInt(tMatch[4]));
+            else { let tmp = new Date(dRaw); if(!isNaN(tmp.getTime())) snapshotTime = tmp; }
+        }
+    }
+
+    // TÌM MỐC ĐỒNG BỘ TỪ CONFIG TRÊN SERVER (HỖ TRỢ FULL NĂM)
+    let lastReportDate = new Date(snapshotTime.getTime() - 7 * 24 * 3600 * 1000); 
+    let lastReportStr = "Không rõ";
+    
+    if (typeof window.masterConfig !== 'undefined') {
+        let rawDate = null;
+        for (let key in window.masterConfig) {
+            if (key.toUpperCase().includes("REPORT_START_DATE")) {
+                rawDate = window.masterConfig[key];
+                break;
+            }
+        }
+
+        if (rawDate) {
+            let strRaw = rawDate.toString().trim();
+            let finalD = null;
+            
+            // Lớp 1: Ép kiểu thẳng bằng Date của JS (Chuyên trị ISO String từ Sheet)
+            let tempD = new Date(strRaw);
+            if (!isNaN(tempD.getTime()) && tempD.getFullYear() > 2000) {
+                finalD = tempD;
+            } else {
+                // Lớp 2: Nếu Admin gõ tay Text thuần (Chỉ bắt khi bắt đầu bằng 1-2 chữ số ngày)
+                let vnMatch = strRaw.match(/^(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+                if (vnMatch) {
+                    let d = parseInt(vnMatch[1]);
+                    let m = parseInt(vnMatch[2]) - 1;
+                    let y = vnMatch[3] ? parseInt(vnMatch[3]) : snapshotTime.getFullYear();
+                    if (y < 100) y += 2000; 
+                    finalD = new Date(y, m, d, 0, 0, 0);
+                }
+            }
+
+            // XÁC NHẬN VÀ GÁN DỮ LIỆU
+            if (finalD && !isNaN(finalD.getTime())) {
+                lastReportDate = finalD;
+                // ĐÃ FIX LỖI SAI TÊN BIẾN (TYPO) TRÁNH CRASH TRẮNG MÀN HÌNH Ở ĐÂY!
+                lastReportStr = `${finalD.getDate().toString().padStart(2, '0')}/${(finalD.getMonth() + 1).toString().padStart(2, '0')}/${finalD.getFullYear()}`;
+            }
+        }
+    }
+    
+
+
+
+
+    // SAO KÊ THỜI GIAN (Quét từ lastReportDate đến snapshotTime)
+    let diffDays = Math.ceil((snapshotTime.getTime() - lastReportDate.getTime()) / (24*3600*1000));
+    if (diffDays > 45) diffDays = 45; if (diffDays < 1) diffDays = 1;
+    let dailyStats = {}; let dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    for(let d = diffDays - 1; d >= 0; d--) {
+        let t = new Date(snapshotTime.getTime() - d * 24 * 3600 * 1000);
+        let key = `${t.getDate().toString().padStart(2,'0')}/${(t.getMonth()+1).toString().padStart(2,'0')}`;
+        dailyStats[key] = { label: `[${dayNames[t.getDay()]} - ${key}]`, sec: 0, details: [] };
+    }
+
+    let calcDeadlineDiff = (targetTime, logTime) => {
+        let diffMs = targetTime - logTime; let isEarly = diffMs >= 0; let absDiff = Math.abs(diffMs);
+        let diffMins = Math.floor(absDiff / (1000 * 60)); let dDays = Math.floor(diffMins / (24 * 60));
+        let dHours = Math.floor((diffMins % (24 * 60)) / 60); let dMinsLeft = diffMins % 60;
+        let tText = ""; if (dDays > 0) tText += dDays + " ngày "; if (dHours > 0) tText += dHours + " giờ "; if (dMinsLeft > 0 || tText === "") tText += dMinsLeft + " phút";
+        return isEarly ? `Sớm ${tText.trim()}` : `Trễ ${tText.trim()}`;
+    };
+
+    // BIẾN THỐNG KÊ TỔNG SỐ CÂU SAI THỰC TẾ TRONG TEST LẦN 1 CỦA UNIT NÀY
+    let unitTotalWrongs = 0;
+
+    studentRows.forEach(r => {
+        let act = r[3] ? r[3].toString() : "";
+        let unitStr = r[4] ? r[4].toString() : "";
+        let attempt = parseInt(r[5]) || 1;
+        let score = parseFloat(r[6]) || 0;
+        let wrongCountRow = parseInt(r[8]) || 0; // Cột số câu sai trong Logs
+        let durStr = r[11] ? r[11].toString() : "";
+        let sec = 0; let pm = durStr.match(/(\d+)p/); if(pm) sec += parseInt(pm[1])*60; let sm = durStr.match(/(\d+)s/); if(sm) sec += parseInt(sm[1]);
+        
+        let timeLogStr = "[Không rõ]"; let dObj = null; let dStr = String(r[0]);
+        if (Object.prototype.toString.call(r[0]) === '[object Date]') { dObj = r[0]; } 
+        else if (dStr) {
+            let tMatch = dStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-]\d{4}\s+(\d{1,2}):(\d{1,2})/);
+            if(tMatch) dObj = new Date(snapshotTime.getFullYear(), parseInt(tMatch[2])-1, parseInt(tMatch[1]), parseInt(tMatch[3]), parseInt(tMatch[4]));
+            else { let tmp = new Date(dStr); if(!isNaN(tmp.getTime())) dObj = tmp; }
+        }
+        if(dObj) timeLogStr = `[${dObj.getDate().toString().padStart(2,'0')}/${(dObj.getMonth()+1).toString().padStart(2,'0')} - ${dObj.getHours().toString().padStart(2,'0')}:${dObj.getMinutes().toString().padStart(2,'0')}]`;
+
+       // Cộng dồn sao kê và nạp details
+        if (dObj && dObj.getTime() >= lastReportDate.getTime() && dObj.getTime() <= snapshotTime.getTime() + 60000) {
+            let dKey = `${dObj.getDate().toString().padStart(2,'0')}/${(dObj.getMonth()+1).toString().padStart(2,'0')}`;
+            if(dailyStats[dKey]) {
+                dailyStats[dKey].sec += sec;
+                if (sec > 0) {
+                    let timeLog = `${dObj.getHours().toString().padStart(2,'0')}:${dObj.getMinutes().toString().padStart(2,'0')}`;
+                    let shortAct = act.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace("Thi ", "Test ").replace("Ôn Tập ", "Học ");
+                    let shortUnit = unitStr.replace("Unit ", "U");
+                    let durText = Math.floor(sec/60) > 0 ? `${Math.floor(sec/60)}p ${sec%60}s` : `${sec}s`;
+                    dailyStats[dKey].details.push(`<div style="font-size: 12px; color: #475569; margin-left: 15px; border-left: 2px dashed #cbd5e1; padding-left: 10px; margin-top: 4px; font-weight: bold;">↳ ${timeLog}: ${shortAct} ${shortUnit} <span style="color:var(--accent-red);">(${durText})</span></div>`);
+                }
+            }
+        }
+
+        let uMatch = unitStr.match(/Unit (\d+)/i);
+        let u = uMatch ? uMatch[1] : "Khác";
+        
+        if (u === targetUnit && (!dObj || dObj.getTime() <= snapshotTime.getTime() + 60000)) {
+            if (act.includes("Flashcard") || act.includes("Ôn Tập")) fcTimeSec += sec;
+            if (act.includes("Test") || act.includes("Thi ")) {
+                testTimeSec += sec;
+                if (attempt === 1) { 
+                    unitTotalWrongs += wrongCountRow; // ĐÍCH THỰC CỘNG DỒN SỐ CÂU SAI THỰC TẾ
+
+                    let cheat = r[10] ? r[10].toString() : "";
+                    if (cheat.includes("Rời Tab")) { let m = cheat.match(/(\d+)\s*lần/); attempt1Cheats += m ? parseInt(m[1]) : 1; }
+                    else if (cheat.includes("CÓ") || cheat.includes("Bị hủy")) attempt1Cheats++;
+                    
+                    let partStr = unitStr.indexOf('-') > -1 ? unitStr.split('-')[1].trim().replace("P", "P") : "P1";
+                    let pPart = partStr.replace(/\D/g, ''); 
+                    if(!unitStats[u]) unitStats[u] = { logs: [], sVoc:0, cVoc:0, sWF:0, cWF:0, sPrep:0, cPrep:0, trackedParts: {} };
+                    
+                    let logType = ""; let strictActName = ""; let actLower = act.toLowerCase();
+                    if(actLower.indexOf("từ vựng") > -1 || actLower.indexOf("vocab") > -1) { logType = "vocab"; strictActName = "VOCAB"; }
+                    else if(actLower.indexOf("word form") > -1 || actLower.indexOf("wf") > -1) { logType = "wordform"; strictActName = "WORD FORM"; }
+                    else if(actLower.indexOf("giới từ") > -1 || actLower.indexOf("prep") > -1) { logType = "prep"; strictActName = "PREP - GIỚI TỪ"; }
+                    else { strictActName = act; }
+                    
+                    let uniqueKey = logType + "_" + pPart;
+                    if (!unitStats[u].trackedParts[uniqueKey]) {
+                        unitStats[u].trackedParts[uniqueKey] = true; 
+                        let mins = Math.max(1, Math.round(sec/60));
+                        
+                        let dlStatus = "";
+                        if (typeof serverDeadlines !== 'undefined' && dObj) {
+                            let matchedDl = serverDeadlines.find(dl => dl.type === logType && dl.unit === u && dl.part === pPart);
+                            if(matchedDl) {
+                                let dlMatch = matchedDl.deadlineStr.match(/(\d+)h(\d+)p.*\((\d+)\/(\d+)\)/);
+                                if(dlMatch) {
+                                    let targetTime = new Date(snapshotTime.getFullYear(), parseInt(dlMatch[4])-1, parseInt(dlMatch[3]), parseInt(dlMatch[1]), parseInt(dlMatch[2])).getTime();
+                                    let diffStr = calcDeadlineDiff(targetTime, dObj.getTime());
+                                    if (diffStr.includes("Trễ")) dlStatus = ` <span style="color:#e11d48; font-weight:bold;">[${diffStr}]</span>`;
+                                    else dlStatus = ` <span style="color:#16a34a; font-weight:bold;">[${diffStr}]</span>`;
+                                }
+                            }
+                        }
+                        // ĐẠI PHẪU UI: Format Điểm số (Neo-brutalism) & Nới lỏng khoảng cách
+                        let scoreUI = "";
+                        if (score < 4) scoreUI = `<b style="background: #e11d48; color: white; padding: 2px 6px; border-radius: 4px; font-size: 1.25em; border: 1px solid #111; box-shadow: 2px 2px 0px #111;">${score}</b>`;
+                        else if (score < 7) scoreUI = `<b style="color: #e11d48; font-size: 1.15em; text-decoration: underline;">${score}</b>`;
+                        else scoreUI = `<b style="color: #16a34a;">${score}</b>`;
+
+                        unitStats[u].logs.push(`<div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1;">${timeLogStr} Test ${strictActName} (${partStr}): ${scoreUI}<b style="color:var(--text-dark);">/10 đ</b> <span style="font-size: 12px; color: #475569;">(Đúng ${r[7]}, Sai ${r[8]}) | T/gian: ${mins} phút.</span> <b>${dlStatus}</b></div>`);
+
+                        if(logType === "vocab") { unitStats[u].sVoc += score; unitStats[u].cVoc++; }
+                        else if(logType === "wordform") { unitStats[u].sWF += score; unitStats[u].cWF++; }
+                        else if(logType === "prep") { unitStats[u].sPrep += score; unitStats[u].cPrep++; }
+                    }
+                }
+            }
+        }
+    });
+    
+    let totalAppTimeSec = 0; let saoKeHtml = "";
+    Object.keys(dailyStats).forEach(key => {
+        let mins = Math.round(dailyStats[key].sec / 60);
+        totalAppTimeSec += dailyStats[key].sec;
+        let color = mins === 0 ? "var(--text-muted)" : "var(--accent-red)";
+        let detailsHtml = dailyStats[key].details.length > 0 ? `<div style="margin-top: 5px; margin-bottom: 10px;">${dailyStats[key].details.join("")}</div>` : "";
+        saoKeHtml += `<li style="margin-bottom: 6px;">${dailyStats[key].label}: <b style="color:${color};">${mins} phút</b>${detailsHtml}</li>`;
+    });
+    let tMins = Math.round(totalAppTimeSec / 60);
+    
+    let totalTimeLearning = fcTimeSec + testTimeSec;
+    let fcPct = totalTimeLearning > 0 ? Math.round((fcTimeSec/totalTimeLearning)*100) : 0;
+    let testPct = totalTimeLearning > 0 ? (100 - fcPct) : 0;
+
+    let bbErrors = []; 
+    let rdFixed = [];
+    if (typeof currentStudentId !== 'undefined' && String(id).toUpperCase() === String(currentStudentId).toUpperCase()) {
+        try {
+            let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+            let localRD = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
+            bbErrors = Array.isArray(localBB) ? localBB : (localBB.errors || []);
+            rdFixed = Array.isArray(localRD) ? localRD : (localRD.fixed || []);
+        } catch(err) { console.error("Lỗi đọc Sổ Đen nội bộ:", err); bbErrors = []; rdFixed = []; }
+    } else {
+        let bbRaw = studentDB[id] ? studentDB[id].blackbook : "{}";
+        let bbObj = {errors:[], fixed:[]};
+        try { let p = JSON.parse(bbRaw); if(Array.isArray(p)) bbObj.errors = p; else if(p && p.errors) bbObj = p; } catch(e){}
+        bbErrors = bbObj.errors || []; rdFixed = bbObj.fixed || [];
+    }
+    
+    let totalPastErrors = bbErrors.length + rdFixed.length;
+    let fixRate = totalPastErrors > 0 ? Math.round((rdFixed.length / totalPastErrors)*100) : 0;
+    
+    let vocabArr = [], prepArr = [], wfArr = [];
+    bbErrors.forEach(w => {
+        if(typeof w === 'string') {
+            var parts = w.split('::'); var word = parts[0] ? parts[0].trim() : ""; var typeStr = parts[3] ? parts[3].trim().toLowerCase() : "vocab";
+            if (typeStr === 'wordform' || typeStr === 'wf') wfArr.push(word); else if (typeStr === 'prep') prepArr.push(word); else vocabArr.push(word);
+        }
+    });
+    let badWordsCount = bbErrors.length;
+
+    let missingTasks = []; let totalBarem = 0;
+    if (typeof serverDeadlines !== 'undefined' && serverDeadlines.length > 0) {
+        let currentUnitDeadlines = serverDeadlines.filter(dl => dl.unit === targetUnit.toString());
+        totalBarem = currentUnitDeadlines.length;
+        currentUnitDeadlines.forEach(dl => {
+            let logTypeMap = { "vocab": "Từ Vựng", "grammar": "Ngữ Pháp", "wordform": "Word Form", "prep": "Giới từ" };
+            let catName = "Thi " + (logTypeMap[dl.type] || dl.type);
+            let unitText = "Unit " + dl.unit + (dl.part !== "0" ? " - P" + dl.part : "");
+            
+            let isDone = studentRows.some(r => {
+                let dStr = String(r[0]); let logTime = 0;
+                let tMatch = dStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-]\d{4}\s+(\d{1,2}):(\d{1,2})/);
+                if(tMatch) logTime = new Date(snapshotTime.getFullYear(), parseInt(tMatch[2])-1, parseInt(tMatch[1]), parseInt(tMatch[3]), parseInt(tMatch[4])).getTime();
+                else { let tmp = new Date(dStr); if(!isNaN(tmp.getTime())) logTime = tmp.getTime(); }
+                return logTime <= snapshotTime.getTime() + 60000 && parseInt(r[5]) === 1 && r[3] && r[4] && r[3].toString().includes(catName) && r[4].toString() === unitText;
+            });
+            
+            if (!isDone) {
+                let dlStatusText = "Chưa nộp";
+                let dlMatch = dl.deadlineStr.match(/(\d+)h(\d+)p.*\((\d+)\/(\d+)\)/);
+                if(dlMatch) {
+                    let targetTime = new Date(snapshotTime.getFullYear(), parseInt(dlMatch[4])-1, parseInt(dlMatch[3]), parseInt(dlMatch[1]), parseInt(dlMatch[2])).getTime();
+                    let diffStr = calcDeadlineDiff(targetTime, snapshotTime.getTime());
+                    if(snapshotTime.getTime() > targetTime) dlStatusText = `Hạn: ${dl.deadlineStr} (<b style="color:#e11d48;">Đã ${diffStr}</b>)`;
+                    else dlStatusText = `Hạn: ${dl.deadlineStr} (Còn ${diffStr.replace('Sớm ', '')})`;
+                }
+                missingTasks.push(`<li>U${dl.unit}(${dl.type === 'wordform' ? 'WF' : dl.type.toUpperCase()}) - ${dlStatusText}</li>`);
+            }
+        });
+    }
+    let missingCount = missingTasks.length;
+    let missingStr = missingCount > 0 ? `<ul style="margin:5px 0; padding-left:20px; color:#e11d48;">${missingTasks.join("")}</ul>` : "Tuyệt vời, không nợ bài nào!";
+
+    let sGold = studentDB[id] ? (parseFloat(studentDB[id].gold) || 0) : 0;
+    let maxGold = 0;
+    for(let key in studentDB) { if(key !== "T11") { let g = parseFloat(studentDB[key].gold) || 0; if(g > maxGold) maxGold = g; } }
+    let goldDiff = Math.max(0, maxGold - sGold);
+
+    let colorFc = totalTimeLearning === 0 ? "#e11d48" : (fcPct < 50 ? "#e11d48" : "#16a34a");
+    let bgFc = totalTimeLearning === 0 ? "#fff1f2" : (fcPct < 50 ? "#fff1f2" : "#f0fdf4");
+    let textFc = totalTimeLearning === 0 ? "*🚨 CẢNH BÁO KỶ LUẬT: Con hoàn toàn KHÔNG tương tác học tập trên Ứng dụng trong suốt kỳ báo cáo này. Yêu cầu Phụ huynh kiểm tra lại thái độ học tập của con!" : (fcPct < 50 ? "*CẢNH BÁO: Thời gian học Flashcard quá thấp, con đang lướt bài đối phó để cày điểm/lấp đầy bảng điểm danh!" : "*ĐÁNH GIÁ: Thái độ học kiến thức nền tảng Tốt!");
+
+    let colorCheatAndMiss = (attempt1Cheats > 0 || missingCount > 0) ? "#e11d48" : "#16a34a";
+    let bgCheatAndMiss = (attempt1Cheats > 0 || missingCount > 0) ? "#fff1f2" : "#f0fdf4";
+    let evalStr = "";
+    if (attempt1Cheats === 0 && missingCount === 0) evalStr = "*ĐÁNH GIÁ: Thái độ làm bài Trung thực, Tập trung. Chăm ngoan, nộp bài đầy đủ.";
+    else {
+        let msgCheat = attempt1Cheats > 0 ? "Hành vi chuyển tab chứng tỏ con KHÔNG tập trung, làm việc riêng hoặc tra từ điển gian lận. Note: PH NGỒI TRƯỚC MẶT CON khi test lần 1, sẽ khắc phục được việc này! PH CÓ NHU CẦU ĐỔI THÀNH MÃ PIN RIÊNG, CHỈ PH BIẾT, THẦY RẤT SẴN LÒNG GỬI NGAY!" : "";
+        let msgMiss = missingCount > 0 ? "==> NỘP BÀI TRỄ HẠN, không có tính kỷ luật!" : "";
+        evalStr = "*CẢNH BÁO: " + msgCheat + (msgCheat && msgMiss ? " " : "") + msgMiss;
+    }
+
+    let colorBB = badWordsCount > 0 ? "#b45309" : "#16a34a";
+    let bgBB = badWordsCount > 0 ? "#fffbeb" : "#f0fdf4";
+    let textBB = "";
+    let bbSectionHtml = "";
+
+    // --- BẮT ĐẦU VÁ LỖI DEEP AUDIT MỤC 3 (ZERO LAG RAM EXTRACTION) ---
+    // Móc danh sách từ sai thực tế (Phân môn Vocab) trực tiếp từ Logs Lần 1 (Cột r[14])
+    let firstTestVocabErrors = [];
+    studentRows.forEach(r => {
+        let act = r[3] ? r[3].toString().toLowerCase() : "";
+        let unitStr = r[4] ? r[4].toString() : "";
+        let attempt = parseInt(r[5]) || 1;
+        let errStr = r[14] ? r[14].toString() : ""; // Danh sách lỗi nằm ở r[14]
+        
+        let uMatch = unitStr.match(/Unit (\d+)/i);
+        let u = uMatch ? uMatch[1] : "Khác";
+
+        // Chỉ lấy Test Lần 1, đúng Unit đang xét, và thuộc nhóm Vocab
+        if (u === targetUnit && attempt === 1 && (act.includes("từ vựng") || act.includes("vocab"))) {
+            if (errStr && errStr.trim() !== "") {
+                let errWords = errStr.split(',');
+                errWords.forEach(w => {
+                    let wordVn = w.split('::')[0]; // Format: VN::EN::MEANING::TYPE::TYPED
+                    if (wordVn) firstTestVocabErrors.push(wordVn.trim());
+                });
+            }
+        }
+    });
+    // Lọc trùng lặp để mảng sạch sẽ
+    firstTestVocabErrors = [...new Set(firstTestVocabErrors)];
+
+    // --- BẮT ĐẦU VÁ LỖI DEEP AUDIT MỤC 3 (ĐÁNH GIÁ ĐÚNG THỰC TẾ LẦN 1) ---
+    // RẼ NHÁNH KIỂM TOÁN LỊCH SỬ THỰC TẾ
+    if (unitTotalWrongs === 0) {
+        textBB = "*ĐÁNH GIÁ: Rất tốt. Con hoàn thành Unit này mà không sai sót câu nào trong các bài Test Lần 1.";
+        bbSectionHtml = `<div style="font-size: 13px; color: #166534; font-weight: bold; background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 6px; border: 2px dashed #16a34a; text-align: center;"><i class="fa-solid fa-champagne-glasses fa-bounce fa-2x"></i><br><br>🎉 HOÀN HẢO: Chân nhân bất lộ tướng, không một vết xước trong các bài Test Lần 1!</div>`;
+    } else {
+        if (badWordsCount === 0) {
+            textBB = "*ĐÁNH GIÁ: Xuất sắc! Dù từng vấp ngã ở bài test đầu tiên, nhưng con đã tự giác ôn tập và chuộc lỗi sạch sẽ trong Hình Bộ. Ý chí học tập tuyệt vời!";
+        } else {
+            textBB = "*CẢNH BÁO: Chỉ số khắc phục < 100% cho thấy con làm sai nhưng lười biếng, KHÔNG chủ động lấp lỗ hổng kiến thức. LÀM TEST CHỈ ĐỂ ĐỐI PHÓ! KẾT QUẢ ĐIỂM SỐ SAU NÀY sẽ không thể tốt!";
+        }
+        
+        bbSectionHtml = `
+            <ul style="margin: 5px 0 5px 0; padding-left: 20px; font-size: 13px; font-weight: bold; color: #334155; line-height: 1.6;">
+                <li>Tổng câu Sai/Bỏ trống ở các Test Lần 1: <b style="color:#e11d48; font-size:14px;">${unitTotalWrongs} CÂU</b>.</li>
+                <li>Từ vựng gõ sai thực tế bị nạp vào HÌNH BỘ: <b style="color:#b45309;">${totalPastErrors} TỪ</b> <span style="color:#64748b; font-weight:normal;">(Hiện đang kẹt lại: <b style="${badWordsCount>0?'color:#e11d48;':'color:#16a34a;'}">${badWordsCount} TỪ</b>)</span>.</li>
+                <li>Khắc phục (HÌNH BỘ): <b style="color:#0ea5e9;">${fixRate}%</b> (Đã chủ động ôn và sửa ${rdFixed.length}/${totalPastErrors} từ).</li>
+            </ul>
+            <div style="font-size: 11px; color: #64748b; font-style: italic; margin-bottom: 8px; padding: 0 10px;">
+                *(Lưu ý: Hệ thống chỉ đưa vào HÌNH BỘ những từ con THỰC SỰ CÓ LÀM nhưng gõ sai. Những câu bị bỏ trống do Đầu Hàng hoặc bị Thu Bài vì bị bắt quả tang gian lận, sẽ bị tính là 0 điểm, nhưng KHÔNG nạp HÌNH BỘ để tránh làm rác hệ thống ôn tập).*
+            </div>
+            <div style="font-size: 12px; color: #334155; font-weight: bold; margin-top: 5px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 6px; border: 1px dashed ${badWordsCount>0?'#ef4444':'#22c55e'};">
+                <b style="color: ${badWordsCount>0?'#e11d48':'#16a34a'};">DANH SÁCH TỪ CHƯA THUỘC (${badWordsCount} từ đang chờ xử lý trong HÌNH BỘ):</b><br>
+                • VOCAB: <span style="font-weight: normal;">${vocabArr.length > 0 ? vocabArr.join(", ") : "Sạch sẽ"}</span><br>
+                • WORD FORM: <span style="font-weight: normal;">${wfArr.length > 0 ? wfArr.join(", ") : "Sạch sẽ"}</span><br>
+                • PREP: <span style="font-weight: normal;">${prepArr.length > 0 ? prepArr.join(", ") : "Sạch sẽ"}</span>
+            </div>`;
+    }
+    // --- KẾT THÚC VÁ LỖI DEEP AUDIT MỤC 3 ---
+
+
+
+    let unitDetailsHtml = "";
+    if (unitStats[targetUnit] && unitStats[targetUnit].logs.length > 0) {
+        let st = unitStats[targetUnit];
+        let tbVoc = st.cVoc > 0 ? (st.sVoc / st.cVoc).toFixed(1) : "-";
+        let tbWF = st.cWF > 0 ? (st.sWF / st.cWF).toFixed(1) : "-";
+        let tbPrep = st.cPrep > 0 ? (st.sPrep / st.cPrep).toFixed(1) : "-";
+        
+        // Hàm bọc an toàn format điểm trung bình
+        let formatScoreUI = (val) => {
+            if (val === "-") return `<b style="color:var(--text-dark);">${val}</b>`;
+            let num = parseFloat(val);
+            if (num < 4) return `<b style="background: #e11d48; color: white; padding: 2px 6px; border-radius: 4px; font-size: 1.25em; border: 1px solid #111; box-shadow: 2px 2px 0px #111;">${num}</b>`;
+            if (num < 7) return `<b style="color: #e11d48; font-size: 1.15em; text-decoration: underline;">${num}</b>`;
+            return `<b style="color: #16a34a;">${num}</b>`;
+        };
+
+        unitDetailsHtml = `
+            <ul style="margin: 5px 0 15px 0; padding-left: 20px; font-size: 13px; font-weight: bold; color: #334155;">
+                <li style="margin-bottom: 8px;">ĐTB Từ vựng VOCAB <span style="color:#64748b; font-size:11px; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbVoc)}<b style="color:var(--text-dark);">/10 đ</b></li>
+                <li style="margin-bottom: 8px;">ĐTB Từ vựng WORD FORM <span style="color:#64748b; font-size:11px; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbWF)}<b style="color:var(--text-dark);">/10 đ</b></li>
+                <li style="margin-bottom: 8px;">ĐTB Từ vựng PREP - GIỚI TỪ <span style="color:#64748b; font-size:11px; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbPrep)}<b style="color:var(--text-dark);">/10 đ</b></li>
+            </ul>
+            <div style="background: white; border: 2px solid #cbd5e1; padding: 15px 15px 5px 15px; border-radius: 8px;">
+                <div style="font-size: 13px; color: #334155; line-height: 1.6;">${st.logs.join("")}</div>
+            </div>`;
+    } else unitDetailsHtml = "<div style='font-size: 13px; font-weight: bold; color: #94a3b8;'>🔹 Chưa phát sinh bài Test Lần 1 nào.</div>";
+
+    let nextUnit = parseInt(targetUnit) + 1;
+    let avgMinsPerDayText = "0 phút/ngày";
+    if (diffDays > 0) {
+        let exactAvg = tMins / diffDays;
+        if (exactAvg > 0 && exactAvg < 1) avgMinsPerDayText = "chưa tới 1 phút/ngày";
+        else avgMinsPerDayText = exactAvg.toFixed(1) + " phút/ngày";
+    }
+
+    let glowStyle = isForPdf ? "border: 2px solid #3b82f6;" : "border: 2px solid #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); animation: pulseAlertUI 2s infinite alternate;";
+    let pdfBtnHtml = isForPdf ? "" : `<button class="btn btn-red" style="width:100%; margin-top:15px; font-size:14px; padding:15px; background:#e11d48;" onclick="downloadUnitPDF('${targetUnit}')"><i class="fa-solid fa-file-pdf"></i> 📥 TẢI BẢN BÁO CÁO NÀY VỀ MÁY (BẢN PDF)</button>`;
+
+    return `
+    <div style="background: #fff; margin-bottom: 20px; ${isForPdf ? 'width: 800px; margin: 0 auto; overflow: visible !important; border: none; box-shadow: none;' : 'border: 3px solid #1e293b; border-radius: 12px; box-shadow: 6px 6px 0px #1e293b; overflow: hidden;'}">
+        
+        <div style="background: #1e293b; color: white; padding: 15px; text-align: center; border-bottom: 3px solid #1e293b;">
+            <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 900; text-transform: uppercase;">BẢNG ĐIỂM ĐIỆN TỬ & CHỐT SỔ UNIT ${targetUnit}</h3>
+            <div style="font-size: 13px; font-weight: bold; color: #cbd5e1; line-height: 1.5;">
+                👨‍🎓 Sĩ tử: <b style="color:white;">${sName}</b><br>
+                💰 Tích lũy: <b style="color:#facc15;">${sGold.toLocaleString('vi-VN')} Vàng</b> (Cách Top 1: ${goldDiff.toLocaleString('vi-VN')} Vàng)<br>
+                <span style="font-size: 11px; color: #fca5a5; font-style: italic; font-weight: normal;">(Khoảng cách càng lớn, chứng tỏ con càng nợ bài, sai nhiều, và chưa thuộc bài)</span>
+            </div>
+        </div>
+        
+        <div style="padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #f8fafc;">
+            
+            <div style="background: ${bgFc}; border: 2px dashed ${colorFc}; padding: 12px; border-radius: 8px;">
+                <b style="color: ${colorFc}; font-size: 14px; text-transform: uppercase;">[1] TỶ LỆ THỜI GIAN HỌC & KIỂM TRA:</b><br>
+                <span style="font-size: 13px; font-weight: bold; color: #334155;">Học ôn FLASHCARD: <span style="background: ${colorFc}; color: white; padding: 2px 6px; border-radius: 4px;">${fcPct}%</span> vs Làm TEST: ${testPct}%</span><br>
+                <i style="font-size: 11px; color: ${colorFc}; font-weight: bold; margin-top: 4px; display: inline-block;">${textFc}</i>
+            </div>
+
+            <div style="background: ${bgCheatAndMiss}; border: 2px dashed ${colorCheatAndMiss}; padding: 12px; border-radius: 8px;">
+                <b style="color: ${colorCheatAndMiss}; font-size: 14px; text-transform: uppercase;">[2] TIẾN ĐỘ & KỶ LUẬT (TEST LẦN 1):</b><br>
+                <div style="font-size: 13px; font-weight: bold; color: #334155; margin-top:5px;">
+                    - Tiến độ: NỢ, VẪN CHƯA NỘP <b style="color:${missingCount>0?'#e11d48':'#16a34a'};">${missingCount}/${totalBarem} BÀI</b>
+                    ${missingStr !== "Tuyệt vời, không nợ bài nào!" ? missingStr : ` (${missingStr})`}<br>
+                    - An ninh hệ thống: <b style="color:${attempt1Cheats>0?'#e11d48':'#16a34a'};">${attempt1Cheats} LẦN</b> RỜI TAB / MỞ APP KHÁC.<br>
+                </div>
+                <i style="font-size: 11px; color: ${colorCheatAndMiss}; font-weight: bold; margin-top:5px; display:block;"><i class="fa-solid fa-flag"></i> ${evalStr}</i>
+            </div>
+
+            <div style="background: ${bgBB}; border: 2px dashed ${colorBB}; padding: 12px; border-radius: 8px;">
+                <b style="color: ${colorBB}; font-size: 14px; text-transform: uppercase;">[3] KIỂM KÊ TỪ VỰNG (TEST LẦN 1):</b><br>
+                ${bbSectionHtml}
+                <i style="font-size: 11px; color: ${colorBB}; font-weight: bold; margin-top: 5px; display: inline-block;">${textBB}</i>
+            </div>
+
+            <div style="background: #f1f5f9; border: 2px dashed #64748b; padding: 12px; border-radius: 8px;">
+                <b style="color: #475569; font-size: 14px; text-transform: uppercase;">[4] NHẬT KÝ CHI TIẾT CỦA CÁC TEST LẦN 1:</b><br>
+                <div style="margin-top: 5px;">${unitDetailsHtml}</div>
+            </div>
+
+            <!-- BOX ĐỎ 1: LƯU Ý ĐIỂM SỐ -->
+            <div style="background: #fef2f2; border: 2px dashed #e11d48; box-shadow: 0 0 15px rgba(225, 29, 72, 0.2); padding: 12px; border-radius: 8px; border-left: 6px solid #e11d48; margin-bottom: 15px;">
+                <b style="color: #be123c; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-triangle-exclamation"></i> *** LƯU Ý QUAN TRỌNG ***</b><br>
+                <div style="font-size: 13px; color: #be123c; font-weight: bold; line-height: 1.5; margin-top: 5px;">
+                    - BA/MẸ thấy con đã trả bài đủ hết test, không còn nợ gì? HÃY NHÌN KĨ VÀO ĐIỂM SỐ! Nếu con làm bài đủ, mà điểm vô cùng thấp, thì đây chỉ là học đối phó!<br>
+                    - BA/MẸ nhìn thời gian diễn ra của các TEST LẦN 1 ở trên, và kiểm tra kỹ: những thời điểm này, mình có thật sự đã ngồi bên con không, hay phó mặc cho con tự làm? ĐIỂM CAO, CHƯA CHẮC TỰ LÀM! Ví dụ, KHÔNG CÓ GIÁM SÁT, con để giấy có ĐÁP ÁN SẴN trước mặt, tự gõ vào...<br>
+                    => CON SỐ KHÔNG BIẾT NÓI DỐI, với điều kiện mọi thứ đúng quy trình!
+                </div>
+            </div>
+
+            <!-- BOX VÀNG: YÊU CẦU PHỤ HUYNH -->
+            <div style="background: #fffbeb; color: #b45309; padding: 15px; border-radius: 8px; border: 2px dashed #d97706; box-shadow: 4px 4px 0px #fde68a; margin-bottom: 15px;">
+                <b style="font-size: 15px; text-transform: uppercase;"><i class="fa-solid fa-gavel"></i> [5] PHỤ HUYNH NÊN THỰC HIỆN NGAY:</b><br>
+                <div style="font-size: 13px; font-weight: bold; line-height: 1.6; margin-top: 8px;">
+                    1. <b style="color:#e11d48;">Xử lý Nợ:</b> Yêu cầu con học bài NGHIÊM CHỈNH, ôn bài đàng hoàng, tự tin rồi hãy xử lí dứt điểm các bài Test còn thiếu. Unit ${targetUnit} CHƯA XONG, sẽ không mở Unit ${nextUnit} [chỉ KHÓA Test, học FLASHCARD vẫn mở bình thường].<br>
+                    2. <b style="color:#e11d48;">Thiết quân luật:</b> Yêu cầu con Viết phạt 15 lần/từ (chỉ Tiếng Anh) cho danh sách TỪ KHÔNG THUỘC KHI LÀM CÁC TEST LẦN 1 + nhắc nhở con PHỤC THÙ xóa sạch từ trong HÌNH BỘ. CHƯA XỬ LÍ XONG HÌNH BỘ, KHÔNG ĐƯỢC TEST UNIT TIẾP THEO. Từ cũ không thuộc, qua bài mới, lại chồng chất dư nợ!<br>
+                    3. <b style="color:#e11d48;">Nghiệm thu:</b> Chụp hình phần viết phạt gửi lại Zalo để Thầy đối soát.
+                </div>
+            </div>
+
+            <!-- BOX TRẮNG: SAO KÊ THỜI GIAN -->
+            <div style="background: white; border: 2px solid #111; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                <b style="color: #111; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-clock-rotate-left"></i> [6] SAO KÊ THỜI GIAN TƯƠNG TÁC (TỪ LẦN BÁO CÁO TRƯỚC: ${lastReportStr})</b><br>
+                <div style="font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 8px;">
+                    - Tổng thời gian trôi qua: <b style="color:var(--accent-blue);">${diffDays} Ngày</b>.<br>
+                    - Tổng thời lượng tương tác trên app: <b style="color:var(--accent-red);">${tMins} PHÚT</b> <span style="color:#64748b; font-size:11px;">(Trung bình: <b style="color:var(--accent-red);">${avgMinsPerDayText}</b>)</span>.<br>
+                    - Chi tiết từng ngày:<br>
+                    <ul style="margin: 5px 0 0 0; padding-left: 20px; font-weight: normal; color: #475569;">
+                        ${saoKeHtml}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- BOX ĐỎ 2: LƯU Ý ĐIỆN THOẠI -->
+            <div style="background: #fef2f2; border: 2px solid #e11d48; padding: 12px; border-radius: 8px; border-left: 6px solid #e11d48; margin-bottom: 15px;">
+                <b style="color: #be123c; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-triangle-exclamation"></i> *** LƯU Ý QUAN TRỌNG ***</b><br>
+                <div style="font-size: 13px; color: #be123c; font-weight: bold; line-height: 1.5; margin-top: 5px;">
+                    - Thời gian học thật sự của con trên App chỉ dừng lại ở mức như trên, không nhiều đâu Ba/Mẹ nhé! Bảng sao kê này chính là "thước đo" chính xác nhất. Nếu thấy con LÚC NÀO CŨNG CẦM ĐIỆN THOẠI, BẢO 'PHẢI HỌC BÀI THẦY TIẾN', mà thời gian tương tác với app khác biệt báo cáo, chắc chắn con đang mượn cớ học bài để chơi game hoặc làm việc cá nhân!<br><br>
+                    - APP này, chủ lực giúp con HỌC BÀI và TRẢ BÀI, kết hợp Game hóa thêm phần hào hứng phấn khởi, và CÔNG NHẬN & VINH DANH TỪNG CHÚT NỖ LỰC của con, nhưng KHÔNG THỂ GÂY NGHIỆN ĐẾN MỨC CẦM SUỐT!
+                </div>
+            </div>
+
+            <!-- BOX XANH: LỜI NHẮN TỪ THẦY TIẾN -->
+            <div style="background: #eff6ff; border: 2px dashed #3b82f6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <b style="color: #1e3a8a; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-envelope-open-text"></i> [7] LỜI NHẮN GỬI TỪ THẦY TIẾN - VAI TRÒ GIÁM SÁT</b><br>
+                <div style="font-size: 13px; color: #1e3a8a; line-height: 1.6; margin-top: 8px; font-style: italic; font-weight: 600;">
+                    APP này là một ra-đa hiệu quả giúp Thầy và Ba/Mẹ nắm bắt chính xác thái độ học tập thực sự của các con. Tuy nhiên, mọi dữ liệu sẽ trở nên vô nghĩa nếu Ba/Mẹ khoán trắng hoàn toàn cho con tự thực hiện. Thầy nghĩ, chỉ vài phút ngồi bên con khi con nhập PIN làm bài Test Lần 1 — để ngắm nhìn và quan tâm con thêm một chút — đâu phải là điều gì quá xa xỉ, đúng không Ba/Mẹ?<br><br>
+                    Thực tế, một số con đang có dấu hiệu làm test chỉ để "điểm danh": LÀM BỪA ĐÁNH LỤI, KHÔNG XEM LẠI CÂU SAI, KHÔNG VIẾT PHẠT cho nhớ bài, và NÉ TRÁNH VÀO HÌNH BỘ "PHỤC THÙ" từ Sai. Đây không phải là học, mà là TRẢ NỢ ĐỐI PHÓ — con đường ngắn nhất dẫn đến kết quả kém trong các kỳ thi thật sau này!<br><br>
+                    APP được tạo ra để giải đáp chính xác câu hỏi của Ba/Mẹ: "CON HỌC BÀI CHƯA?", hay với Thầy: "DẠO NÀY CON CÓ LƯỜI KHÔNG, NHỜ THẦY ĐỂ Ý CON GIÚP ?", "SAO TRONG TRƯỜNG, ĐIỂM CON THẤP VẬY THẦY?" ... Đáp án cho những trăn trở ấy đã hiện rõ ngay trước mắt. Với hệ thống cảnh báo sớm này do Thầy dựng lên, kết hợp cùng vai trò "Người Giữ Cổng" của Ba/Mẹ, Thầy tin chúng ta sẽ đồng hành hiệu quả hơn để giúp các con ngày một tiến bộ, Ba/Mẹ nhé!
+                </div>
+            </div>
+            
+            ${pdfBtnHtml}
+        </div>
+    </div>
+    `;
+} // <--- ĐÂY LÀ SINH MỆNH CỦA APP: DẤU ĐÓNG HÀM BỊ THIẾU!
 
 function loginParentPortal() {
     let id = document.getElementById('parentStudentId').value.trim().toUpperCase(); if(!studentDB[id] && id !== 'T11') { showToast("Không tìm thấy Mã học sinh!"); return; }
@@ -4735,11 +5223,41 @@ function loginParentPortal() {
     document.getElementById('parentStudentName').innerHTML = `${sName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName || 'Chưa chọn'}</b></div>`;
     
     let studentRows = allLogsCache.filter(row => String(row[1]).trim().toUpperCase() === String(id).trim().toUpperCase());
-    // ĐẠI PHẪU: Cho phép "PHỤC THÙ" lọt qua lưới lọc để hiển thị lên bảng
+    
+    // Lấy tất cả Unit đã từng làm để tạo Tàng Kinh Các
+    let allUnitsSet = new Set();
+    studentRows.forEach(r => { let m = (r[4]||"").toString().match(/Unit (\d+)/i); if(m) allUnitsSet.add(parseInt(m[1])); });
+    let allUnitsArr = Array.from(allUnitsSet).sort((a,b) => b - a);
+    let latestUnit = allUnitsArr.length > 0 ? allUnitsArr[0].toString() : "1";
+
+    // 1. RENDER HERO BOX HIỆN TẠI
+    let heroBox = document.getElementById('parentHeroBox');
+    if(heroBox) heroBox.innerHTML = window.buildReportHtml(id, sName, latestUnit, studentRows, false);
+
+    // 2. RENDER TÀNG KINH CÁC (CÁC UNIT CŨ)
+    let pastUnitsHtml = "";
+    if (allUnitsArr.length > 1) {
+        let listHtml = allUnitsArr.slice(1).map(u => {
+            return `<div style="display:flex; justify-content:space-between; align-items:center; background: white; border: 2px solid var(--border-dark); padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 2px 2px 0px rgba(0,0,0,0.1);">
+                <b style="color: var(--border-dark); font-size: 14px;"><i class="fa-solid fa-file-contract"></i> BÁO CÁO CHỐT SỔ UNIT ${u}</b>
+                <button class="btn btn-red" style="padding: 8px 12px; font-size: 11px; background:#e11d48;" onclick="downloadUnitPDF('${u}')"><i class="fa-solid fa-file-pdf"></i> TẢI PDF</button>
+            </div>`;
+        }).join("");
+        
+        pastUnitsHtml = `
+            <div style="background: #f1f5f9; border: 3px solid #475569; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 6px 6px 0px #475569;">
+                <h4 style="margin: 0 0 15px 0; color: #1e293b; text-transform: uppercase; font-size: 15px; border-bottom: 2px dashed #475569; padding-bottom: 8px;"><i class="fa-solid fa-box-archive"></i> TÀNG KINH CÁC: HỒ SƠ CÁC UNIT TRƯỚC</h4>
+                ${listHtml}
+            </div>
+        `;
+        heroBox.innerHTML += pastUnitsHtml;
+    }
+
+    // RENDER LẠI CÁC BẢNG LỊCH SỬ CŨ VÀ BIỂU ĐỒ BÊN DƯỚI (Dành cho Accordion)
     let vocabRowsAsc = studentRows.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ") || r[3].toString().includes("PHỤC THÙ")));
     let vocabRowsDesc = [...vocabRowsAsc].reverse(); 
     
-    let vocabHtml = "", grammarHtml = "", totalVocabScore = 0, vocabCount = 0, totalGrammarScore = 0, grammarCount = 0;
+    let vocabHtml = "", totalVocabScore = 0, vocabCount = 0;
     let sumWF = 0, cWF = 0, sumPrep = 0, cPrep = 0, sumVocab = 0, cVocab = 0;
 
     let headers = allLogsCache[0] || [];
@@ -4748,9 +5266,6 @@ function loginParentPortal() {
     let idxC = headers.indexOf("Số câu đúng") > -1 ? headers.indexOf("Số câu đúng") : 7;
     let idxW = headers.indexOf("Số câu sai") > -1 ? headers.indexOf("Số câu sai") : 8;
     let idxDur = headers.indexOf("Thời gian làm bài") > -1 ? headers.indexOf("Thời gian làm bài") : 11;
-    // Khai báo thêm Cột 13 (Lỗi đã sửa) để móc danh sách từ đã Tiêu Diệt ra
-    let idxFixed = headers.indexOf("Lỗi đã sửa") > -1 ? headers.indexOf("Lỗi đã sửa") : 13;
-    let idxErr = headers.indexOf("Danh sách lỗi") > -1 ? headers.indexOf("Danh sách lỗi") : 14;
 
     let timelineHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
     studentRows.slice().reverse().forEach(row => { 
@@ -4761,9 +5276,6 @@ function loginParentPortal() {
 
         let dotColor = score >= 8 ? "var(--accent-green)" : (score >= 5 ? "var(--accent-yellow)" : "var(--accent-red)");
         let iconHtml = `<div style="width:16px; height:16px; border-radius:50%; background:${dotColor}; margin-right:8px; display:inline-block; border: 3px solid var(--border-dark); box-shadow: 2px 2px 0px var(--border-dark); vertical-align: middle;"></div>`;
-
-        if(category.includes("Ngữ Pháp")) { totalGrammarScore += score; grammarCount++; }
-        
         let remark = score === 10 ? "Xuất sắc! Nắm vững hoàn toàn." : (score >= 8 ? "Khá giỏi, cần phát huy!" : (score >= 5 ? "Đạt yêu cầu, nhưng cần ôn lại." : "Chưa đạt! Cần đôn đốc khẩn cấp."));
         let typeStr = isOfficial ? "Kiểm tra cùng Phụ huynh" : "Tự ôn tập";
         timelineHtml += `<div style="background:rgba(0,0,0,0.02); border:2px solid var(--border-dark); padding:10px; border-radius:8px;"><div style="font-size:12px; color:var(--text-muted); font-weight:bold;">${timeStr} - ${unitInfo} (Lần ${attempt})</div><div style="font-size:14px; margin-top:5px; font-weight:900;">${iconHtml} <span style="vertical-align: middle;">${typeStr}: <span style="color:${dotColor};">${score}/10 điểm</span></span> <br><span style="font-size:12px; font-style:italic; font-weight:normal; color:var(--text-dark); margin-left: 28px; display: block;">${remark}</span></div></div>`;
@@ -4786,7 +5298,6 @@ function loginParentPortal() {
         if (attempt === "1") badge = `<div style="background:#ff4757; color:white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; display: inline-block;">THI CHUẨN</div>`;
         if (isRevenge) badge = `<div style="background:#000; color:#ef4444; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; display: inline-block; border: 1px solid #ef4444;">PHỤC THÙ</div>`;
 
-        // Không cộng trung bình điểm Phục thù vào biểu đồ năng lực
         if (!isRevenge) {
             if(category.includes("Word Form")) { sumWF += score; cWF++; }
             if(category.includes("Giới từ")) { sumPrep += score; cPrep++; }
@@ -4800,108 +5311,17 @@ function loginParentPortal() {
         else if (category.includes("Giới từ")) cleanType = "PREP";
 
         let newBadgeHtml = index === 0 ? `<div class="badge-new-pro">✨ NEW</div>` : "";
-
-        let attemptTextZalo = attempt === "1" ? "LẦN 1 - TRẢ BÀI CHUẨN DUY NHẤT" : `LẦN ${attempt} - CÀY VÀNG BÙ ĐẮP`;
-        let unitTextZalo = unitInfo.replace("Unit ", "UNIT ").replace(" - P", " - PHẦN ");
-        let subjectTextZalo = `TEST ${unitTextZalo} - DẠNG TỪ VỰNG: ${cleanType} ✨ NEW ✨`;
-        
-        if (isRevenge) {
-            attemptTextZalo = "TRẢ BÀI CHỮA LÀNH";
-            subjectTextZalo = `PHỤC THÙ HÌNH BỘ (SỔ ĐEN)`;
-        }
-
-        // BÓC TÁCH NGÀY GIỜ BẤT TỬ CHỐNG CRASH
-        let logDate = new Date(timeStr);
-        let dateStrZalo = "Không rõ";
-        let hourPart = "Không rõ";
-        let startStr = "Không rõ";
-
-        if (!isNaN(logDate.getTime())) {
-            dateStrZalo = `NGÀY ${logDate.getDate().toString().padStart(2,'0')} THÁNG ${(logDate.getMonth()+1).toString().padStart(2,'0')} NĂM ${logDate.getFullYear()}`;
-            hourPart = logDate.toLocaleTimeString('vi-VN', {hour12: false});
-            timeStr = logDate.toLocaleTimeString('vi-VN', {hour12: false, hour:'2-digit', minute:'2-digit'}) + ' - ' + logDate.toLocaleDateString('vi-VN');
-            
-            let durMatch = durStr.match(/(\d+)p\s*(\d+)s/);
-            if(durMatch) {
-                let mins = parseInt(durMatch[1]), secs = parseInt(durMatch[2]);
-                let startD = new Date(logDate.getTime() - (mins*60 + secs)*1000);
-                startStr = startD.toLocaleTimeString('vi-VN', {hour12: false});
-            }
-        } else {
-            let timeParts = timeStr.split(' ');
-            dateStrZalo = timeParts.find(p => p.includes('/')) || timeStr;
-            hourPart = timeParts.find(p => p.includes(':')) || "Không rõ";
-        }
-
-        // RENDER DANH SÁCH LỖI SAI / ZALO HÌNH BỘ TẠI CỔNG PHỤ HUYNH
-        let errData = row[idxErr] ? row[idxErr].toString() : "";
-        let fixedData = row[idxFixed] ? row[idxFixed].toString() : "";
-        let errorPlainText = "";
-        
-        if (isRevenge) {
-            let failedWords = [];
-            if (errData) {
-                errData.split(',').forEach(e => {
-                    let parts = e.split('::');
-                    if(parts[0]) failedWords.push(parts[0].trim());
-                });
-            }
-            // Đọc mảng từ đã diệt từ Cột 13 (Lỗi đã sửa), nếu không có thì đọc biến toàn cục RAM (cho log mới làm xong)
-            let fixedWordsStr = fixedData && isNaN(fixedData) ? fixedData : (window.sessionFixedWords && index === 0 ? window.sessionFixedWords.join(", ") : `${cCount} từ`);
-            let failedWordsStr = failedWords.length > 0 ? failedWords.join(", ") : "Không có";
-            
-            errorPlainText = `\n🔥 KẾT QUẢ PHỤC THÙ:\n✔️ Đã tiêu diệt thành công: [${fixedWordsStr}]\n❌ Tội phạm còn tẩu thoát: [${failedWordsStr}]\n`;
-        } else {
-            if (errData && wCount > 0) {
-                errorPlainText = "\n❌ CHI TIẾT LỖI SAI:\n";
-                errData.split(',').forEach((e, idx) => {
-                    let parts = e.split('::');
-                    if(parts[0]) {
-                        // ĐÃ FIX BÁO CÁO ZALO: Lấy chữ học sinh gõ (Tham số thứ 5), nếu bài test cũ không có thì mới ghi (Trống)
-                        let userTyped = parts[4] ? parts[4].trim() : "(Trống)";
-                        errorPlainText += `- Câu ${idx + 1} : [${parts[0].trim()}] Con nhập: ${userTyped} => Đáp án: ${parts[1] ? parts[1].trim() : ''}\n`;
-                    }
-                });
-            }
-        }
-        
-        // GHÉP FORMAT CHUẨN ZALO
-        let rawZaloText = `BÁO CÁO KẾT QUẢ CHI TIẾT [${attemptTextZalo}] của ${id}\n${subjectTextZalo}\nCON LÀM BÀI VÀO : ${dateStrZalo}\n⏳ Thời gian làm bài: ${durStr}   -  Bắt đầu: ${startStr} => Kết thúc: ${hourPart}\n🎯 Điểm: ${score}/10 (Đúng: ${cCount}, Sai: ${wCount})\n${errorPlainText}`;
-
-        // 🚨 BÍ QUYẾT BẤT TỬ: Mã hóa toàn bộ chuỗi sang định dạng URI để không một ký tự nào (dấu nháy, ngoặc) có thể làm nổ HTML
-        let safeEncodedText = encodeURIComponent(rawZaloText);
-
-        // ĐẠI PHẪU: Ép hiển thị Nút Zalo nếu là Thi Lần 1 HOẶC là bài Phục Thù Hình Bộ
-        let btnZalo = (attempt === "1" || isRevenge) ? `<br><button style="background:#0088FF; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:900; font-size:11px; margin-top:8px; box-shadow: 2px 2px 0px #0f172a;" onclick="shareZalo(decodeURIComponent('${safeEncodedText}'))"><i class="fa-solid fa-share"></i> BÁO CÁO ZALO</button>` : "";
-
         totalVocabScore += score; vocabCount++;
-        vocabHtml += `<tr style="${rowStyle}"><td style="text-align:left; line-height: 1.4;">${newBadgeHtml}<b>${unitInfo}</b><br>${badge}<br><small style="color:var(--accent-blue); font-weight:bold;">${cleanType}</small></td><td style="font-size:11px;">${timeStr}</td><td><b style="color:var(--accent-red); font-size:15px;">Lần ${attempt}</b> ${btnZalo}</td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
+        vocabHtml += `<tr style="${rowStyle}"><td style="text-align:left; line-height: 1.4;">${newBadgeHtml}<b>${unitInfo}</b><br>${badge}<br><small style="color:var(--accent-blue); font-weight:bold;">${cleanType}</small></td><td style="font-size:11px;">${timeStr}</td><td><b style="color:var(--accent-red); font-size:15px;">Lần ${attempt}</b></td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
     });
-    document.getElementById('parentVocabLogsBody').innerHTML = vocabHtml || `<tr><td colspan="7" style="color:var(--text-muted);">Chưa thi Từ Vựng.</td></tr>`;
     
+    document.getElementById('parentVocabLogsBody').innerHTML = vocabHtml || `<tr><td colspan="7" style="color:var(--text-muted);">Chưa thi Từ Vựng.</td></tr>`;
     document.getElementById('grammarParentContainer').style.display = 'none';
 
     let avgWF = cWF > 0 ? (sumWF / cWF) : 0;
     let avgPrep = cPrep > 0 ? (sumPrep / cPrep) : 0;
     let avgVocab = cVocab > 0 ? (sumVocab / cVocab) : 0;
-    let avgGrammar = 0; 
-
-    // CHỈ CHIA TRUNG BÌNH CHO MÔN ĐÃ LÀM
-    let activeCats = 0;
-    if (cWF > 0) activeCats++;
-    if (cPrep > 0) activeCats++;
-    if (cVocab > 0) activeCats++;
-    let totalAvg = activeCats > 0 ? (avgWF + avgPrep + avgVocab) / activeCats : 0;
-
-    let recBox = document.getElementById('parentRecommendationBox');
-    let proposal = "";
-    if(activeCats > 0 && totalAvg < 7) {
-        proposal += "⚠️ <b>Từ vựng & Dạng từ:</b> Môn phái đang có nguy cơ diệt vong! Quốc sư đề nghị tiểu chủ vào ngay TÀNG KINH CÁC khổ luyện lại, đồng thời quét sạch tội phạm trong HÌNH BỘ!<br>"; 
-    } else {
-        proposal += "✅ <b>Từ vựng & Dạng từ:</b> Căn cơ cực kỳ vững chắc, nội công thâm hậu. Cứ đà này thì sớm muộn cũng xưng bá võ lâm. Hãy duy trì nhé!<br>";
-    }
-    recBox.innerHTML = proposal;
-
+    
     if(parentChartInst) parentChartInst.destroy(); let ctx = document.getElementById('parentHistoryChart').getContext('2d');
     let labels = vocabRowsAsc.map((_, i) => `Lần ${i+1}`);
     parentChartInst = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'WORDFORM', data: vocabRowsAsc.map(r => r[3].toString().includes("Word Form") ? parseFloat(r[idxScore]) : null), borderColor: '#1e90ff', spanGaps: true, tension: 0.3, pointBackgroundColor: '#1e90ff' }, { label: 'VOCAB', data: vocabRowsAsc.map(r => r[3].toString().includes("Từ Vựng") ? parseFloat(r[idxScore]) : null), borderColor: '#2ed573', spanGaps: true, tension: 0.3, pointBackgroundColor: '#2ed573' }, { label: 'PREP', data: vocabRowsAsc.map(r => r[3].toString().includes("Giới từ") ? parseFloat(r[idxScore]) : null), borderColor: '#ffa502', spanGaps: true, tension: 0.3, pointBackgroundColor: '#ffa502' }] }, options: { scales: { y: { min: 0, max: 10 } } } });
@@ -4911,17 +5331,95 @@ function loginParentPortal() {
         type: 'radar', 
         data: { 
             labels: ['VOCAB', 'PREP', 'WORD FORM', 'NGỮ PHÁP', 'SỰ TẬP TRUNG'], 
-            datasets: [{ label: 'Năng lực', data: [avgVocab*10, avgPrep*10, avgWF*10, avgGrammar*10, 85], backgroundColor: 'rgba(46, 213, 115, 0.2)', borderColor: '#2ed573', borderWidth: 3 }] 
+            datasets: [{ label: 'Năng lực', data: [avgVocab*10, avgPrep*10, avgWF*10, 0, 85], backgroundColor: 'rgba(46, 213, 115, 0.2)', borderColor: '#2ed573', borderWidth: 3 }] 
         }, 
         options: { scales: { r: { suggestedMin: 0, suggestedMax: 100 } }, plugins: { legend: {display: false} } } 
     });
 
-    document.getElementById('heatmapGrid').parentElement.style.display = 'none';
-    
-    // Đổi tên Lời phê Quốc Sư
-    let titleQuocSu = document.querySelector('#parentRecommendationBox').previousElementSibling;
-    if (titleQuocSu) titleQuocSu.innerHTML = `<i class="fa-solid fa-lightbulb"></i> LỜI PHÊ CỦA QUỐC SƯ <span style="font-size: 11px; color: var(--text-muted);">[cho các bài test mới nhất]</span>:`;
+    let heatmapContainer = document.getElementById('heatmapGrid');
+    if (heatmapContainer && heatmapContainer.parentElement) heatmapContainer.parentElement.style.display = 'none';
+    let titleQuocSu = document.querySelector('#parentRecommendationBox');
+    if (titleQuocSu && titleQuocSu.parentElement) titleQuocSu.parentElement.style.display = 'none';
 }
+
+// CỖ MÁY ĐÚC PDF TẠI MÁY TRẠM (ZERO LAG SERVER - NATIVE PRINT ENGINE)
+window.downloadUnitPDF = function(targetUnit) {
+    if (window.isGeneratingPDF) return;
+    window.isGeneratingPDF = true;
+    showToast("⏳ Đang chuẩn bị báo cáo, vui lòng đợi...");
+    
+    let id = document.getElementById('parentStudentId').value.trim().toUpperCase();
+    let sName = studentDB[id] ? studentDB[id].name : "Học sinh Test";
+    let studentRows = allLogsCache.filter(row => String(row[1]).trim().toUpperCase() === String(id).trim().toUpperCase());
+    
+    // Bản Report có chứa chi tiết 28 phút mà ta đã fix ở bước trước
+    let pdfHtml = window.buildReportHtml(id, sName, targetUnit, studentRows, true);
+    
+    // 1. TẠO KHU VỰC IN ĐỘC LẬP
+    let printArea = document.getElementById('nativePrintArea');
+    if (!printArea) {
+        printArea = document.createElement('div');
+        printArea.id = 'nativePrintArea';
+        document.body.appendChild(printArea);
+    }
+    
+    // Bọc Báo cáo trong một khung có max-width 800px để lên máy tính hay điện thoại đều đẹp
+    printArea.innerHTML = `<div style="max-width: 800px; margin: 0 auto; background: white; color: black; font-family: sans-serif; padding: 20px;">${pdfHtml}</div>`;
+
+    // 2. TIÊM CSS "TÀNG HÌNH" (Chỉ chạy khi máy in/lưu PDF khởi động)
+    let printStyle = document.getElementById('nativePrintStyle');
+    if (!printStyle) {
+        printStyle = document.createElement('style');
+        printStyle.id = 'nativePrintStyle';
+        printStyle.innerHTML = `
+            @media screen {
+                #nativePrintArea { display: none !important; }
+            }
+            @media print {
+                /* Tàng hình toàn bộ UI của App */
+                body > *:not(#nativePrintArea) { display: none !important; }
+                
+                /* ĐẠI PHẪU: Đập vỡ cấu trúc Flexbox và Height 100% của App để xóa trang trắng đầu tiên */
+                html, body { 
+                    display: block !important; 
+                    background: white !important; 
+                    margin: 0 !important; 
+                    padding: 0 !important; 
+                    width: 100% !important; 
+                    height: auto !important; 
+                    min-height: 0 !important; 
+                    max-height: none !important;
+                    overflow: visible !important; 
+                    position: static !important;
+                }
+                
+                /* Đặt khung in vào lề chuẩn, không dùng absolute để tránh bị đẩy trang */
+                #nativePrintArea { 
+                    display: block !important; 
+                    position: static !important; 
+                    width: 100% !important; 
+                    margin: 0 !important; 
+                    padding: 0 !important; 
+                }
+                
+                @page { size: auto; margin: 0mm; } 
+                * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            }
+        `;
+        document.head.appendChild(printStyle);
+    }
+
+    // 3. KÍCH HOẠT TRÌNH LƯU PDF CỦA ĐIỆN THOẠI/MÁY TÍNH
+    setTimeout(() => {
+        window.print(); // Gọi lệnh in bản xứ (Sẽ mở bảng Lưu PDF trên Mobile/PC)
+        
+        // Dọn dẹp sau khi gọi lệnh in
+        setTimeout(() => {
+            printArea.innerHTML = "";
+            window.isGeneratingPDF = false;
+        }, 1000);
+    }, 500); // Delay 500ms để DOM kịp nạp HTML và CSS
+};
 
 function generateHeatmap(id, historyRows) {}
 
@@ -6098,6 +6596,11 @@ function copyToClipboard(text) {
 window.processSyncData = function(data) {
     if (!data) return;
     
+    // ĐỒNG BỘ CONFIG TRỰC TIẾP: Cập nhật ngay lập tức Ngày Sao Kê Zalo nếu Admin có chỉnh sửa!
+    if (data.masterConfig) {
+        window.masterConfig = data.masterConfig;
+    }
+
     // 1. LỌC ĐÚNG LỊCH SỬ CỦA HỌC SINH ĐỂ NHẬN DIỆN TÁI SINH (100% CHÍNH XÁC)
     let myLogs = (data.logs && Array.isArray(data.logs)) ? data.logs.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase()) : [];
     let isResetAccount = (myLogs.length === 0) && (data.gold === undefined || data.gold === 0);
