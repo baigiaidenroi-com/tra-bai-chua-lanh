@@ -4910,7 +4910,17 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                         else if (score < 7) scoreUI = `<b style="color: #e11d48; font-size: 1.15em; text-decoration: underline;">${score}</b>`;
                         else scoreUI = `<b style="color: #16a34a;">${score}</b>`;
 
-                        unitStats[u].logs.push(`<div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1;">${timeLogStr} Test ${strictActName} (${partStr}): ${scoreUI}<b style="color:var(--text-dark);">/10 đ</b> <span style="font-size: 12px; color: #475569;">(Đúng ${r[7]}, Sai ${r[8]}) | T/gian: ${mins} phút.</span> <b>${dlStatus}</b></div>`);
+                        // VÁ LỖI MÂU THUẪN (0 ĐIỂM NHƯNG ĐÚNG X CÂU) DO ANTI-CHEAT HOẶC ĐẦU HÀNG
+                        let cheatFlag = r[10] ? r[10].toString() : "";
+                        let statUI = "";
+                        // Nhận diện: Điểm = 0 MÀ (số câu đúng > 0 HOẶC bị đánh cờ gian lận/hủy)
+                        if (score === 0 && (parseInt(r[7]) > 0 || cheatFlag.includes("CÓ") || cheatFlag.includes("hủy") || cheatFlag.includes("Đầu hàng"))) {
+                            statUI = `<span style="color: #b91c1c; font-weight: 900; font-size: 11px; background: #fee2e2; padding: 2px 6px; border-radius: 4px; border: 1px solid #ef4444; margin-left: 5px;">(HỦY KẾT QUẢ VÌ GIAN LẬN/ĐẦU HÀNG)</span>`;
+                        } else {
+                            statUI = `<span style="font-size: 12px; color: #475569; margin-left: 5px;">(Đúng ${r[7]}, Sai ${r[8]})</span>`;
+                        }
+
+                        unitStats[u].logs.push(`<div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; line-height: 1.6;">${timeLogStr} Test ${strictActName} (${partStr}): ${scoreUI}<b style="color:var(--text-dark);">/10 đ</b> ${statUI} <span style="font-size: 12px; color: #475569;">| T/gian: ${mins} phút.</span> <b>${dlStatus}</b></div>`);
 
                         if(logType === "vocab") { unitStats[u].sVoc += score; unitStats[u].cVoc++; }
                         else if(logType === "wordform") { unitStats[u].sWF += score; unitStats[u].cWF++; }
