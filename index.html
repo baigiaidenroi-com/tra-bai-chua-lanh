@@ -1241,7 +1241,7 @@ function parseCustomDeadline(dlStr) {
 const SYSTEM_APIS = {
     "6": "https://script.google.com/macros/s/AKfycbwFBGyqdX0rPLBvxsdRRWNzfrhb1bISrFSRe-Dlh3Tpv7VI7Sfb9gwc75pi__1eEWBD9g/exec",
     "7": "https://script.google.com/macros/s/AKfycbx7ph4jHn0-RnUfUi2oQuMfbgELLYgAhHx-Dq0p-38MhVf0Hon9jD621aLiBp8Uav39gQ/exec",
-    "8": "https://script.google.com/macros/s/AKfycbxZTJzLVTS9bJh5TGWwmOkzGOTv3X6Sh3NITMVWDNphwbQiKeGMBHAT6MAzva1KgPfz/exec",
+    "8": "https://script.google.com/macros/s/AKfycbz5lcyTvNaeyD6b0wPx6P43F5mkzW0BpP9ubimYyLFrgQN6vgUcw4GZImvaqzXIxvXs8Q/exec",
     "9": "https://script.google.com/macros/s/AKfycbwf_Agi-uGNAmo_p4oCB_S4O3XEHGV_o5MTbXjupSAhUt28B9Je1TU9NWHrz85id2sazA/exec"
 };
 
@@ -4943,7 +4943,10 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                         let exactTimeStr = sec < 60 ? `${sec} giây` : durStr;
 
                         // MÁY NGHIỀN CHỮ: Ngôn từ tinh tế, tập trung vào Fact & Số liệu
-                        if (score === 0 && rowQs > 0 && rowSpeed < rowSpamLimit) {
+                        if (score === 0 && sec < 5 && rowQs > 0) {
+                            cheatEvidence = "SỰ CỐ KẾT NỐI / THOÁT ỨNG DỤNG ĐỘT NGỘT";
+                            detailedEvidenceHtml = `Hệ thống ghi nhận thời gian làm bài chỉ có <b>${exactTimeStr}</b> cho ${rowQs} câu. Dấu hiệu của việc rớt mạng, lỗi thiết bị hoặc thoát ứng dụng đột ngột ngay khi vừa mở đề.`;
+                        } else if ((score === 0 && rowQs > 0 && rowSpeed < rowSpamLimit) || lowerCheat.includes("spam") || lowerCheat.includes("tốc độ ảo")) {
                             cheatEvidence = "HOÀN THÀNH BÀI TỐC ĐỘ ẢO BẤT THƯỜNG";
                             detailedEvidenceHtml = `Hệ thống ghi nhận trạng thái Auto-Spam. Hoàn thành <b>${rowQs} câu</b> chỉ trong <b>${exactTimeStr}</b> (Tốc độ ảo: <b style="color:#e11d48;">${rowSpeed.toFixed(1)} giây/câu</b>). Tốc độ đánh lụi quá nhanh, vi phạm quy chế!`;
                         } else if (errListStr.includes("(Đầu Hàng)") || lowerCheat.includes("đầu hàng")) {
@@ -4954,10 +4957,7 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                             let times = match ? match[1] : "NHIỀU";
                             cheatEvidence = `VI PHẠM QUY CHẾ: RỜI KHỎI MÀN HÌNH THI ${times} LẦN`;
                             detailedEvidenceHtml = `Hệ thống an ninh phát hiện học sinh đã chuyển sang thẻ (tab) khác hoặc mở ứng dụng khác <b>${times} lần</b> trong lúc làm bài.`;
-                        } else if (score === 0 && sec < 5 && rowQs > 0) {
-                            cheatEvidence = "SỰ CỐ KẾT NỐI / THOÁT ỨNG DỤNG ĐỘT NGỘT";
-                            detailedEvidenceHtml = `Hệ thống ghi nhận thời gian làm bài chỉ có <b>${exactTimeStr}</b> cho ${rowQs} câu. Dấu hiệu của việc rớt mạng, lỗi thiết bị hoặc thoát ứng dụng đột ngột ngay khi vừa mở đề.`;
-                        } else if (lowerCheat.includes("hủy") || lowerCheat.includes("gian lận") || lowerCheat.includes("có") || cheatFlag.includes("⚠️")) {
+                        } else if (lowerCheat.includes("hủy") || lowerCheat.includes("gian lận") || cheatFlag.trim().toUpperCase() === "CÓ" || cheatFlag.includes("⚠️")) {
                             cheatEvidence = "VI PHẠM QUY CHẾ THI";
                             detailedEvidenceHtml = `Hệ thống ghi nhận hành vi vi phạm quy chế thi. Kết quả bài test không được công nhận.`;
                         } else if (cheatFlag !== "" && cheatFlag !== "An toàn" && cheatFlag !== "Nghiêm túc") {
@@ -4975,10 +4975,10 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                         let fallbackBox = "";
 
                         // KÍCH HOẠT HIỂN THỊ BÙ ĐẮP LẦN 2 NẾU LẦN 1 = 0
-                        if (score === 0 && (cheatEvidence !== "" || parseInt(r[7]) > 0)) {
+                        if (score === 0) {
                             if (cheatEvidence === "") {
                                 cheatEvidence = "HÀNH VI BẤT THƯỜNG";
-                                detailedEvidenceHtml = `Trích xuất Raw Log từ máy chủ: Dữ liệu bất thường.`;
+                                detailedEvidenceHtml = `Trích xuất Raw Log từ máy chủ: Học sinh bỏ trống hoặc hệ thống không ghi nhận được điểm.`;
                             }
                             
                             scoreUI = `<b style="background: #111; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 1.25em; border: 1px solid #ef4444; box-shadow: 2px 2px 0px #ef4444;">0</b>`;
@@ -5038,12 +5038,12 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                                 fallbackBox = `
                                 <div style="margin-left: 15px; margin-bottom: 10px; border-left: 2px solid #ca8a04; padding-left: 15px;">
                                     <div style="font-size: 13px; color: #334155; line-height: 1.6;">
-                                        ↳ 🟨 <b>Con có làm lại bài test này LẦN 2: <span style="color:#b45309; font-size:14px;">${fbScore}/10 đ</span></b> (Đúng ${fbCor}, Sai ${fbWro}) | T/gian: ${fbDur}.
+                                        ↳ 🟨 Con có làm lại bài test này LẦN 2: <b><span style="color:#b45309; font-size:14px;">${fbScore}/10 đ</span></b> (Đúng ${fbCor}, Sai ${fbWro}) | T/gian: ${fbDur}.
                                     </div>
-                                    <div style="font-size: 12px; color: #475569; margin-top: 4px; font-weight: bold;">
-                                        ⏱️ Làm lại sau: <b>${timeDiffStr}</b>.
+                                    <div style="font-size: 13px; color: #475569; margin-top: 4px; font-weight: bold;">
+                                        ⏱️ Làm lại sau: ${timeDiffStr}.
                                     </div>
-                                    <div style="font-size: 11px; color: #b45309; font-style: italic; margin-top: 4px;">
+                                    <div style="font-size: 12px; color: #b45309; font-style: italic; margin-top: 4px;">
                                         ⚠️ Lưu ý: Đây là bài thi Lần 2 (Tự luyện), không có Mã PIN giám sát nên độ tin cậy không tuyệt đối.
                                     </div>
                                 </div>`;
