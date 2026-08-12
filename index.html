@@ -941,7 +941,7 @@ function buyUpsaleShield(cost, hits) {
     <!-- MÀN HÌNH ÔN TẬP FLASHCARD -->
     <div id="vocabLearnScreen" class="screen">
         <div style="width:100%; display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 2px dashed var(--border-dark);">
-            <button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none;" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> RÚT QUÂN</button>
+            <button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none;" onclick="exitFlashcard()"><i class="fa-solid fa-arrow-left"></i> RÚT QUÂN</button>
         </div>
         <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 15px; padding-bottom: 15px;">
             <div style="font-weight: 900; font-size: 14px; color: var(--border-dark); background: white; padding: 5px 20px; border: 3px solid var(--border-dark); border-radius: 20px; margin-bottom: 15px; box-shadow: 2px 2px 0px var(--border-dark); position: relative; z-index: 10;" id="fcProgress">Thẻ 1 / 10</div>
@@ -1241,7 +1241,7 @@ function parseCustomDeadline(dlStr) {
 const SYSTEM_APIS = {
     "6": "https://script.google.com/macros/s/AKfycbwFBGyqdX0rPLBvxsdRRWNzfrhb1bISrFSRe-Dlh3Tpv7VI7Sfb9gwc75pi__1eEWBD9g/exec",
     "7": "https://script.google.com/macros/s/AKfycbx7ph4jHn0-RnUfUi2oQuMfbgELLYgAhHx-Dq0p-38MhVf0Hon9jD621aLiBp8Uav39gQ/exec",
-    "8": "https://script.google.com/macros/s/AKfycbxZTJzLVTS9bJh5TGWwmOkzGOTv3X6Sh3NITMVWDNphwbQiKeGMBHAT6MAzva1KgPfz/exec",
+    "8": "https://script.google.com/macros/s/AKfycbxguPIYbwthmKgWg3gD-wqm_kVjPUfI1vMPClAMQ3Ryygymta-fxCiWVRmgTfm60h1a/exec",
     "9": "https://script.google.com/macros/s/AKfycbwf_Agi-uGNAmo_p4oCB_S4O3XEHGV_o5MTbXjupSAhUt28B9Je1TU9NWHrz85id2sazA/exec"
 };
 
@@ -3881,6 +3881,12 @@ function navVocabLearn(dir) {
             // ĐẠI PHẪU DỮ LIỆU: Format thời gian thực tế thay vì hardcode "Hoàn thành" để Báo cáo quét được % Flashcard
             let finalDurStr = Math.floor(durSec/60) > 0 ? `${Math.floor(durSec/60)}p ${Math.floor(durSec%60)}s` : `${Math.floor(durSec)}s`;
 
+            // 🚀 BẮT ĐẦU FIX: BƠM DATA VÀO RAM ĐỂ CỔNG PHỤ HUYNH LIVE NGAY LẬP TỨC
+            let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, catName, unitTitle, "1", "10", totalCards.toString(), "0", totalCards.toString(), "Nghiêm túc", finalDurStr, 0, 0, "" ];
+            allLogsCache.push(localLog);
+            localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
+            // 🚀 KẾT THÚC FIX
+
             // Ghi nhận lên Google Sheet
             if (getScriptUrl() && getScriptUrl().startsWith("http")) { 
                 fetch(getScriptUrl(), { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: 1, score: 10, correctCount: totalCards, wrongCount: 0, totalCount: totalCards, cheat: "Nghiêm túc", duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" }) }).catch(e=>{}); 
@@ -4844,8 +4850,9 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
         let durStr = r[11] ? r[11].toString() : "";
         let sec = 0; let pm = durStr.match(/(\d+)p/); if(pm) sec += parseInt(pm[1])*60; let sm = durStr.match(/(\d+)s/); if(sm) sec += parseInt(sm[1]);
         
-        // VÁ LỖI QUÁ KHỨ: Cứu vớt các log cũ ghi chữ "Hoàn thành" (mặc định cho 120s / 2 phút) để Flashcard không bị 0%
-        if (sec === 0 && durStr.includes("Hoàn thành")) sec = 120;
+        // 🚀 CỨU VỚT LỊCH SỬ: Chỉ bồi thường 120s cho những log CŨ không đo được thời gian (chứa chữ "Hoàn thành").
+        // Các log ăn gian của App MỚI (0s, 1s) sẽ không có chữ này, vẫn bị tính là 0s để vạch mặt!
+        if (sec === 0 && durStr.indexOf("Hoàn") > -1) sec = 120;
         
         let timeLogStr = "[Không rõ]"; let dObj = null; let dStr = String(r[0]);
         if (Object.prototype.toString.call(r[0]) === '[object Date]') { dObj = r[0]; } 
@@ -4861,23 +4868,34 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
             let dKey = `${dObj.getDate().toString().padStart(2,'0')}/${(dObj.getMonth()+1).toString().padStart(2,'0')}`;
             if(dailyStats[dKey]) {
                 dailyStats[dKey].sec += sec;
-                if (sec > 0) {
+                if (sec >= 0) { // Sửa lại thành >= 0 để vẫn in ra màn hình các dòng Flashcard lướt thẻ cũ
                     let timeLog = `${dObj.getHours().toString().padStart(2,'0')}:${dObj.getMinutes().toString().padStart(2,'0')}`;
                     let shortAct = act.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace("Thi ", "Test ").replace("Ôn Tập ", "Học ");
                     let shortUnit = unitStr.replace("Unit ", "U");
-                    let durText = Math.floor(sec/60) > 0 ? `${Math.floor(sec/60)}p ${sec%60}s` : `${sec}s`;
-                    dailyStats[dKey].details.push(`<div style="font-size: 12px; color: #475569; margin-left: 15px; border-left: 2px dashed #cbd5e1; padding-left: 10px; margin-top: 4px; font-weight: bold;">↳ ${timeLog}: ${shortAct} ${shortUnit} <span style="color:var(--accent-red);">(${durText})</span></div>`);
+                    
+                    // Hiển thị chữ khéo léo thay vì in 0s
+                    let durText = "";
+                    if (sec > 0) durText = Math.floor(sec/60) > 0 ? `${Math.floor(sec/60)}p ${sec%60}s` : `${sec}s`;
+                    else durText = "Lướt thẻ";
+                    
+                    // 🚀 BỘ LỌC UNIQUE UI: Loại bỏ các dòng báo cáo giống hệt nhau cùng một thời điểm phút
+                    let duplicateFound = dailyStats[dKey].details.some(d => d.includes(`${timeLog}: ${shortAct} ${shortUnit}`));
+                    if (!duplicateFound) {
+                        dailyStats[dKey].details.push(`<div style="font-size: 12px; color: #475569; margin-left: 15px; border-left: 2px dashed #cbd5e1; padding-left: 10px; margin-top: 4px; font-weight: bold;">↳ ${timeLog}: ${shortAct} ${shortUnit} <span style="color:var(--accent-red);">(${durText})</span></div>`);
+                    }
                 }
             }
+            // 🚀 ĐỒNG BỘ LOGIC: Tính tỷ lệ % theo chu kỳ ngày hiển thị (Không nhặt log lạc trôi trong quá khứ)
+            if (act.includes("Flashcard") || act.includes("Ôn Tập")) fcTimeSec += sec;
+            else if (act.includes("Test") || act.includes("Thi ")) testTimeSec += sec;
         }
 
         let uMatch = unitStr.match(/Unit (\d+)/i);
         let u = uMatch ? uMatch[1] : "Khác";
         
         if (u === targetUnit && (!dObj || dObj.getTime() <= snapshotTime.getTime() + 60000)) {
-            if (act.includes("Flashcard") || act.includes("Ôn Tập")) fcTimeSec += sec;
+            // Đã dời fcTimeSec và testTimeSec lên trên
             if (act.includes("Test") || act.includes("Thi ")) {
-                testTimeSec += sec;
                 if (attempt === 1) { 
                     unitTotalWrongs += wrongCountRow; // ĐÍCH THỰC CỘNG DỒN SỐ CÂU SAI THỰC TẾ
 
@@ -4952,22 +4970,17 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                         } else if (errListStr.includes("(Đầu Hàng)") || lowerCheat.includes("đầu hàng")) {
                             cheatEvidence = "TỰ NGUYỆN NỘP CỜ TRẮNG / BỎ DỞ BÀI THI";
                             detailedEvidenceHtml = `Hệ thống ghi nhận học sinh chủ động bấm nút nộp cờ trắng, bỏ dở bài thi giữa chừng. Hệ thống ngừng tính điểm các câu còn lại.`;
-                        } else if (lowerCheat.includes("rời tab") || lowerCheat.includes("cảnh cáo") || lowerCheat.includes("phạt nặng")) {
+                        } else if (lowerCheat.includes("rời tab") || lowerCheat.includes("cảnh cáo") || lowerCheat.includes("phạt nặng") || lowerCheat === "có" || lowerCheat === "⚠️ có") {
                             let match = lowerCheat.match(/rời tab\s*(\d+)/);
                             let times = match ? match[1] : "NHIỀU";
                             cheatEvidence = `VI PHẠM QUY CHẾ: RỜI KHỎI MÀN HÌNH THI ${times} LẦN`;
                             detailedEvidenceHtml = `Hệ thống an ninh phát hiện học sinh đã chuyển sang thẻ (tab) khác hoặc mở ứng dụng khác <b>${times} lần</b> trong lúc làm bài.`;
-                        } else if (lowerCheat.includes("hủy") || lowerCheat.includes("gian lận") || cheatFlag.trim().toUpperCase() === "CÓ" || cheatFlag.includes("⚠️")) {
-                            cheatEvidence = "VI PHẠM QUY CHẾ THI";
-                            detailedEvidenceHtml = `Hệ thống ghi nhận hành vi vi phạm quy chế thi. Kết quả bài test không được công nhận.`;
                         } else if (cheatFlag !== "" && cheatFlag !== "An toàn" && cheatFlag !== "Nghiêm túc") {
-                            cheatEvidence = cheatFlag.replace(/[⚠️\[\]]/g, "").trim().toUpperCase();
-                            if (cheatEvidence === "CÓ") {
-                                cheatEvidence = "VI PHẠM QUY CHẾ THI";
-                                detailedEvidenceHtml = `Hệ thống ghi nhận hành vi vi phạm quy chế thi. Kết quả bài test không được công nhận.`;
-                            } else {
-                                detailedEvidenceHtml = `Trích xuất Raw Log từ máy chủ: ${cheatEvidence}.`;
-                            }
+                            // 🚀 ĐÃ FIX: Lọc sạch các icon ⚠️ và in trực tiếp Log thô ra màn hình
+                            let rawReason = cheatFlag.replace(/[⚠️\[\]]/g, "").trim();
+                            if (rawReason === "" || rawReason.toUpperCase() === "CÓ") rawReason = "HÀNH VI GIAN LẬN THI CỬ";
+                            cheatEvidence = "VI PHẠM QUY CHẾ THI";
+                            detailedEvidenceHtml = `Trích xuất hệ thống: <b>${rawReason}</b>. Kết quả bài test không được công nhận.`;
                         }
                         
                         let statUI = `<span style="font-size: 12px; color: #475569; margin-left: 5px;">(Đúng ${r[7]}, Sai ${r[8]})</span>`;
@@ -5974,7 +5987,50 @@ window.goHome = function() {
         return;
     }
     
+    // 🚀 BẮT ĐẦU FIX: LƯU LOG FLASHCARD KHI BẤM NÚT HOME THOÁT NGANG
+    if (document.getElementById('vocabLearnScreen').classList.contains('active-screen') && !window.isFcSubmitting) {
+        saveFlashcardProgress("Thoát ngang");
+    }
+    // 🚀 KẾT THÚC FIX
+    
     originalGoHome();
+};
+
+// 🚀 BẮT ĐẦU FIX: HÀM THOÁT FLASHCARD KHI BẤM NÚT RÚT QUÂN
+window.exitFlashcard = function() {
+    if (!window.isFcSubmitting) {
+        saveFlashcardProgress("Rút quân");
+    }
+    goBack();
+};
+
+window.saveFlashcardProgress = function(exitType) {
+    if (!window.fcStartTime) return;
+    window.isFcSubmitting = true; // Khóa chống spam click
+    let durSec = (Date.now() - window.fcStartTime) / 1000;
+    
+    // Đã lướt dưới 2 giây thì không thèm ghi log làm rác Server
+    if (durSec < 2) return; 
+
+    let flippedCount = window.fcFlippedCards ? window.fcFlippedCards.size : 0;
+    let totalCards = questionsQueue.length;
+    
+    let typeTitles = { 'wordform': 'Word Form', 'vocab': 'Từ Vựng', 'prep': 'Giới từ' }; 
+    let cpNum = parseInt(currentPart);
+    let partText = cpNum === 0 ? "" : (cpNum === 1 ? " - P1" : " - P2"); 
+    let unitTitle = `Unit ${currentUnit}${partText}`;
+    let catName = `Ôn Tập ${typeTitles[currentType] || currentType} [Flashcard]`;
+    let finalDurStr = Math.floor(durSec/60) > 0 ? `${Math.floor(durSec/60)}p ${Math.floor(durSec%60)}s` : `${Math.floor(durSec)}s`;
+
+    // 1. Cập nhật vào RAM để Cổng Phụ Huynh CẬP NHẬT TỨC THÌ (LIVE)
+    let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, catName, unitTitle, "1", "10", flippedCount.toString(), "0", totalCards.toString(), exitType, finalDurStr, 0, 0, "" ];
+    allLogsCache.push(localLog);
+    localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
+
+    // 2. Bắn lên Server Google Sheet
+    if (getScriptUrl().startsWith("http")) { 
+        fetch(getScriptUrl(), { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: 1, score: 10, correctCount: flippedCount, wrongCount: 0, totalCount: totalCards, cheat: exitType, duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" }) }).catch(e=>{}); 
+    }
 };
 
 // Bổ sung chặn F5 / Reload trang khi đang thi
