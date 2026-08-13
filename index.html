@@ -5567,16 +5567,43 @@ function loginParentPortal() {
 window.downloadUnitPDF = function(targetUnit) {
     if (window.isGeneratingPDF) return;
     window.isGeneratingPDF = true;
-    showToast("⏳ Đang chuẩn bị báo cáo, vui lòng đợi...");
+    showToast("⏳ Đang bắt trọn khoảnh khắc, vui lòng đợi...");
     
-    let id = document.getElementById('parentStudentId').value.trim().toUpperCase();
-    let sName = studentDB[id] ? studentDB[id].name : "Học sinh Test";
-    let studentRows = allLogsCache.filter(row => String(row[1]).trim().toUpperCase() === String(id).trim().toUpperCase());
+    // 1. THUẬT TOÁN CLONE DOM: TÌM CHÍNH XÁC KHỐI BÁO CÁO ĐANG HIỂN THỊ TRÊN MÀN HÌNH
+    let allHeaders = document.querySelectorAll('h3');
+    let reportContainer = null;
     
-    // Bản Report có chứa chi tiết 28 phút mà ta đã fix ở bước trước
-    let pdfHtml = window.buildReportHtml(id, sName, targetUnit, studentRows, true);
+    // Quét tìm thẻ tiêu đề có chứa chữ UNIT Sếp đang muốn in
+    for (let i = 0; i < allHeaders.length; i++) {
+        if (allHeaders[i].innerText.includes('UNIT ' + targetUnit)) {
+            // Lùi lên 2 cấp cha để lấy cái <div> bọc toàn bộ khung Báo cáo Neo-Brutalism
+            reportContainer = allHeaders[i].parentElement.parentElement;
+            break;
+        }
+    }
+
+    if (!reportContainer) {
+        showToast("❌ Lỗi: Không tìm thấy báo cáo trên màn hình để in!");
+        window.isGeneratingPDF = false;
+        return;
+    }
+
+    // 2. NHÂN BẢN & CỞI TRÓI CSS (SINGLE SOURCE OF TRUTH)
+    let clone = reportContainer.cloneNode(true);
     
-    // 1. TẠO KHU VỰC IN ĐỘC LẬP
+    // Xóa cái nút "Tải PDF" vô duyên trong bản in
+    let printBtns = clone.querySelectorAll('button');
+    printBtns.forEach(b => { if(b.innerText.includes('PDF')) b.remove(); });
+    
+    // Cởi trói giáp sắt CSS UI, trả về định dạng giấy A4 ngoan ngoãn
+    clone.style.width = '800px';
+    clone.style.margin = '0 auto';
+    clone.style.boxShadow = 'none';
+    clone.style.border = 'none';
+    clone.style.overflow = 'visible';
+    clone.style.height = 'auto';
+
+    // 3. TẠO KHU VỰC IN ĐỘC LẬP (NATIVE PRINT AREA)
     let printArea = document.getElementById('nativePrintArea');
     if (!printArea) {
         printArea = document.createElement('div');
@@ -5584,10 +5611,11 @@ window.downloadUnitPDF = function(targetUnit) {
         document.body.appendChild(printArea);
     }
     
-    // Bọc Báo cáo trong một khung có max-width 800px để lên máy tính hay điện thoại đều đẹp
-    printArea.innerHTML = `<div style="max-width: 800px; margin: 0 auto; background: white; color: black; font-family: sans-serif; padding: 20px;">${pdfHtml}</div>`;
+    printArea.innerHTML = "";
+    // Đập bản Clone đã nấu chín vào khu vực in
+    printArea.appendChild(clone);
 
-    // 2. TIÊM CSS "TÀNG HÌNH" (Chỉ chạy khi máy in/lưu PDF khởi động)
+    // 4. TIÊM CSS "TÀNG HÌNH UI APP" (Chỉ chạy khi máy in khởi động)
     let printStyle = document.getElementById('nativePrintStyle');
     if (!printStyle) {
         printStyle = document.createElement('style');
@@ -5614,7 +5642,6 @@ window.downloadUnitPDF = function(targetUnit) {
                     position: static !important;
                 }
                 
-                /* Đặt khung in vào lề chuẩn, không dùng absolute để tránh bị đẩy trang */
                 #nativePrintArea { 
                     display: block !important; 
                     position: static !important; 
@@ -5630,16 +5657,16 @@ window.downloadUnitPDF = function(targetUnit) {
         document.head.appendChild(printStyle);
     }
 
-    // 3. KÍCH HOẠT TRÌNH LƯU PDF CỦA ĐIỆN THOẠI/MÁY TÍNH
+    // 5. KÍCH HOẠT TRÌNH LƯU PDF CỦA BROWSER
     setTimeout(() => {
-        window.print(); // Gọi lệnh in bản xứ (Sẽ mở bảng Lưu PDF trên Mobile/PC)
+        window.print(); 
         
-        // Dọn dẹp sau khi gọi lệnh in
+        // Dọn dẹp rác RAM sau khi in xong
         setTimeout(() => {
             printArea.innerHTML = "";
             window.isGeneratingPDF = false;
         }, 1000);
-    }, 500); // Delay 500ms để DOM kịp nạp HTML và CSS
+    }, 500); 
 };
 
 function generateHeatmap(id, historyRows) {}
