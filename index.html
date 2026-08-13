@@ -2643,7 +2643,12 @@ async function login() {
                             } return row;
                         });
                         localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache)); 
-                        // Cấm gọi cập nhật UI Dashboard ở đây, đợi xuất quan Bình Phong mới gọi!
+                        
+                        // 🚀 KIẾN TRÚC PRE-RENDERING: Vẽ ngầm UI ngay phía sau Bình Phong!
+                        renderTopPhuHao();
+                        calcRivalAnchor();
+                        checkMissingTasks(id);
+                        
                         window.isLoginSyncing = false; 
                         window.isLogsLoaded = true; 
                     }, 50); 
@@ -2772,16 +2777,20 @@ function tryCloseTuHuyet() {
         return;
     }
     
+    // 🛡️ BƯỚC 1: VẼ LẠI GIAO DIỆN (NẾU DATA API VỀ QUÁ TRỄ SAU 6S) TRƯỚC KHI HẠ BÌNH PHONG
+    renderTopPhuHao();
+    calcRivalAnchor();
+    checkMissingTasks(currentStudentId);
+
+    // 🛡️ BƯỚC 2: SAU KHI DOM ĐÃ BUILD XONG -> MỚI HẠ MÀN BÌNH PHONG (0ms LAG)
     document.getElementById('tuHuyetLoadingModal').style.display = 'none';
     
-   // 🛡️ BƯỚC 1: KÍCH NỔ ẢO THUẬT VÀNG NHẢY TƯNG TƯNG & BẢNG CÁI GAI (THU HÚT ÁNH NHÌN 3S ĐẦU)
+    // 🛡️ BƯỚC 3: KÍCH NỔ ẢO THUẬT VÀNG NHẢY TƯNG TƯNG (THU HÚT ÁNH NHÌN)
     setTimeout(() => {
-        initEconomySystem(); // Gọi Odometer bắt đầu vặn số ảo thuật
-        renderTopPhuHao();
-        calcRivalAnchor(); // Ép vẽ lại Bảng Cái Gai sau khi Logs đã bung nén thành công
-        checkMissingTasks(currentStudentId);
-    }, 100);
-    // 🛡️ BƯỚC 2: KÍCH HOẠT KHẢO BÀI ĐỘT XUẤT (NẾU CÓ)
+        initEconomySystem(); 
+    }, 50);
+
+    // 🛡️ BƯỚC 4: KÍCH HOẠT KHẢO BÀI ĐỘT XUẤT (NẾU CÓ)
     setTimeout(() => {
         if (typeof checkGhostThiefEncounter === 'function') checkGhostThiefEncounter();
     }, 800);
