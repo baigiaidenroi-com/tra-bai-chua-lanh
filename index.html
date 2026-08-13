@@ -3496,8 +3496,9 @@ function setupSession(data, part = 0) {
     // FIX SO SÁNH ID LỖI: Ép kiểu chuỗi tuyệt đối để không bị lỗi số vs chuỗi
     allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase()).forEach(r => { 
         if(r[14]) r[14].toString().split(',').forEach(w => { 
-            let vn = w.split('::')[0].trim(); 
-            if(vn) pastStudentErrors.add(vn.toLowerCase()); // ĐÃ FIX: Đọc chuẩn Cột 14 (Danh sách lỗi) thay vì Cột 13
+            // 🛡️ CHÉM SẠCH DẤU SAO (*) ĐỂ CHỐNG LỆCH PHA
+            let vn = w.split('::')[0].replace(/\*/g, '').trim(); 
+            if(vn) pastStudentErrors.add(vn.toLowerCase());
         }); 
     });
     
@@ -3512,8 +3513,9 @@ function setupSession(data, part = 0) {
     
     localBB.forEach(w => { 
         if (typeof w === 'string') {
-            let vn = w.split('::')[0].trim(); 
-            if(vn) pastStudentErrors.add(vn.toLowerCase()); // ĐÃ FIX: Ép về in thường
+            // 🛡️ CHÉM SẠCH DẤU SAO (*) ĐỂ CHỐNG LỆCH PHA
+            let vn = w.split('::')[0].replace(/\*/g, '').trim(); 
+            if(vn) pastStudentErrors.add(vn.toLowerCase()); 
         }
     });
     
@@ -4131,7 +4133,8 @@ function checkVocabAnswer(isTimeout) {
             // TASK 1 FIX: Trục xuất hoàn toàn khỏi mảng blackbook để không bị hoàn sinh
             let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
             let newBB = localBB.filter(w => {
-                let wKey = typeof w === 'string' ? w.split('::')[0].trim().toLowerCase() : "";
+                // 🛡️ CHÉM SẠCH DẤU SAO (*) KHI QUÉT XÓA SỔ ĐEN
+                let wKey = typeof w === 'string' ? w.split('::')[0].replace(/\*/g, '').trim().toLowerCase() : "";
                 return wKey !== cleanWordKey.toLowerCase();
             });
             localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(newBB));
@@ -5638,10 +5641,112 @@ function loginParentPortal() {
 
         let newBadgeHtml = index === 0 ? `<div class="badge-new-pro">✨ NEW</div>` : "";
         totalVocabScore += score; vocabCount++;
-        vocabHtml += `<tr style="${rowStyle}"><td style="text-align:left; line-height: 1.4;">${newBadgeHtml}<b>${unitInfo}</b><br>${badge}<br><small style="color:var(--accent-blue); font-weight:bold;">${cleanType}</small></td><td style="font-size:11px;">${timeStr}</td><td><b style="color:var(--accent-red); font-size:15px;">Lần ${attempt}</b></td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
+        
+        // 🚀 CẤY NÚT BÁO CÁO ZALO VÀO TỪNG DÒNG (CHỈ ÁP DỤNG LẦN 1 VÀ PHỤC THÙ)
+        let logIndex = allLogsCache.indexOf(row);
+        let detailBtn = (attempt === "1" || isRevenge) ? `<button class="btn btn-blue" style="margin-top: 6px; padding: 4px 8px; font-size: 10px; width: 100%; box-shadow: 2px 2px 0px #111;" onclick="viewOldLogDetail(${logIndex})"><i class="fa-solid fa-list-check"></i> CHI TIẾT & ZALO</button>` : "";
+
+        vocabHtml += `<tr style="${rowStyle}"><td style="text-align:left; line-height: 1.4;">${newBadgeHtml}<b>${unitInfo}</b><br>${badge}<br><small style="color:var(--accent-blue); font-weight:bold;">${cleanType}</small>${detailBtn}</td><td style="font-size:11px;">${timeStr}</td><td><b style="color:var(--accent-red); font-size:15px;">Lần ${attempt}</b></td><td style="font-size:11px; color:var(--text-muted);">${durStr}</td><td style="color:var(--accent-red); font-size:14px;"><b>${score}</b></td><td style="color:var(--accent-green); font-weight:bold;">${cCount}</td><td style="color:var(--accent-red); font-weight:bold;">${wCount}</td></tr>`;
     });
     
     document.getElementById('parentVocabLogsBody').innerHTML = vocabHtml || `<tr><td colspan="7" style="color:var(--text-muted);">Chưa thi Từ Vựng.</td></tr>`;
+
+// =========================================================================
+// BỘ NÃO TÁI TẠO BÁO CÁO ZALO (PHỤC HỒI KÝ ỨC CŨ TỪ RAW LOGS)
+// =========================================================================
+window.viewOldLogDetail = function(logIndex) {
+    let row = allLogsCache[logIndex];
+    if (!row) return;
+    
+    let timeStr = row[0], sId = row[1], sName = row[2], category = row[3], unitInfo = row[4];
+    let attempt = row[5], score = row[6], cCount = row[7], wCount = row[8];
+    let durStr = row[11], errStr = row[14];
+    let isRevenge = category.includes("PHỤC THÙ");
+    
+    let html = "";
+    let errorPlainText = "";
+    let attemptText = attempt === "1" ? "LẦN 1 - TRẢ BÀI CHUẨN DUY NHẤT" : `LẦN ${attempt} - CÀY VÀNG BÙ ĐẮP`;
+    if (isRevenge) attemptText = "TRẢ BÀI CHỮA LÀNH";
+    
+    if (isRevenge) {
+        let fixedWordsList = row[13] ? row[13].toString() : "Không rõ";
+        let stillErrorWordsList = errStr ? errStr.split(',').map(w => w.split("::")[0]).join(", ") : "Không có";
+        
+        html = `<div style="font-size: 15px; line-height: 1.8;"><b>🔥 KẾT QUẢ PHỤC THÙ:</b><br><span style="color: var(--accent-green);">✔️ Đã tiêu diệt thành công: [${fixedWordsList}]</span><br><span style="color: var(--accent-red);">❌ Tội phạm còn tẩu thoát: [${stillErrorWordsList}]</span></div>`;
+        errorPlainText = `\n🔥 KẾT QUẢ PHỤC THÙ:\n✔️ Đã tiêu diệt thành công: [${fixedWordsList}]\n❌ Tội phạm còn tẩu thoát: [${stillErrorWordsList}]\n`;
+    } else {
+        if (!errStr || errStr.trim() === "") {
+            html = `<div style="color: var(--accent-green); font-weight: bold; text-align: center; font-size: 14px;">Chân nhân bất lộ tướng! Nội công đạt mức thượng thừa, không một vết xước!</div>`;
+        } else {
+            let errHtml = `<ul style="margin:0; padding-left:20px;">`;
+            errorPlainText = "\n❌ CHI TIẾT LỖI SAI:\n";
+            
+            let errArray = errStr.split(',');
+            errArray.forEach((errItem, idx) => {
+                let parts = errItem.split('::');
+                let word = parts[0] || "";
+                let en = parts[1] || "";
+                let mean = parts[2] || "";
+                let typed = parts[4] || "(Không rõ)";
+                
+                let displayTarget = en;
+                if (mean) displayTarget += ` [${mean}]`;
+                
+                errHtml += `<li style="margin-bottom: 10px; color: var(--border-dark);"><b>Câu ${idx+1}:</b> [${word}]<br>Con nhập: <span style="color:var(--accent-red); text-decoration:line-through;">${typed}</span> ➔ Đáp án: <span style="color:var(--accent-green); font-weight:bold;">${displayTarget}</span></li>`;
+                
+                errorPlainText += `- Câu ${idx + 1} : [${word}] Con nhập: ${typed} => Đáp án: ${displayTarget}\n`;
+            });
+            errHtml += `</ul>`;
+            html = errHtml;
+        }
+    }
+    
+    let remarkText = parseFloat(score) === 10 ? "Xuất sắc! Nắm vững hoàn toàn." : (parseFloat(score) >= 8 ? "Khá giỏi, cần phát huy!" : (parseFloat(score) >= 5 ? "Đạt yêu cầu, nhưng cần ôn lại." : "Chưa đạt! Cần đôn đốc khẩn cấp."));
+    
+    let zaloText = `BÁO CÁO KẾT QUẢ CHI TIẾT [${attemptText}]\nSĩ tử: ${sId}\n${category} - ${unitInfo}\nLàm bài lúc: ${timeStr}\n⏳ Thời gian: ${durStr}\n🎯 Điểm: ${score}/10 (Đúng: ${cCount}, Sai: ${wCount})\n${errorPlainText}\n👩‍🏫 Đánh giá: ${remarkText}`;
+    window.pendingOldZaloShareText = zaloText;
+    
+    let modal = document.getElementById('oldLogDetailModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'oldLogDetailModal';
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '10005';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+    <div class="modal-content" style="max-width: 500px; padding: 0; border: 4px solid var(--border-dark); box-shadow: 8px 8px 0px var(--border-dark); overflow: hidden; background: #fff;">
+        <div style="background: var(--accent-blue); color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark);">
+            <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; font-weight: 900;"><i class="fa-solid fa-file-invoice"></i> CHI TIẾT BÀI LÀM CŨ</h2>
+            <button onclick="document.getElementById('oldLogDetailModal').style.display='none'" style="background:#fff; border:3px solid #111; border-radius:50%; width:35px; height:35px; font-weight:bold; cursor:pointer; box-shadow:2px 2px 0px #111; color: #111;">X</button>
+        </div>
+        <div style="padding: 20px; max-height: 60vh; overflow-y: auto;">
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 2px dashed var(--border-dark); margin-bottom: 15px;">
+                <b>Môn:</b> ${category} - ${unitInfo}<br>
+                <b>Điểm:</b> <span style="color:var(--accent-red); font-size: 18px; font-weight: 900;">${score}/10</span> (Sai ${wCount})<br>
+                <b>Làm lúc:</b> ${timeStr}
+            </div>
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-red);"><i class="fa-solid fa-triangle-exclamation"></i> CHI TIẾT LỖI SAI / KẾT QUẢ:</h4>
+            <div style="background: rgba(239,68,68,0.05); padding: 15px; border-radius: 8px; border: 2px solid var(--accent-red); font-size: 13px; line-height: 1.5;">
+                ${html}
+            </div>
+        </div>
+        <div style="padding: 15px; border-top: 4px solid var(--border-dark); background: #f1f5f9;">
+            <button class="btn btn-blue" style="width: 100%; font-size: 14px; background: #0088FF;" onclick="copyOldZaloReport()"><i class="fa-solid fa-paper-plane"></i> COPY BÁO CÁO ZALO BÀI NÀY</button>
+        </div>
+    </div>`;
+    
+    modal.style.display = 'flex';
+}
+
+window.copyOldZaloReport = function() {
+    navigator.clipboard.writeText(window.pendingOldZaloShareText).then(() => { 
+        showToast("✅ Đã copy Báo cáo Zalo thành công! Mở Zalo dán ngay!"); 
+    }).catch(err => { 
+        showToast("Lỗi copy rồi!"); 
+    }); 
+}
     document.getElementById('grammarParentContainer').style.display = 'none';
 
     let avgWF = cWF > 0 ? (sumWF / cWF) : 0;
@@ -6679,9 +6784,12 @@ function openBlackbook() {
     }
     // Dò đúng chữ bất chấp Hoa/Thường để xóa sổ từ đã cứu rỗi
     redeemed.forEach(w => {
-        globalBlackbookMap.delete(w);
+        // 🛡️ CẮT GỌT 100% DẤU SAO (*) ĐỂ CHUẨN HÓA
+        let cleanW = w.replace(/\*/g, '').trim().toLowerCase(); 
+        globalBlackbookMap.delete(cleanW);
         for (let [key, value] of globalBlackbookMap.entries()) {
-            if (key.toLowerCase() === w.toLowerCase()) globalBlackbookMap.delete(key);
+            let cleanKey = key.replace(/\*/g, '').trim().toLowerCase();
+            if (cleanKey === cleanW) globalBlackbookMap.delete(key);
         }
     });
 
