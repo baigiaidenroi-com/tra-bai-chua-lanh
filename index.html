@@ -2514,12 +2514,16 @@ async function login() {
         currentStudentId = id;
         currentStudentName = id === 'T11' ? "Mr. Tiến" : (studentDB[id] ? studentDB[id].name : "Ẩn danh");
 
-        // Bốc Vàng Cũ từ Két Sắt
-        if (id !== 'T11' && studentDB[id]) {
+        // 🛡️ BỌC THÉP: Cấm tuyệt đối việc đọc Vàng từ studentDB (Cache cũ rích). Chỉ lấy Vàng thật đang lưu tại máy!
+        if (id !== 'T11') {
             let savedEco = JSON.parse(localStorage.getItem(getIsoKey('eco')) || "{}");
             let offQueue = JSON.parse(localStorage.getItem(getIsoKey('queue'))) || [];
             let pendingDiff = 0; offQueue.forEach(item => { pendingDiff += (parseFloat(item.goldDiff) || 0); });
-            userEconomy = { ...savedEco, gold: (parseFloat(studentDB[id].gold) || 0) + pendingDiff };
+            
+            let localRealGold = parseFloat(savedEco.gold);
+            if (isNaN(localRealGold)) localRealGold = 0; // Nếu máy trắng tinh, tạm set = 0 để chờ getBackupData kéo từ Server đè lên sau 2s
+            
+            userEconomy = { ...savedEco, gold: localRealGold + pendingDiff };
             localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
         }
 
@@ -4697,12 +4701,8 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
             localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
             addEconomyLog(fullLogString, finalGold, window.currentTxSignature + "_GOLD");
             
-            if (getScriptUrl().startsWith("http")) {
-                fetch(getScriptUrl(), { 
-                    method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, 
-                    body: JSON.stringify({ mode: "setEconomy", studentId: currentStudentId, reason: fullLogString, amount: userEconomy.gold }) 
-                }).catch(e=>{});
-            }
+            // 🛡️ ĐẠI PHẪU: Đã xóa sổ lệnh fetch mode="setEconomy" tại đây. 
+            // Hệ thống Queue Background sẽ tự động hứng hàm addEconomyLog và đẩy lên Sheet an toàn tuyệt đối!
         }
     }
 
