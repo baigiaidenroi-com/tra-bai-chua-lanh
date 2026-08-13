@@ -1550,9 +1550,16 @@ function syncCloudData(actionType, syncData) {
 }
 // --- KẾT THÚC CHÈN CODE ---
 
-function addEconomyLog(actionName, goldChange) {
+function addEconomyLog(actionName, goldChange, customId = null) {
     if(!currentStudentId || currentStudentId === 'T11') return;
     
+    // 🛡️ BƯỚC 2 (QUEUE LOCK): NẾU GIAO DỊCH ĐÃ CÓ TRONG HÀNG ĐỢI -> CHẶN ĐỨNG TRÙNG LẶP!
+    let txId = customId ? customId : (Date.now().toString(36) + Math.random().toString(36).substring(2));
+    if (customId && offlineQueue.some(item => item.id === txId)) {
+        console.log("🛑 Đã chặn giao dịch trùng lặp trong Queue:", txId);
+        return; 
+    }
+
     // FIX VÀNG BỊ NaN: Ép kiểu cưỡng bức về số, nếu rác thì cho về 0
     userEconomy.gold = parseFloat(userEconomy.gold);
     if (isNaN(userEconomy.gold)) userEconomy.gold = 0;
@@ -1565,7 +1572,7 @@ function addEconomyLog(actionName, goldChange) {
     let visualTag = `[💰 ${oldGold} ${sign} ${goldChange} = ${userEconomy.gold}] `;
 
     let logItem = {
-        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+        id: txId,
         time: new Date().toLocaleString('vi-VN'),
         studentId: currentStudentId,
         studentName: currentStudentName,
@@ -1575,6 +1582,8 @@ function addEconomyLog(actionName, goldChange) {
     
     offlineQueue.push(logItem);
     localStorage.setItem(getIsoKey('queue'), JSON.stringify(offlineQueue));
+
+
     
     // TỰ ĐỘNG BƠM VÀO KHO BẠC TỔNG KHI PHÁT SINH GIAO DỊCH TRỪ VÀNG
     if (goldChange < 0) {
@@ -1887,6 +1896,7 @@ function updateGoldUI() {
     
     if (currentVal === targetVal) {
         goldEl.innerText = currentVal.toLocaleString('vi-VN');
+        localStorage.setItem(getIsoKey('old_gold_display'), currentVal.toString()); // Lưu bệ phóng cũ
         return;
     }
     
@@ -1897,6 +1907,7 @@ function updateGoldUI() {
         if ((step > 0 && currentVal >= targetVal) || (step < 0 && currentVal <= targetVal)) {
             currentVal = targetVal;
             clearInterval(timer);
+            localStorage.setItem(getIsoKey('old_gold_display'), currentVal.toString()); // Lắp đạn chốt sổ
         }
         goldEl.innerText = currentVal.toLocaleString('vi-VN');
     }, 30);
@@ -2276,9 +2287,10 @@ function openGossipFeed() {
         storyBox.innerHTML = storyHtml;
     };
 
-    // ĐÃ FIX: Lấy dữ liệu ngay lập tức từ CACHE nếu có để tránh xoay vòng vòng
-    if (window.globalDramaData) {
-        renderDramaUI(window.globalDramaData);
+    // ĐÃ FIX: Lấy dữ liệu ngay lập tức từ RAM/Ổ CỨNG nếu có để tránh xoay vòng vòng
+    let savedDrama = window.globalDramaData || JSON.parse(localStorage.getItem('cached_thiPhi'));
+    if (savedDrama) {
+        renderDramaUI(savedDrama);
     } else {
         ticker.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang móc thông tin từ Tàng Kinh Các...</div>';
         storyBox.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang giở lại hồ sơ vụ án...</div>';
@@ -2472,101 +2484,71 @@ window.isLogsLoaded = false;
 window.tuHuyetTimerDone = false;
 
 async function login() {
-    window.isLoginSyncing = true; // KÍCH HOẠT CỜ KHÓA GIAO DỊCH NGẦM (CHỐNG MẤT VÀNG)
+    window.isLoginSyncing = true; 
     if (!currentSelectedGrade) { window.isLoginSyncing = false; showToast("🛑 BƯỚC 1: Hãy chọn Khối Lớp của ngươi trước!"); return; }
     if (!currentPet || currentPetName === "") { showToast("🛑 BƯỚC 2: Hãy triệu hồi Linh Vệ Sĩ bảo vệ ngươi!"); return; }
     let id = String(document.getElementById('studentId').value).trim().toUpperCase();
     if (id === "") { showToast("🛑 BƯỚC 3: Căn cước đâu? Hãy nhập ID của ngươi!"); return; }
 
     let btnMaster = document.getElementById('btnLoginMaster');
-    if (btnMaster) { btnMaster.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG TRÌNH BÁO...'; btnMaster.disabled = true; }
+    let scriptUrl = getScriptUrl();
 
-    // 🚀 ĐẠI PHẪU UI: CHÉM BỎ LỆNH GỌI MÀN HÌNH "ÉT Ô ÉT" GÂY ỨC CHẾ. 
-    // Học sinh chỉ nhìn nút Login xoay, cảm giác mượt hơn 1000 lần!
+    // 🛡️ BƯỚC 1: ĐỌC "VALI HÀNH LÝ" (CHỨA ĐỦ 100% CẤU HÌNH ĐỂ TRÁNH MẤT DATA KHI F5)
+    let coreCacheKey = "SYSTEM_CORE_CACHE_G" + currentSelectedGrade;
+    let coreCache = JSON.parse(localStorage.getItem(coreCacheKey) || "null");
 
-    try {
-        let scriptUrl = getScriptUrl();
-
-        // 1. TẢI SỔ NAM TÀO (ID, PASS, VÀNG, TỬ HUYỆT)
-        // ĐẠI PHẪU: Nâng Retries lên 2 lần để chống tình trạng Google Server ngủ gật (Cold Start) gây rớt mạng oan
-        let initData = await fetchWithFallback(scriptUrl, "init", { students: [] }, "", 2, 1000);
-        
-        if (initData.error) {
-             throw new Error("API_ERROR: " + initData.error);
-        }
-        
-        // Bắt lỗi rạch ròi nếu Link API sai hoặc Google Sheet bị mất Tab
-        if (!initData.students || initData.students.length === 0) {
-             throw new Error("Không tìm thấy dữ liệu Sĩ tử! Sếp hãy kiểm tra lại Tab 'Students' trên Google Sheet hoặc Link API đã dán đúng chưa.");
+    let proceedToDashboard = () => {
+        // 🛡️ ĐẠI PHẪU: BỐC VALI HÀNH LÝ LÊN RAM TRƯỚC TIÊN (Khôi phục 100% Ghi chú & Tử huyệt)
+        if (coreCache) {
+            studentDB = coreCache.studentDB;
+            serverDeadlines = coreCache.serverDeadlines || [];
+            window.baoBaiCacheContent = coreCache.baoBaiCacheContent || "Chưa có thông báo.";
+            window.noteManualCache = coreCache.noteManualCache || "";
+            window.globalTreasuryTax = coreCache.globalTreasuryTax || 0;
+            window.globalMaxUnit = coreCache.globalMaxUnit || 1;
+            window.tuHuyetCacheData = coreCache.tuHuyetCacheData || [];
+            window.masterConfig = coreCache.masterConfig || {};
         }
 
-        if (initData.students && initData.students.length > 0) {
-            studentDB = { "T11": { name: "Thầy Tiến (Admin)", pass: "123", gold: 9999999 } };
-            initData.students.forEach(s => { studentDB[String(s.id).trim().toUpperCase()] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0 }; });
-            if (initData.deadlines) serverDeadlines = initData.deadlines;
-            window.baoBaiCacheContent = initData.baoBaiContent; window.noteManualCache = initData.noteManual;
-            if (initData.totalTax !== undefined) window.globalTreasuryTax = initData.totalTax;
-            if (initData.maxAvailableUnit) window.globalMaxUnit = initData.maxAvailableUnit;
-            window.tuHuyetCacheData = initData.tuHuyet || []; 
-            
-            // ĐẠI PHẪU: ÉP APP NẠP CẤU HÌNH NGÀY SAO KÊ TỪ SERVER NGAY LÚC LOGIN!
-            if (initData.masterConfig) window.masterConfig = initData.masterConfig; 
-        }
+        // BÂY GIỜ RAM ĐÃ CÓ DATA -> MỚI ĐƯỢC PHÉP TRÍCH XUẤT TÊN HỌC SINH
+        currentStudentId = id;
+        currentStudentName = id === 'T11' ? "Mr. Tiến" : (studentDB[id] ? studentDB[id].name : "Ẩn danh");
 
-        if (id !== 'T11' && !studentDB[id]) throw new Error("Mã lệnh bài sai, không có trong danh sách lớp!");  
-
-        currentStudentId = id; currentStudentName = id === 'T11' ? "Mr. Tiến" : studentDB[id].name;
-
-        // 2. PRE-HYDRATE VÀNG & BÙ TRỪ NỢ (CHỐNG HACK DOUBLE-SPEND)
+        // Bốc Vàng Cũ từ Két Sắt
         if (id !== 'T11' && studentDB[id]) {
             let savedEco = JSON.parse(localStorage.getItem(getIsoKey('eco')) || "{}");
             let offQueue = JSON.parse(localStorage.getItem(getIsoKey('queue'))) || [];
-            let pendingDiff = 0;
-            offQueue.forEach(item => { pendingDiff += (parseFloat(item.goldDiff) || 0); });
-            
+            let pendingDiff = 0; offQueue.forEach(item => { pendingDiff += (parseFloat(item.goldDiff) || 0); });
             userEconomy = { ...savedEco, gold: (parseFloat(studentDB[id].gold) || 0) + pendingDiff };
             localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
         }
 
         if (btnMaster) { btnMaster.innerHTML = '<i class="fa-solid fa-gavel fa-shake"></i> TIẾP CHỈ'; btnMaster.disabled = false; }
 
-        // 3. XỬ LÝ ĐIỂM DANH NGAY TẠI ĐÂY
         let isAttendance = false;
         if (id !== 'T11') {
             let d = new Date(); let todayKey = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear(); 
             let inv = getInventory(); 
             if (inv['_lastAttend'] !== todayKey) {
                 isAttendance = true;
-                inv['_lastAttend'] = todayKey; localStorage.setItem(getIsoKey('inventory'), JSON.stringify(inv));
+                inv['_lastAttend'] = todayKey; saveInventory(inv);
                 userEconomy.lastLogin = todayKey; localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
                 addEconomyLog("🎁 Thưởng Điểm Danh Ngày Mới", 500);
                 if (typeof window.syncBlackbookToServer === 'function') window.syncBlackbookToServer();
-                if (typeof emergencyDataRescue === 'function') emergencyDataRescue(); // Bọc thép chống hack tắt app ngang
+                if (typeof emergencyDataRescue === 'function') emergencyDataRescue(); 
             }
-        }
-
-        // 4. VÀO SẢNH & DỰNG BÌNH PHONG TỬ HUYỆT (CHỈ MẤT TỔNG CỘNG 1-2S TỪ LÚC BẤM LOGIN)
-        initEconomySystem(); switchScreen('dashboardScreen'); renderTopPhuHao(); applyRoleUI();
-        document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
-        document.getElementById('dashAvatar').innerText = currentPet; 
-        
-        openTuHuyetPopup(isAttendance);
-        
-        // TASK 6: Kích hoạt Luật Giới Nghiêm (22h - 6h sáng)
-        if (id !== 'T11') {
-            let nowTime = new Date();
-            let curHour = nowTime.getHours();
+            
+            // LUẬT GIỚI NGHIÊM NỬA ĐÊM
+            let curHour = d.getHours();
             if (curHour >= 22 || curHour < 6) {
-                let curfewKey = "curfew_" + nowTime.toLocaleDateString('vi-VN');
-                let curInv = getInventory();
-                if (curInv['_lastCurfew'] !== curfewKey) {
-                    curInv['_lastCurfew'] = curfewKey;
-                    saveInventory(curInv);
+                let curfewKey = "curfew_" + todayKey;
+                if (inv['_lastCurfew'] !== curfewKey) {
+                    inv['_lastCurfew'] = curfewKey; saveInventory(inv);
                     addEconomyLog("🚨 Cấm Vệ Quân Phạt: Vi phạm Giới Nghiêm (22h-6h)", -500);
                     setTimeout(() => {
                         let ab = document.getElementById('securityAlert');
                         if(ab) {
-                            ab.innerHTML = `<i class="fa-solid fa-moon fa-shake" style="font-size:24px;"></i> <span>LUẬT GIỚI NGHIÊM: Đã quá giờ Hợi (22h-6h)! Xâm nhập hoàng cung trái phép, phạt 500 Vàng!</span>`;
+                            ab.innerHTML = `<i class="fa-solid fa-moon fa-shake" style="font-size:24px;"></i> <span>LUẬT GIỚI NGHIÊM: Phạt 500 Vàng!</span>`;
                             ab.style.top = '20px'; setTimeout(() => { ab.style.top = '-100px'; }, 6000);
                         }
                     }, 2500);
@@ -2574,68 +2556,143 @@ async function login() {
             }
         }
 
-        // 5. 🚀 GIAI ĐOẠN 2: ÁM ĐỘ TRẦN THƯƠNG (BĂM NHỎ TASK CPU ĐỘC LẬP)
+        // 🛡️ BƯỚC 2: MỞ BÌNH PHONG LẬP TỨC (ZERO LAG)
+        let oldGoldSnapshot = parseInt(localStorage.getItem(getIsoKey('old_gold_display')) || userEconomy.gold);
+        let uiGoldDisplay = document.getElementById('uiGoldDisplay');
+        if (uiGoldDisplay) uiGoldDisplay.innerText = oldGoldSnapshot.toLocaleString('vi-VN');
+
+        switchScreen('dashboardScreen'); applyRoleUI();
+        document.getElementById('dashName').innerHTML = `${currentStudentName} <div style="font-size: 11px; color: var(--text-muted); text-transform: none; margin-top: 4px;"><i class="fa-solid fa-user-shield"></i> Tùy tùng: <b style="color:var(--accent-red);">${currentPetName}</b></div>`; 
+        document.getElementById('dashAvatar').innerText = currentPet; 
+        
+        openTuHuyetPopup(isAttendance);
+        
+        let noteBox = document.getElementById('manualNoteBox');
+        if (window.noteManualCache && window.noteManualCache.trim() !== "") {
+            if (noteBox) { document.getElementById('manualNoteContent').innerHTML = window.noteManualCache.replace(/\n/g, '<br>'); noteBox.style.display = 'block'; }
+        } else {
+            if (noteBox) noteBox.style.display = 'none';
+        }
+        
         window.isLogsLoaded = false;
         
-        fetchWithFallback(scriptUrl, "getBackupData", { logs: [] }, `&studentId=${id}`, 1, 15000)
-        .then(syncData => {
-            if (syncData && syncData.logs && Array.isArray(syncData.logs) && syncData.logs.length > 0) {
+        // 🛡️ BƯỚC 3: BÓNG MA API TẢI NGẦM HẬU CẦN (PROMISE.ALL)
+        Promise.all([
+            fetchWithFallback(scriptUrl, "init", { students: [] }, "", 2, 10000),
+            fetchWithFallback(scriptUrl, "getBackupData", { logs: [] }, `&studentId=${id}`, 1, 15000)
+        ]).then(([initData, syncData]) => {
+            
+            // --- XỬ LÝ GÓI INIT: UPDATE VALI & BƠM TRỰC TIẾP LÊN UI ---
+            if (initData && !initData.error && initData.students && initData.students.length > 0) {
+                studentDB = { "T11": { name: "Thầy Tiến (Admin)", pass: "123", gold: 9999999 } };
+                initData.students.forEach(s => { studentDB[String(s.id).trim().toUpperCase()] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0 }; });
                 
-                setTimeout(() => {
-                    allLogsCache = syncData.logs.map(row => {
-                        if (typeof row === 'string') {
-                            let parts = row.split('|'); let newRow = new Array(15).fill(""); 
-                            newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; 
-                            return newRow;
-                        } return row;
-                    });
-                }, 50);
+                serverDeadlines = initData.deadlines || [];
+                window.baoBaiCacheContent = initData.baoBaiContent || "Chưa có thông báo.";
+                window.noteManualCache = initData.noteManual || "";
+                window.globalTreasuryTax = initData.totalTax || 0;
+                window.globalMaxUnit = initData.maxAvailableUnit || 1;
+                window.tuHuyetCacheData = initData.tuHuyet || []; 
+                window.masterConfig = initData.masterConfig || {};
                 
-                setTimeout(() => { calcRivalAnchor(); }, 100);
-                setTimeout(() => { checkMissingTasks(id); }, 150);
+                let freshCore = {
+                    studentDB: studentDB, serverDeadlines: serverDeadlines, baoBaiCacheContent: window.baoBaiCacheContent, 
+                    noteManualCache: window.noteManualCache, globalTreasuryTax: window.globalTreasuryTax, 
+                    globalMaxUnit: window.globalMaxUnit, tuHuyetCacheData: window.tuHuyetCacheData, masterConfig: window.masterConfig
+                };
+                localStorage.setItem(coreCacheKey, JSON.stringify(freshCore));
                 
-                setTimeout(() => { 
-                    localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache)); 
+                let thBox = document.getElementById('tuHuyetLiveBox');
+                if (thBox) {
+                    if (window.tuHuyetCacheData.length > 0) {
+                        thBox.innerHTML = window.tuHuyetCacheData.map(t => {
+                            let clean = t.replace(/ĐANG HẠ ĐO VÁN NHIỀU SĨ TỬ NHẤT/g, "KHIẾN SĨ TỬ LÚ LẪN NHẤT").replace(/mạng\)/g, "sĩ tử)").replace(/🔪/g, "🥊");
+                            return `<div style="background: #f8fafc; border: 2px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #b91c1c; font-weight: bold; text-align: left; animation: fadeIn 0.5s;">${clean}</div>`;
+                        }).join('');
+                    } else {
+                        thBox.innerHTML = `<div style="color: #16a34a; font-weight: bold; padding: 20px;">Hoàng cung đang yên bình, chưa có sĩ tử nào ngã ngựa!</div>`;
+                    }
+                }
+
+                let noteBox2 = document.getElementById('manualNoteBox');
+                if (window.noteManualCache && window.noteManualCache.trim() !== "") {
+                    if (noteBox2) { document.getElementById('manualNoteContent').innerHTML = window.noteManualCache.replace(/\n/g, '<br>'); noteBox2.style.display = 'block'; }
+                } else {
+                    if (noteBox2) noteBox2.style.display = 'none';
+                }
+                
+                let tBox = document.getElementById('uiGlobalTreasury');
+                if(tBox) tBox.innerHTML = window.globalTreasuryTax.toLocaleString('vi-VN') + ' <i class="fa-solid fa-coins"></i>';
+            }
+
+            // --- XỬ LÝ GÓI SYNCDATA: BƠM LOGS VÀ TÍNH TOÁN CÁI GAI ---
+            if (syncData) {
+                if (typeof window.processSyncData === 'function') {
+                    window.isHoldGoldAnimation = true; 
+                    window.processSyncData(syncData);
+                    window.isHoldGoldAnimation = false;
+                }
+                
+                if (syncData.logs && Array.isArray(syncData.logs) && syncData.logs.length > 0) {
+                    setTimeout(() => {
+                        allLogsCache = syncData.logs.map(row => {
+                            if (typeof row === 'string') {
+                                let parts = row.split('|'); let newRow = new Array(15).fill(""); 
+                                newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; 
+                                return newRow;
+                            } return row;
+                        });
+                        localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache)); 
+                        // Cấm gọi cập nhật UI Dashboard ở đây, đợi xuất quan Bình Phong mới gọi!
+                        window.isLoginSyncing = false; 
+                        window.isLogsLoaded = true; 
+                    }, 50); 
+                } else {
                     window.isLoginSyncing = false; 
                     window.isLogsLoaded = true; 
-                    unlockTuHuyetPopup(); 
-                }, 200);
-                
-            } else {
-                // FALLBACK AN TOÀN: Ép vẽ lại Cái Gai từ Data Cũ để không bị tàng hình
-                let localLogs = JSON.parse(localStorage.getItem(getIsoKey('logs')));
-                allLogsCache = (localLogs && Array.isArray(localLogs)) ? localLogs : [];
-                calcRivalAnchor(); checkMissingTasks(id);
-                window.isLogsLoaded = true; unlockTuHuyetPopup();
-                window.isLoginSyncing = false;
+                }
             }
-        }).catch(() => {
+            
+        }).catch(err => {
+            console.error("Lỗi Bóng Ma API Promise.all:", err);
             let localLogs = JSON.parse(localStorage.getItem(getIsoKey('logs')));
             allLogsCache = (localLogs && Array.isArray(localLogs)) ? localLogs : [];
-            calcRivalAnchor(); checkMissingTasks(id);
-            window.isLogsLoaded = true; unlockTuHuyetPopup();
+            window.isLogsLoaded = true; 
             window.isLoginSyncing = false;
         });
+    }; // <--- CHÍNH XÁC NHẤT LÀ SẾP ĐÃ XÓA NHẦM DẤU NÀY LÀM APP SẬP ĐÂY!
 
-        if (window.noteManualCache && window.noteManualCache.trim() !== "") {
-            let noteBox = document.getElementById('manualNoteBox');
-            if (noteBox) { document.getElementById('manualNoteContent').innerHTML = window.noteManualCache.replace(/\n/g, '<br>'); noteBox.style.display = 'block'; }
+    // 🛡️ BƯỚC 0: NGÃ BA SINH TỬ
+    if (coreCache && coreCache.studentDB && coreCache.studentDB[id]) {
+        // LUỒNG 1: MÁY ĐÃ CÓ DATA -> PHÓNG QUA BÌNH PHONG 0ms
+        proceedToDashboard();
+    } else {
+        // LUỒNG 2: MÁY TÂN BINH -> BẬT XOAY XOAY TẢI GÓI CORE LẦN ĐẦU (Chỉ tốn ~1.5s)
+        if (btnMaster) { btnMaster.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG TRÌNH BÁO...'; btnMaster.disabled = true; }
+        try {
+            let initData = await fetchWithFallback(scriptUrl, "init", { students: [] }, "", 2, 5000); // Ép Timeout 5s chống treo
+            if (initData.error) throw new Error(initData.error);
+            if (initData.students && initData.students.length > 0) {
+                studentDB = { "T11": { name: "Thầy Tiến (Admin)", pass: "123", gold: 9999999 } };
+                initData.students.forEach(s => { studentDB[String(s.id).trim().toUpperCase()] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0 }; });
+                
+                // Đóng gói 100% Core Data vào Vali Hành Lý ngay từ đầu
+                let freshCore = {
+                    studentDB: studentDB, serverDeadlines: initData.deadlines || [], baoBaiCacheContent: initData.baoBaiContent || "", 
+                    noteManualCache: initData.noteManual || "", globalTreasuryTax: initData.totalTax || 0, 
+                    globalMaxUnit: initData.maxAvailableUnit || 1, tuHuyetCacheData: initData.tuHuyet || [], masterConfig: initData.masterConfig || {}
+                };
+                localStorage.setItem(coreCacheKey, JSON.stringify(freshCore));
+                
+                // 🛡️ ĐẠI PHẪU: Cập nhật luôn biến coreCache để lát nữa proceedToDashboard đọc không bị Null
+                coreCache = freshCore;
+            }
+            if (id !== 'T11' && !studentDB[id]) throw new Error("Mã lệnh bài sai, không có trong danh sách lớp!");
+            proceedToDashboard();
+        } catch (err) {
+            if (btnMaster) { btnMaster.innerHTML = '<i class="fa-solid fa-gavel fa-shake"></i> TIẾP CHỈ'; btnMaster.disabled = false; }
+            showToast("❌ " + err.message);
         }
-
-    } catch (err) {
-        if (btnMaster) { btnMaster.innerHTML = '<i class="fa-solid fa-gavel fa-shake"></i> TIẾP CHỈ'; btnMaster.disabled = false; }
-        
-        // Phân loại lỗi để Sếp dễ debug thay vì báo "Đứt cáp quang" chung chung
-        if (err.message.includes("Mã lệnh")) {
-            showToast("🛑 " + err.message);
-        } else if (err.message.includes("API_ERROR:")) {
-            showToast("❌ Lỗi từ Google Sheet: " + err.message.replace("API_ERROR:", ""));
-        } else if (err.message.includes("Không tìm thấy dữ liệu")) {
-            showToast("⚠️ " + err.message);
-        } else {
-            showToast("📶 Sóng yếu hoặc Google Script đang ngủ! Tiểu chủ bấm 'Tiếp Chỉ' lại lần nữa nhé!");
-        }
-        console.error("Login Error:", err);
     }
 }
 
@@ -2653,7 +2710,6 @@ function openTuHuyetPopup(isAttendance) {
         document.body.appendChild(overlay);
     }
     
-    // Gộp luôn Vàng Điểm Danh vào đây cho gọn gàng, không chớp nháy màn hình
     let goldBanner = isAttendance ? 
         `<div style="background: #fef08a; border: 3px dashed #b45309; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 4px 4px 0px #b45309; animation: pulseAlertUI 1s infinite alternate;">
             <h3 style="margin:0; color: #b45309; font-size: 16px; text-transform: uppercase;"><i class="fa-solid fa-coins fa-bounce"></i> THÁI PHÓ BAN THƯỞNG ĐIỂM DANH</h3>
@@ -2665,7 +2721,7 @@ function openTuHuyetPopup(isAttendance) {
             let clean = t.replace(/ĐANG HẠ ĐO VÁN NHIỀU SĨ TỬ NHẤT/g, "KHIẾN SĨ TỬ LÚ LẪN NHẤT").replace(/mạng\)/g, "sĩ tử)").replace(/🔪/g, "🥊");
             return `<div style="background: #f8fafc; border: 2px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #b91c1c; font-weight: bold; text-align: left;">${clean}</div>`;
         }).join('') :
-        `<div style="color: #16a34a; font-weight: bold; padding: 20px;">Hoàng cung đang yên bình, chưa có sĩ tử nào ngã ngựa!</div>`;
+        `<div style="color: #16a34a; font-weight: bold; padding: 20px;"><i class="fa-solid fa-satellite-dish fa-spin"></i> Đang móc hồ sơ từ Tàng Kinh Các...</div>`;
 
     overlay.innerHTML = `
         <div class="modal-content" style="max-width: 500px; background: #0f172a; border: 4px solid #38bdf8; box-shadow: 8px 8px 0px #0284c7; text-align: center; padding: 25px;">
@@ -2675,8 +2731,8 @@ function openTuHuyetPopup(isAttendance) {
             </h2>
             <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px; font-style:italic;">TOP TỪ VỰNG toàn dân thường sai:</p>
             
-            <!-- ĐẠI PHẪU UI: Đổi 250px thành 60vh để tự động co giãn full văn bản theo chiều cao màn hình -->
-            <div style="max-height: 60vh; overflow-y: auto; padding-right: 5px; margin-bottom: 20px; text-align: left;">
+            <!-- 🛡️ ĐẠI PHẪU: Đặt ID sống 'tuHuyetLiveBox' để bơm Data vào khi API tải xong -->
+            <div id="tuHuyetLiveBox" style="max-height: 60vh; overflow-y: auto; padding-right: 5px; margin-bottom: 20px; text-align: left;">
                 ${tuHuyetHtml}
             </div>
 
@@ -2688,7 +2744,7 @@ function openTuHuyetPopup(isAttendance) {
     overlay.style.display = 'flex';
 
     window.tuHuyetTimerDone = false;
-    let count = 6; // ĐẠI PHẪU: Nâng thời gian Bình Phong lên 6s để mạng 4G tải mượt mà cục Logs
+    let count = 6; 
     let countdownEl = document.getElementById('tuHuyetCountdown');
     
     let timer = setInterval(() => {
@@ -2697,15 +2753,15 @@ function openTuHuyetPopup(isAttendance) {
         if(count <= 0) {
             clearInterval(timer);
             window.tuHuyetTimerDone = true;
-            unlockTuHuyetPopup(); // Kiểm tra xem Logs đã tải xong chưa để mở khóa
+            unlockTuHuyetPopup();
         }
     }, 1000);
 }
 
 function tryCloseTuHuyet() {
-    // KHÓA KÉP: Bắt buộc phải qua 5s VÀ Data Logs (Vai Phụ/Cái Gai) phải tải xong
-    if (!window.tuHuyetTimerDone || !window.isLogsLoaded) {
-        if (rageClickTimer) return; // Debounce chống spam Toast
+    // 🛡️ ĐẠI PHẪU LUẬT CẮT CẦU: Chỉ cần đếm xong 6s là XUẤT QUAN! Không cần chờ Data Logs!
+    if (!window.tuHuyetTimerDone) {
+        if (rageClickTimer) return;
         let msgs = [
             "🤬 Giám khảo quan đang xét hồ sơ! Thuộc hết TOP TỪ VỰNG toàn dân thường sai kia chưa, cấm thoát!",
             "🛑 Đừng bấm nữa hỏng chuột! Chờ hệ thống nạp Đan Điền!",
@@ -2715,63 +2771,71 @@ function tryCloseTuHuyet() {
         rageClickTimer = setTimeout(() => { rageClickTimer = null; }, 2000);
         return;
     }
+    
     document.getElementById('tuHuyetLoadingModal').style.display = 'none';
     
-    // 🚀 GIAI ĐOẠN 3: KÍCH HOẠT KHẢO BÀI ĐỘT XUẤT (NẾU CÓ)
+   // 🛡️ BƯỚC 1: KÍCH NỔ ẢO THUẬT VÀNG NHẢY TƯNG TƯNG & BẢNG CÁI GAI (THU HÚT ÁNH NHÌN 3S ĐẦU)
+    setTimeout(() => {
+        initEconomySystem(); // Gọi Odometer bắt đầu vặn số ảo thuật
+        renderTopPhuHao();
+        calcRivalAnchor(); // Ép vẽ lại Bảng Cái Gai sau khi Logs đã bung nén thành công
+        checkMissingTasks(currentStudentId);
+    }, 100);
+    // 🛡️ BƯỚC 2: KÍCH HOẠT KHẢO BÀI ĐỘT XUẤT (NẾU CÓ)
     setTimeout(() => {
         if (typeof checkGhostThiefEncounter === 'function') checkGhostThiefEncounter();
-    }, 500);
+    }, 800);
 
-    // 🚀 GIAI ĐOẠN 4: HẬU CẦN CHẠY NGẦM (IDLE FETCHING) TẠI SẢNH CHÍNH
+    // 🛡️ BƯỚC 3: HỆ THỐNG WATERFALL QUEUE (XẾP HÀNG TẢI NGẦM CHỐNG SẬP GOOGLE)
     let scriptUrl = getScriptUrl();
     if (scriptUrl && currentStudentId !== 'T11') {
-        // T+1s: Tải Bảng Phong Thần
+        
+        // T+1.5s: Kéo Bảng Phong Thần
         setTimeout(() => {
             fetchWithFallback(scriptUrl, "getLeaderboard", { error: "Lỗi mạng" }, "", 1, 10000)
             .then(data => { if (!data.error && data.bxh1) window.leaderboardCache = data; });
-        }, 1000);
+        }, 1500);
 
-        // T+2s: Tải Tin Tức Thị Phi
+        // T+3.0s: Kéo Tin Tức Thị Phi & Cốt Truyện
         setTimeout(() => {
             updateThiPhiTicker();
-        }, 2000);
+        }, 3000);
 
-        // T+4s: XE TẢI NGẦM ZERO LAG (Gom trọn gói Kho Từ Vựng 1 lần duy nhất)
+        // T+5.0s: Mở Khóa Xe Tải Từ Vựng (Data nặng nhất xếp cuối cùng)
         setTimeout(async () => {
             let localBank = JSON.parse(localStorage.getItem('localBankCache')) || {};
-            
-            // Nếu Ổ cứng chưa có data, lấy xe tải đi cào 1 lần toàn bộ Server
             if (Object.keys(localBank).length === 0) {
                 try {
                     let data = await fetchWithFallback(scriptUrl, 'getAllBank', { bank: {} }, "", 1, 15000);
                     if (data && data.bank && Object.keys(data.bank).length > 0) {
                         localStorage.setItem('localBankCache', JSON.stringify(data.bank));
-                        window.bankCache = data.bank; // Nạp thẳng vào RAM
+                        window.bankCache = data.bank; 
                     }
-                } catch(e) { console.error("Lỗi cào data xe tải:", e); }
+                } catch(e) { console.error("Lỗi cào xe tải:", e); }
             } else {
-                // Đã có data ở Ổ cứng thì chỉ nạp lên RAM sử dụng
                 window.bankCache = localBank;
             }
-        }, 4000);
+        }, 5000);
     }
-    }
+}
 
 function unlockTuHuyetPopup() {
-    // Nút [X] chỉ sáng lên khi thõa mãn cả 2 điều kiện sinh tử
-    if (window.tuHuyetTimerDone && window.isLogsLoaded) {
+    // 🛡️ ĐẠI PHẪU: Nút Xanh Mượt Má khi hết giờ, bỏ qua rào cản API!
+    if (window.tuHuyetTimerDone) {
         let btn = document.getElementById('btnTuHuyetClose');
         if (btn) {
             btn.style.background = '#22c55e';
             btn.style.color = '#fff';
             btn.style.borderColor = '#14532d';
             btn.style.cursor = 'pointer';
-            // ĐÃ FIX: Chèn thẻ <br> để ép chữ XUẤT QUAN xuống dòng
             btn.innerHTML = '<i class="fa-solid fa-door-open"></i> HAHA! TA ĐÃ THÔNG HIỂU!<br>XUẤT QUAN!';
             btn.classList.add('btn-green');
         }
     }
 }
+
+
+
 
 
 // ================================================================
@@ -3422,9 +3486,12 @@ async function startFlow(unit, part = 0) {
 
 function setupSession(data, part = 0) {
     window.isSessionFinished = false; // BẮT BUỘC PHẢI CÓ ĐỂ RESET KHÓA KHI LÀM LẦN 2, LẦN 3
+    window.submittedSignatures = new Set(); // 🛡️ MỞ KHÓA RAM LOCK CHO PHIÊN THI MỚI
     clearInterval(timerInterval); exactErrorDetails = []; cheatWarnings = 0; testStartTime = Date.now();
     sessionMaxCombo = 0; currentCombo = 0; sessionFixedErrors = 0; sessionErrorWords = [];
-    pastStudentErrors.clear(); 
+    pastStudentErrors.clear();
+
+
     
     // FIX SO SÁNH ID LỖI: Ép kiểu chuỗi tuyệt đối để không bị lỗi số vs chuỗi
     allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase()).forEach(r => { 
@@ -3897,7 +3964,8 @@ function navVocabLearn(dir) {
             // Xử lý tiền thưởng
             if (isFirstTime) {
                 localStorage.setItem(rewardKey, 'true'); // Khóa vĩnh viễn
-                addEconomyLog(`🎁 Thưởng Lật Thẻ Lần 1: ${unitTitle}`, 1000);
+                let fcSig = `${currentStudentId}_FC_REWARD_U${currentUnit}_P${currentPart}`;
+                addEconomyLog(`🎁 Thưởng Lật Thẻ Lần 1: ${unitTitle}`, 1000, fcSig);
                 showToast(`🎉 CHÚC MỪNG! Thưởng nóng +1.000 Vàng vì đã hoàn thành Lật Thẻ ${unitTitle} LẦN ĐẦU TIÊN! (Chỉ nhận 1 lần)`);
             } else {
                 showToast("Đã ôn tập xong và ghi nhận tiến độ!"); 
@@ -4411,9 +4479,25 @@ function evaluateGrammarTest(isForce = false) {
 }
 function finishSession(score, typeName, cheatMsg) {
     if (window.isSessionFinished) return; // CHỐNG SPAM CLICK: Nếu nộp rồi thì không chạy lần 2
+    
+    // 🛡️ BƯỚC 1 (RAM LOCK): TẠO CHỮ KÝ BẤT BIẾN CHỐNG NHÂN BẢN
+    window.submittedSignatures = window.submittedSignatures || new Set();
+    let attemptCheck = allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && r[3] && r[3].toString().includes(typeName) && r[4].toString().trim() === `Unit ${currentUnit}${currentPart === 0 ? "" : (currentPart === 1 ? " - P1" : " - P2")}`).length + 1;
+    let txSig = `${currentStudentId}_TEST_${currentType.toUpperCase()}_U${currentUnit}_P${currentPart}_L${attemptCheck}`;
+    if (window.isRevengeMode) txSig = `${currentStudentId}_REVENGE_${Date.now()}`; 
+    
+    if (window.submittedSignatures.has(txSig)) {
+        console.log("🛑 RAM LOCK: Chặn nộp bài trùng lặp!", txSig);
+        return;
+    }
+    window.submittedSignatures.add(txSig);
+    window.currentTxSignature = txSig; // Lưu ra toàn cục để Kế Toán Vàng sử dụng
+
     window.isSessionFinished = true;
     clearInterval(timerInterval);
     closeVirtualKeyboard(); // BUG 2 FIX: Gặp đích là TỰ ĐỘNG dẹp bàn phím ảo ngay lập tức!
+
+
     let durSec = Math.round((Date.now() - testStartTime)/1000), durStr = Math.floor(durSec/60) + "p " + (durSec%60) + "s";
     
     let startStr = new Date(testStartTime).toLocaleTimeString('vi-VN');
@@ -4527,7 +4611,7 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
             tempFinalGold = 0; cheatTag = " | 🚨 [PHẠT NẶNG] Rời Tab 3 lần (-200 Vàng)";
             goldReasonHtml = "Thu 0 Vàng + Phạt 200 Vàng (Rời Tab gian lận)";
             isPunished = true;
-            addEconomyLog("🚨 Cấm Vệ Quân Phạt: Rời Tab gian lận", -200);
+            addEconomyLog("🚨 Cấm Vệ Quân Phạt: Rời Tab gian lận", -200, window.currentTxSignature + "_CHEAT");
         } else if (cheatWarnings > 0) {
             tempFinalGold = Math.floor(tempFinalGold * 0.5); cheatTag = ` | ⚠️ [CẢNH CÁO] Rời Tab ${cheatWarnings} lần (-50% xu)`;
             goldReasonHtml = `Bị trừ 50% Vàng do Rời Tab ${cheatWarnings} lần`;
@@ -4599,7 +4683,7 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
         if (finalGold > 0 || fullLogString.includes("Phạt/Trừ")) {
             userEconomy.dailyGold += finalGold;
             localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
-            addEconomyLog(fullLogString, finalGold);
+            addEconomyLog(fullLogString, finalGold, window.currentTxSignature + "_GOLD");
             
             if (getScriptUrl().startsWith("http")) {
                 fetch(getScriptUrl(), { 
@@ -5264,7 +5348,7 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
     // RẼ NHÁNH KIỂM TOÁN LỊCH SỬ THỰC TẾ
     if (unitTotalWrongs === 0) {
         textBB = "*ĐÁNH GIÁ: Rất tốt. Con hoàn thành Unit này mà không sai sót câu nào trong các bài Test Lần 1.";
-        bbSectionHtml = `<div style="font-size: 13px; color: #166534; font-weight: bold; background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 6px; border: 2px dashed #16a34a; text-align: center;"><i class="fa-solid fa-champagne-glasses fa-bounce fa-2x"></i><br><br>🎉 HOÀN HẢO: Chân nhân bất lộ tướng, không một vết xước trong các bài Test Lần 1!</div>`;
+        bbSectionHtml = `<div class="ph-box-content" style="color: #166534; font-weight: bold; background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 6px; border: 2px dashed #16a34a; text-align: center !important;"><i class="fa-solid fa-champagne-glasses fa-bounce fa-2x"></i><br><br>🎉 HOÀN HẢO: Chân nhân bất lộ tướng, không một vết xước trong các bài Test Lần 1!</div>`;
     } else {
         if (badWordsCount === 0) {
             textBB = "*ĐÁNH GIÁ: Xuất sắc! Dù từng vấp ngã ở bài test đầu tiên, nhưng con đã tự giác ôn tập và chuộc lỗi sạch sẽ trong Hình Bộ. Ý chí học tập tuyệt vời!";
@@ -5273,16 +5357,16 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
         }
         
         bbSectionHtml = `
-            <ul style="margin: 5px 0 5px 0; padding-left: 20px; font-size: 13px; font-weight: bold; color: #334155; line-height: 1.6;">
-                <li>Tổng câu Sai/Bỏ trống ở các Test Lần 1: <b style="color:#e11d48; font-size:14px;">${unitTotalWrongs} CÂU</b>.</li>
+            <ul class="ph-box-content" style="margin: 5px 0 5px 0; padding-left: 20px; font-weight: bold; color: #334155;">
+                <li>Tổng câu Sai/Bỏ trống ở các Test Lần 1: <b style="color:#e11d48; font-size:1.1em;">${unitTotalWrongs} CÂU</b>.</li>
                 <li>Từ vựng gõ sai thực tế bị nạp vào HÌNH BỘ: <b style="color:#b45309;">${totalPastErrors} TỪ</b> <span style="color:#64748b; font-weight:normal;">(Hiện đang kẹt lại: <b style="${badWordsCount>0?'color:#e11d48;':'color:#16a34a;'}">${badWordsCount} TỪ</b>)</span>.</li>
                 <li>Khắc phục (HÌNH BỘ): <b style="color:#0ea5e9;">${fixRate}%</b> (Đã chủ động ôn và sửa ${rdFixed.length}/${totalPastErrors} từ).</li>
             </ul>
-            <div style="font-size: 11px; color: #64748b; font-style: italic; margin-bottom: 8px; padding: 0 10px;">
+            <div class="ph-box-content" style="color: #64748b; font-style: italic; margin-bottom: 8px; padding: 0 10px;">
                 *(Lưu ý: Hệ thống chỉ đưa vào HÌNH BỘ những từ con THỰC SỰ CÓ LÀM nhưng gõ sai. Những câu bị bỏ trống do Đầu Hàng hoặc bị Thu Bài vì bị bắt quả tang gian lận, sẽ bị tính là 0 điểm, nhưng KHÔNG nạp HÌNH BỘ để tránh làm rác hệ thống ôn tập).*
             </div>
-            <div style="font-size: 12px; color: #334155; font-weight: bold; margin-top: 5px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 6px; border: 1px dashed ${badWordsCount>0?'#ef4444':'#22c55e'};">
-                <b style="color: ${badWordsCount>0?'#e11d48':'#16a34a'};">DANH SÁCH TỪ CHƯA THUỘC (${badWordsCount} từ đang chờ xử lý trong HÌNH BỘ):</b><br>
+            <div class="ph-box-content" style="font-weight: bold; color: #334155; margin-top: 5px; background: rgba(0,0,0,0.05); padding: 12px; border-radius: 6px; border: 1px dashed ${badWordsCount>0?'#ef4444':'#22c55e'};">
+                <b style="color: ${badWordsCount>0?'#e11d48':'#16a34a'}; display:block; margin-bottom: 5px;">DANH SÁCH TỪ CHƯA THUỘC (${badWordsCount} từ đang chờ xử lý trong HÌNH BỘ):</b>
                 • VOCAB: <span style="font-weight: normal;">${vocabArr.length > 0 ? vocabArr.join(", ") : "Sạch sẽ"}</span><br>
                 • WORD FORM: <span style="font-weight: normal;">${wfArr.length > 0 ? wfArr.join(", ") : "Sạch sẽ"}</span><br>
                 • PREP: <span style="font-weight: normal;">${prepArr.length > 0 ? prepArr.join(", ") : "Sạch sẽ"}</span>
@@ -5303,28 +5387,28 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
         let formatScoreUI = (val) => {
             if (val === "-") return `<b style="color:var(--text-dark);">${val}</b>`;
             let num = parseFloat(val);
-            if (num < 4) return `<b style="background: #e11d48; color: white; padding: 2px 6px; border-radius: 4px; font-size: 1.25em; border: 1px solid #111; box-shadow: 2px 2px 0px #111;">${num}</b>`;
-            if (num < 7) return `<b style="color: #e11d48; font-size: 1.15em; text-decoration: underline;">${num}</b>`;
+            if (num < 4) return `<b style="background: #e11d48; color: white; padding: 2px 6px; border-radius: 4px; font-size: 1.15em; border: 1px solid #111; box-shadow: 2px 2px 0px #111;">${num}</b>`;
+            if (num < 7) return `<b style="color: #e11d48; font-size: 1.1em; text-decoration: underline;">${num}</b>`;
             return `<b style="color: #16a34a;">${num}</b>`;
         };
 
         unitDetailsHtml = `
-            <ul style="margin: 5px 0 15px 0; padding-left: 20px; font-size: 13px; font-weight: bold; color: #334155;">
-                <li style="margin-bottom: 8px;">ĐTB Từ vựng VOCAB <span style="color:#64748b; font-size:11px; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbVoc)}<b style="color:var(--text-dark);">/10 đ</b></li>
-                <li style="margin-bottom: 8px;">ĐTB Từ vựng WORD FORM <span style="color:#64748b; font-size:11px; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbWF)}<b style="color:var(--text-dark);">/10 đ</b></li>
-                <li style="margin-bottom: 8px;">ĐTB Từ vựng PREP - GIỚI TỪ <span style="color:#64748b; font-size:11px; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbPrep)}<b style="color:var(--text-dark);">/10 đ</b></li>
+            <ul class="ph-box-content" style="margin: 5px 0 15px 0; padding-left: 20px; font-weight: bold; color: #334155;">
+                <li style="margin-bottom: 8px;">ĐTB Từ vựng VOCAB <span style="color:#64748b; font-size:0.85em; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbVoc)}<b style="color:var(--text-dark);">/10 đ</b></li>
+                <li style="margin-bottom: 8px;">ĐTB Từ vựng WORD FORM <span style="color:#64748b; font-size:0.85em; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbWF)}<b style="color:var(--text-dark);">/10 đ</b></li>
+                <li style="margin-bottom: 8px;">ĐTB Từ vựng PREP - GIỚI TỪ <span style="color:#64748b; font-size:0.85em; font-weight:normal;">(Chỉ tính mốc điểm Thi Lần 1 để phản ánh đúng thực lực)</span>: ${formatScoreUI(tbPrep)}<b style="color:var(--text-dark);">/10 đ</b></li>
             </ul>
-            <div style="background: white; border: 2px solid #cbd5e1; padding: 15px 15px 5px 15px; border-radius: 8px;">
-                <div style="font-size: 13px; color: #334155; line-height: 1.6;">${st.logs.join("")}</div>
+            <div class="ph-box-content" style="background: white; border: 2px solid #cbd5e1; padding: 15px; border-radius: 8px;">
+                <div style="color: #334155;">${st.logs.join("")}</div>
             </div>
             
-            <div style="margin-top: 15px; background: #f1f5f9; border: 1px dashed #64748b; padding: 12px; border-radius: 8px; font-size: 12px; color: #475569; line-height: 1.6; font-style: italic;">
+            <div class="ph-box-content" style="margin-top: 15px; background: #f1f5f9; border: 1px dashed #64748b; padding: 15px; border-radius: 8px; color: #475569; font-style: italic;">
                 <b style="color: #334155; font-style: normal;">⚖️ VỀ QUY CHẾ ĐIỂM TRUNG BÌNH (ĐTB):</b><br>
-                Để đảm bảo tính công bằng và kỷ luật, Điểm Trung Bình trên hệ thống <b>CHỈ ghi nhận duy nhất kết quả của TEST LẦN 1</b> (có mã PIN giám sát). 
+                <div style="margin-top: 5px;">Để đảm bảo tính công bằng và kỷ luật, Điểm Trung Bình trên hệ thống <b>CHỈ ghi nhận duy nhất kết quả của TEST LẦN 1</b> (có mã PIN giám sát). 
                 Đối với mọi trường hợp Lần 1 bị hủy kết quả do <b>sự cố kỹ thuật</b> (rớt mạng, văng app) hoặc <b>vi phạm quy chế thi</b> (chuyển tab, bỏ dở bài), hệ thống bắt buộc phải bảo lưu mức <b>0 điểm</b> vào bảng ĐTB. 
-                Dù vậy, kết quả làm bù ở <b>Lần 2</b> (nếu có) vẫn sẽ được hiển thị chi tiết bên trên. Điểm Lần 2 tuy không thay đổi được ĐTB, nhưng là cơ sở quan trọng để Thầy và Ba/Mẹ đánh giá đúng năng lực thực tế, đồng thời ghi nhận ý chí tự giác khắc phục lỗi lầm của con.
+                Dù vậy, kết quả làm bù ở <b>Lần 2</b> (nếu có) vẫn sẽ được hiển thị chi tiết bên trên. Điểm Lần 2 tuy không thay đổi được ĐTB, nhưng là cơ sở quan trọng để Thầy và Ba/Mẹ đánh giá đúng năng lực thực tế, đồng thời ghi nhận ý chí tự giác khắc phục lỗi lầm của con.</div>
             </div>`;
-    } else unitDetailsHtml = "<div style='font-size: 13px; font-weight: bold; color: #94a3b8;'>🔹 Chưa phát sinh bài Test Lần 1 nào.</div>";
+    } else unitDetailsHtml = "<div class='ph-box-content' style='font-weight: bold; color: #94a3b8;'>🔹 Chưa phát sinh bài Test Lần 1 nào.</div>";
 
     let nextUnit = parseInt(targetUnit) + 1;
     let avgMinsPerDayText = "0 phút/ngày";
@@ -5337,51 +5421,72 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
     let glowStyle = isForPdf ? "border: 2px solid #3b82f6;" : "border: 2px solid #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); animation: pulseAlertUI 2s infinite alternate;";
     let pdfBtnHtml = isForPdf ? "" : `<button class="btn btn-red" style="width:100%; margin-top:15px; font-size:14px; padding:15px; background:#e11d48;" onclick="downloadUnitPDF('${targetUnit}')"><i class="fa-solid fa-file-pdf"></i> 📥 TẢI BẢN BÁO CÁO NÀY VỀ MÁY (BẢN PDF)</button>`;
 
+    // 🛡️ ĐẠI PHẪU UI PHỤ HUYNH: CẤY BỘ ĐỊNH DẠNG "ADAPTIVE TYPOGRAPHY" VÀO CSS TRỰC TIẾP
     return `
-    <div style="background: #fff; margin-bottom: 20px; ${isForPdf ? 'width: 800px; margin: 0 auto; overflow: visible !important; border: none; box-shadow: none;' : 'border: 3px solid #1e293b; border-radius: 12px; box-shadow: 6px 6px 0px #1e293b; overflow: hidden;'}">
+    <style>
+        /* 🛡️ ĐẠI PHẪU UI PHỤ HUYNH: ADAPTIVE TYPOGRAPHY (CHỮ TO, CĂN ĐỀU, BẢO VỆ MẮT) */
+        .ph-box-content {
+            font-size: clamp(15px, 4vw, 17px) !important;
+            line-height: 1.6 !important;
+            text-align: justify !important;
+            word-break: break-word;
+            color: inherit;
+        }
+        .ph-box-content ul, .ph-box-content li {
+            text-align: left !important; /* Riêng danh sách phải giữ lề trái để dễ quét mắt */
+        }
+        .ph-box-title {
+            font-size: clamp(16px, 4.5vw, 18px) !important;
+            font-weight: 900;
+        }
+        .ph-header-text {
+            font-size: clamp(14px, 4vw, 16px) !important;
+        }
+    </style>
+    <div style="background: #fff; margin-bottom: 20px; ${isForPdf ? 'width: 100%; max-width: 800px; margin: 0 auto; overflow: visible !important; border: none; box-shadow: none;' : 'border: 3px solid #1e293b; border-radius: 12px; box-shadow: 6px 6px 0px #1e293b; overflow: hidden;'}">
         
         <div style="background: #1e293b; color: white; padding: 15px; text-align: center; border-bottom: 3px solid #1e293b;">
-            <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 900; text-transform: uppercase;">BẢNG ĐIỂM ĐIỆN TỬ & CHỐT SỔ UNIT ${targetUnit}</h3>
-            <div style="font-size: 13px; font-weight: bold; color: #cbd5e1; line-height: 1.5;">
+            <h3 style="margin: 0 0 5px 0; font-size: clamp(18px, 5vw, 22px); font-weight: 900; text-transform: uppercase;">BẢNG ĐIỂM ĐIỆN TỬ & CHỐT SỔ UNIT ${targetUnit}</h3>
+            <div class="ph-header-text" style="font-weight: bold; color: #cbd5e1; line-height: 1.5;">
                 👨‍🎓 Sĩ tử: <b style="color:white;">${sName}</b><br>
                 💰 Tích lũy: <b style="color:#facc15;">${sGold.toLocaleString('vi-VN')} Vàng</b> (Cách Top 1: ${goldDiff.toLocaleString('vi-VN')} Vàng)<br>
-                <span style="font-size: 11px; color: #fca5a5; font-style: italic; font-weight: normal;">(Khoảng cách càng lớn, chứng tỏ con càng nợ bài, sai nhiều, và chưa thuộc bài)</span>
+                <span style="font-size: clamp(12px, 3.5vw, 14px); color: #fca5a5; font-style: italic; font-weight: normal;">(Khoảng cách càng lớn, chứng tỏ con càng nợ bài, sai nhiều, và chưa thuộc bài)</span>
             </div>
         </div>
         
         <div style="padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #f8fafc;">
             
             <div style="background: ${bgFc}; border: 2px dashed ${colorFc}; padding: 12px; border-radius: 8px;">
-                <b style="color: ${colorFc}; font-size: 14px; text-transform: uppercase;">[1] TỶ LỆ THỜI GIAN HỌC & KIỂM TRA:</b><br>
-                <span style="font-size: 13px; font-weight: bold; color: #334155;">Học ôn FLASHCARD: <span style="background: ${colorFc}; color: white; padding: 2px 6px; border-radius: 4px;">${fcPct}%</span> vs Làm TEST: ${testPct}%</span><br>
-                <i style="font-size: 11px; color: ${colorFc}; font-weight: bold; margin-top: 4px; display: inline-block;">${textFc}</i>
+                <b class="ph-box-title" style="color: ${colorFc}; text-transform: uppercase;">[1] TỶ LỆ THỜI GIAN HỌC & KIỂM TRA:</b><br>
+                <span class="ph-box-content" style="font-weight: bold; color: #334155;">Học ôn FLASHCARD: <span style="background: ${colorFc}; color: white; padding: 2px 6px; border-radius: 4px;">${fcPct}%</span> vs Làm TEST: ${testPct}%</span><br>
+                <i class="ph-box-content" style="color: ${colorFc}; font-weight: bold; margin-top: 8px; display: block;">${textFc}</i>
             </div>
 
             <div style="background: ${bgCheatAndMiss}; border: 2px dashed ${colorCheatAndMiss}; padding: 12px; border-radius: 8px;">
-                <b style="color: ${colorCheatAndMiss}; font-size: 14px; text-transform: uppercase;">[2] TIẾN ĐỘ & KỶ LUẬT (TEST LẦN 1):</b><br>
-                <div style="font-size: 13px; font-weight: bold; color: #334155; margin-top:5px;">
+                <b class="ph-box-title" style="color: ${colorCheatAndMiss}; text-transform: uppercase;">[2] TIẾN ĐỘ & KỶ LUẬT (TEST LẦN 1):</b><br>
+                <div class="ph-box-content" style="font-weight: bold; color: #334155; margin-top:8px;">
                     - Tiến độ: NỢ, VẪN CHƯA NỘP <b style="color:${missingCount>0?'#e11d48':'#16a34a'};">${missingCount}/${totalBarem} BÀI</b>
                     ${missingStr !== "Tuyệt vời, không nợ bài nào!" ? missingStr : ` (${missingStr})`}<br>
                     - An ninh hệ thống: <b style="color:${attempt1Cheats>0?'#e11d48':'#16a34a'};">${attempt1Cheats} LẦN</b> RỜI TAB / MỞ APP KHÁC.<br>
                 </div>
-                <i style="font-size: 11px; color: ${colorCheatAndMiss}; font-weight: bold; margin-top:5px; display:block;"><i class="fa-solid fa-flag"></i> ${evalStr}</i>
+                <i class="ph-box-content" style="color: ${colorCheatAndMiss}; font-weight: bold; margin-top:8px; display:block;"><i class="fa-solid fa-flag"></i> ${evalStr}</i>
             </div>
 
             <div style="background: ${bgBB}; border: 2px dashed ${colorBB}; padding: 12px; border-radius: 8px;">
-                <b style="color: ${colorBB}; font-size: 14px; text-transform: uppercase;">[3] KIỂM KÊ TỪ VỰNG (TEST LẦN 1):</b><br>
-                ${bbSectionHtml}
-                <i style="font-size: 11px; color: ${colorBB}; font-weight: bold; margin-top: 5px; display: inline-block;">${textBB}</i>
+                <b class="ph-box-title" style="color: ${colorBB}; text-transform: uppercase;">[3] KIỂM KÊ TỪ VỰNG (TEST LẦN 1):</b><br>
+                <div class="ph-box-content">${bbSectionHtml}</div>
+                <i class="ph-box-content" style="color: ${colorBB}; font-weight: bold; margin-top: 8px; display: block;">${textBB}</i>
             </div>
 
             <div style="background: #f1f5f9; border: 2px dashed #64748b; padding: 12px; border-radius: 8px;">
-                <b style="color: #475569; font-size: 14px; text-transform: uppercase;">[4] NHẬT KÝ CHI TIẾT CỦA CÁC TEST LẦN 1:</b><br>
-                <div style="margin-top: 5px;">${unitDetailsHtml}</div>
+                <b class="ph-box-title" style="color: #475569; text-transform: uppercase;">[4] NHẬT KÝ CHI TIẾT CỦA CÁC TEST LẦN 1:</b><br>
+                <div class="ph-box-content" style="margin-top: 8px;">${unitDetailsHtml}</div>
             </div>
 
             <!-- BOX ĐỎ 1: LƯU Ý ĐIỂM SỐ -->
             <div style="background: #fef2f2; border: 2px dashed #e11d48; box-shadow: 0 0 15px rgba(225, 29, 72, 0.2); padding: 12px; border-radius: 8px; border-left: 6px solid #e11d48; margin-bottom: 15px;">
-                <b style="color: #be123c; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-triangle-exclamation"></i> *** LƯU Ý QUAN TRỌNG ***</b><br>
-                <div style="font-size: 13px; color: #be123c; font-weight: bold; line-height: 1.5; margin-top: 5px;">
+                <b class="ph-box-title" style="color: #be123c; text-transform: uppercase;"><i class="fa-solid fa-triangle-exclamation"></i> *** LƯU Ý QUAN TRỌNG ***</b><br>
+                <div class="ph-box-content" style="color: #be123c; font-weight: bold; margin-top: 8px;">
                     - BA/MẸ thấy con đã trả bài đủ hết test, không còn nợ gì? HÃY NHÌN KĨ VÀO ĐIỂM SỐ! Nếu con làm bài đủ, mà điểm vô cùng thấp, thì đây chỉ là học đối phó!<br>
                     - BA/MẸ nhìn thời gian diễn ra của các TEST LẦN 1 ở trên, và kiểm tra kỹ: những thời điểm này, mình có thật sự đã ngồi bên con không, hay phó mặc cho con tự làm? ĐIỂM CAO, CHƯA CHẮC TỰ LÀM! Ví dụ, KHÔNG CÓ GIÁM SÁT, con để giấy có ĐÁP ÁN SẴN trước mặt, tự gõ vào...<br>
                     => CON SỐ KHÔNG BIẾT NÓI DỐI, với điều kiện mọi thứ đúng quy trình!
@@ -5390,8 +5495,8 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
 
             <!-- BOX VÀNG: YÊU CẦU PHỤ HUYNH -->
             <div style="background: #fffbeb; color: #b45309; padding: 15px; border-radius: 8px; border: 2px dashed #d97706; box-shadow: 4px 4px 0px #fde68a; margin-bottom: 15px;">
-                <b style="font-size: 15px; text-transform: uppercase;"><i class="fa-solid fa-gavel"></i> [5] PHỤ HUYNH NÊN THỰC HIỆN NGAY:</b><br>
-                <div style="font-size: 13px; font-weight: bold; line-height: 1.6; margin-top: 8px;">
+                <b class="ph-box-title" style="text-transform: uppercase;"><i class="fa-solid fa-gavel"></i> [5] PHỤ HUYNH NÊN THỰC HIỆN NGAY:</b><br>
+                <div class="ph-box-content" style="font-weight: bold; margin-top: 8px;">
                     1. <b style="color:#e11d48;">Xử lý Nợ:</b> Yêu cầu con học bài NGHIÊM CHỈNH, ôn bài đàng hoàng, tự tin rồi hãy xử lí dứt điểm các bài Test còn thiếu. Unit ${targetUnit} CHƯA XONG, sẽ không mở Unit ${nextUnit} [chỉ KHÓA Test, học FLASHCARD vẫn mở bình thường].<br>
                     2. <b style="color:#e11d48;">Thiết quân luật:</b> Yêu cầu con Viết phạt 15 lần/từ (chỉ Tiếng Anh) cho danh sách TỪ KHÔNG THUỘC KHI LÀM CÁC TEST LẦN 1 + nhắc nhở con PHỤC THÙ xóa sạch từ trong HÌNH BỘ. CHƯA XỬ LÍ XONG HÌNH BỘ, KHÔNG ĐƯỢC TEST UNIT TIẾP THEO. Từ cũ không thuộc, qua bài mới, lại chồng chất dư nợ!<br>
                     3. <b style="color:#e11d48;">Nghiệm thu:</b> Chụp hình phần viết phạt gửi lại Zalo để Thầy đối soát.
@@ -5400,10 +5505,10 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
 
             <!-- BOX TRẮNG: SAO KÊ THỜI GIAN -->
             <div style="background: white; border: 2px solid #111; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                <b style="color: #111; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-clock-rotate-left"></i> [6] SAO KÊ THỜI GIAN TƯƠNG TÁC (TỪ LẦN BÁO CÁO TRƯỚC: ${lastReportStr})</b><br>
-                <div style="font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 8px;">
+                <b class="ph-box-title" style="color: #111; text-transform: uppercase;"><i class="fa-solid fa-clock-rotate-left"></i> [6] SAO KÊ THỜI GIAN TƯƠNG TÁC (TỪ LẦN BÁO CÁO TRƯỚC: ${lastReportStr})</b><br>
+                <div class="ph-box-content" style="font-weight: bold; color: #1e293b; margin-top: 8px;">
                     - Tổng thời gian trôi qua: <b style="color:var(--accent-blue);">${diffDays} Ngày</b>.<br>
-                    - Tổng thời lượng tương tác trên app: <b style="color:var(--accent-red);">${tMins} PHÚT</b> <span style="color:#64748b; font-size:11px;">(Trung bình: <b style="color:var(--accent-red);">${avgMinsPerDayText}</b>)</span>.<br>
+                    - Tổng thời lượng tương tác trên app: <b style="color:var(--accent-red);">${tMins} PHÚT</b> <span style="color:#64748b; font-size:clamp(12px, 3.5vw, 14px);">(Trung bình: <b style="color:var(--accent-red);">${avgMinsPerDayText}</b>)</span>.<br>
                     - Chi tiết từng ngày:<br>
                     <ul style="margin: 5px 0 0 0; padding-left: 20px; font-weight: normal; color: #475569;">
                         ${saoKeHtml}
@@ -5413,8 +5518,8 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
             
             <!-- BOX ĐỎ 2: LƯU Ý ĐIỆN THOẠI -->
             <div style="background: #fef2f2; border: 2px solid #e11d48; padding: 12px; border-radius: 8px; border-left: 6px solid #e11d48; margin-bottom: 15px;">
-                <b style="color: #be123c; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-triangle-exclamation"></i> *** LƯU Ý QUAN TRỌNG ***</b><br>
-                <div style="font-size: 13px; color: #be123c; font-weight: bold; line-height: 1.5; margin-top: 5px;">
+                <b class="ph-box-title" style="color: #be123c; text-transform: uppercase;"><i class="fa-solid fa-triangle-exclamation"></i> *** LƯU Ý QUAN TRỌNG ***</b><br>
+                <div class="ph-box-content" style="color: #be123c; font-weight: bold; margin-top: 8px;">
                     - Thời gian học thật sự của con trên App chỉ dừng lại ở mức như trên, không nhiều đâu Ba/Mẹ nhé! Bảng sao kê này chính là "thước đo" chính xác nhất. Nếu thấy con LÚC NÀO CŨNG CẦM ĐIỆN THOẠI, BẢO 'PHẢI HỌC BÀI THẦY TIẾN', mà thời gian tương tác với app khác biệt báo cáo, chắc chắn con đang mượn cớ học bài để chơi game hoặc làm việc cá nhân!<br><br>
                     - APP này, chủ lực giúp con HỌC BÀI và TRẢ BÀI, kết hợp Game hóa thêm phần hào hứng phấn khởi, và CÔNG NHẬN & VINH DANH TỪNG CHÚT NỖ LỰC của con, nhưng KHÔNG THỂ GÂY NGHIỆN ĐẾN MỨC CẦM SUỐT!
                 </div>
@@ -5422,8 +5527,8 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
 
             <!-- BOX XANH: LỜI NHẮN TỪ THẦY TIẾN -->
             <div style="background: #eff6ff; border: 2px dashed #3b82f6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <b style="color: #1e3a8a; font-size: 14px; text-transform: uppercase;"><i class="fa-solid fa-envelope-open-text"></i> [7] LỜI NHẮN GỬI TỪ THẦY TIẾN - VAI TRÒ GIÁM SÁT</b><br>
-                <div style="font-size: 13px; color: #1e3a8a; line-height: 1.6; margin-top: 8px; font-style: italic; font-weight: 600;">
+                <b class="ph-box-title" style="color: #1e3a8a; text-transform: uppercase;"><i class="fa-solid fa-envelope-open-text"></i> [7] LỜI NHẮN GỬI TỪ THẦY TIẾN - VAI TRÒ GIÁM SÁT</b><br>
+                <div class="ph-box-content" style="color: #1e3a8a; margin-top: 8px; font-style: italic; font-weight: 600;">
                     APP này là một ra-đa hiệu quả giúp Thầy và Ba/Mẹ nắm bắt chính xác thái độ học tập thực sự của các con. Tuy nhiên, mọi dữ liệu sẽ trở nên vô nghĩa nếu Ba/Mẹ khoán trắng hoàn toàn cho con tự thực hiện. Thầy nghĩ, chỉ vài phút ngồi bên con khi con nhập PIN làm bài Test Lần 1 — để ngắm nhìn và quan tâm con thêm một chút — đâu phải là điều gì quá xa xỉ, đúng không Ba/Mẹ?<br><br>
                     Thực tế, một số con đang có dấu hiệu làm test chỉ để "điểm danh": LÀM BỪA ĐÁNH LỤI, KHÔNG XEM LẠI CÂU SAI, KHÔNG VIẾT PHẠT cho nhớ bài, và NÉ TRÁNH VÀO HÌNH BỘ "PHỤC THÙ" từ Sai. Đây không phải là học, mà là TRẢ NỢ ĐỐI PHÓ — con đường ngắn nhất dẫn đến kết quả kém trong các kỳ thi thật sau này!<br><br>
                     APP được tạo ra để giải đáp chính xác câu hỏi của Ba/Mẹ: "CON HỌC BÀI CHƯA?", hay với Thầy: "DẠO NÀY CON CÓ LƯỜI KHÔNG, NHỜ THẦY ĐỂ Ý CON GIÚP ?", "SAO TRONG TRƯỜNG, ĐIỂM CON THẤP VẬY THẦY?" ... Đáp án cho những trăn trở ấy đã hiện rõ ngay trước mắt. Với hệ thống cảnh báo sớm này do Thầy dựng lên, kết hợp cùng vai trò "Người Giữ Cổng" của Ba/Mẹ, Thầy tin chúng ta sẽ đồng hành hiệu quả hơn để giúp các con ngày một tiến bộ, Ba/Mẹ nhé!
@@ -5789,10 +5894,20 @@ function renderMatrixAttendance(type) {
     let maxUnit = window.globalMaxUnit || 1; 
     let isAdmin = (currentStudentId === 'T11');
 
-    // BỘ NÃO TỐI ƯU O(1): Tạo Hash Set lưu toàn bộ log (Chống treo máy vĩnh viễn)
+    // 🛡️ BỘ NÃO O(1) ĐA NGÔN NGỮ: Dịch được cả Log FULL (của mình) và Log Nén (của người khác)
     let logsSet = new Set();
     allLogsCache.forEach(row => {
-        if (row[1] && row[3] && row[4]) {
+        if (typeof row === 'string') {
+            // Đọc cục Log siêu nén (Định dạng: ID|HoạtĐộng|Unit|Điểm)
+            let parts = row.split('|');
+            if (parts.length >= 3) {
+                let id = parts[0].trim().toUpperCase();
+                let cat = parts[1].trim();
+                let unit = parts[2].trim();
+                logsSet.add(`${id}|${cat}|${unit}`);
+            }
+        } else if (row[1] && row[3] && row[4]) {
+            // Đọc cục Log FULL nguyên bản 15 cột
             let id = String(row[1]).trim().toUpperCase();
             let cat = row[3].toString();
             let unit = row[4].toString();
@@ -6079,26 +6194,31 @@ function updateThiPhiTicker() {
     let tickerEl = document.getElementById('globalTickerContent');
     if (!tickerEl || !getScriptUrl()) return; 
 
-    fetchWithFallback(getScriptUrl(), "getHotDrama", { data: [], news: [] })
+    // ĐỌC RAM & Ổ CỨNG TRƯỚC TIÊN (Zero Lag F5)
+    let cachedDrama = JSON.parse(localStorage.getItem('cached_thiPhi') || "null");
+    if (cachedDrama && cachedDrama.data) {
+        window.globalDramaData = cachedDrama;
+        let tuHuyetNews = cachedDrama.data.filter(i => i.category === "TỬ HUYỆT");
+        if (tuHuyetNews.length > 0) {
+            let marqueeItems = tuHuyetNews.map(item => `<span style="color:#ef4444; font-weight:900;">🛑 ${item.content.replace(/ĐANG HẠ ĐO VÁN NHIỀU SĨ TỬ NHẤT/g, "KHIẾN SĨ TỬ LÚ LẪN NHẤT").replace(/mạng\)/g, "sĩ tử)").replace(/🔪/g, "🥊")}</span>`);
+            tickerEl.innerHTML = marqueeItems.join(" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ");
+        }
+    }
+
+    // GỌI API NGẦM ĐỂ CẬP NHẬT MỚI
+    fetchWithFallback(getScriptUrl(), "getHotDrama", { data: [], news: [], story: [] })
         .then(res => {
-            window.globalDramaData = res; // ĐÃ FIX: Lưu Cache toàn cục cho Mobile load siêu tốc
-            if (res && res.data && res.data.length > 0) {
-                // CHỈ LỌC RA ĐÚNG 3 CÁI TỬ HUYỆT ĐỂ CHẠY
-                let tuHuyetNews = res.data.filter(i => i.category === "TỬ HUYỆT");
+            if (res && res.data) {
+                window.globalDramaData = res; 
+                localStorage.setItem('cached_thiPhi', JSON.stringify(res)); // 🛡️ ĐỔ BÊ TÔNG XUỐNG Ổ CỨNG
                 
+                let tuHuyetNews = res.data.filter(i => i.category === "TỬ HUYỆT");
                 if (tuHuyetNews.length > 0) {
-                    let marqueeItems = tuHuyetNews.map(item => {
-                        // ĐÃ FIX: Lọc ảo giác Database cũ, ép đổi text ngay trên màn hình
-                        let cleanContent = item.content.replace(/ĐANG HẠ ĐO VÁN NHIỀU SĨ TỬ NHẤT/g, "KHIẾN SĨ TỬ LÚ LẪN NHẤT").replace(/mạng\)/g, "sĩ tử)").replace(/🔪/g, "🥊");
-                        return `<span style="color:#ef4444; font-weight:900;">🛑 ${cleanContent}</span>`;
-                    });
-                    window.thiPhiMixedCache = marqueeItems.join(" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ");
-                    tickerEl.innerHTML = window.thiPhiMixedCache;
+                    let marqueeItems = tuHuyetNews.map(item => `<span style="color:#ef4444; font-weight:900;">🛑 ${item.content.replace(/ĐANG HẠ ĐO VÁN NHIỀU SĨ TỬ NHẤT/g, "KHIẾN SĨ TỬ LÚ LẪN NHẤT").replace(/mạng\)/g, "sĩ tử)").replace(/🔪/g, "🥊")}</span>`);
+                    tickerEl.innerHTML = marqueeItems.join(" &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ");
                 } else {
                     tickerEl.innerHTML = `<span style="color:#facc15; font-weight:900;">Hoàng cung đang tĩnh lặng, chưa có sĩ tử nào ngã ngựa!</span>`;
                 }
-            } else {
-                tickerEl.innerHTML = `<span style="color:#facc15; font-weight:900;">Đang nghe ngóng tin tức từ Khâm Thiên Giám...</span>`;
             }
         }).catch(e => {});
 }
@@ -6946,8 +7066,12 @@ window.processSyncData = function(data) {
             
             localStorage.setItem(getIsoKey('gold'), trueGold);
             localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
-            let uiGold = document.getElementById('uiGoldDisplay');
-            if (uiGold) uiGold.innerHTML = parseInt(trueGold).toLocaleString('vi-VN');
+            
+            // 🛡️ ĐẠI PHẪU ẢO THUẬT: CẤM UPDATE UI TRỰC TIẾP NẾU ĐANG BỊ BÌNH PHONG CHE KHUẤT
+            if (!window.isHoldGoldAnimation) {
+                let uiGold = document.getElementById('uiGoldDisplay');
+                if (uiGold) uiGold.innerHTML = parseInt(trueGold).toLocaleString('vi-VN');
+            }
         }
 
         if (data.logs && Array.isArray(data.logs) && data.logs.length > 0) {
