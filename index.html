@@ -1272,6 +1272,12 @@ function selectGrade(grade, btnElement) {
         idInput.placeholder = "Nhập Lệnh Bài (VD: 91)...";
         idInput.removeAttribute('readonly');
     }
+
+    // 🚀 ĐẠI PHẪU TẬN GỐC LỖI KẸT FLASHCARD VÀ SAI TỪ VỰNG:
+    // Phải nổ tung kho Cache cũ ngay khi học sinh bấm chọn Khối Lớp mới!
+    // Nếu không, Lớp 9 sẽ lấy nhầm từ vựng của Lớp 8 gây sập luồng lật thẻ!
+    localStorage.removeItem('localBankCache');
+    window.bankCache = {};
 }
 
 function getScriptUrl() {
@@ -1284,6 +1290,10 @@ function getIsoKey(prefix) { return prefix + "_G" + currentSelectedGrade + "_" +
 
 // Reset toàn bộ App khi Đăng Xuất (Tuyệt chiêu chống dính Data) - BẢN PRO TỰ ĐỘNG
 function logout() {
+    // 🚀 ĐẠI PHẪU: Quét sạch bộ nhớ Cache từ vựng để tuyệt đối không bị tràn Data qua Lớp khác!
+    localStorage.removeItem('localBankCache');
+    window.bankCache = {};
+
     if (typeof offlineQueue !== 'undefined' && offlineQueue.length > 0) {
         document.body.innerHTML = "<div style='text-align:center; margin-top:50px; font-weight:900; font-size: 20px; color: #ef4444;'>Đang thu dọn hành lý...</div>";
         if (typeof processOfflineQueue === 'function') processOfflineQueue(); // Bắn data đi ngầm
