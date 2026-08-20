@@ -469,7 +469,7 @@
 
         <div id="lbHocBa" class="tab-content" style="display:block; padding-bottom: 5px;">
             <div style="background: rgba(234, 179, 8, 0.1); border: 2px dashed #eab308; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                <p style="font-size:11px; color:#b45309; text-align:center; font-style:italic; margin:0; font-weight: bold; line-height: 1.4;">*Thước đo của những thiên tài thực chiến. CHỈ ghi nhận điểm số của bài [Thi Thật Lần 1]. Sai 1 ly đi 1 dặm, không có cơ hội cày lại để gỡ điểm trên bảng này!</p>
+                <p style="font-size:11px; color:#b45309; text-align:center; font-style:italic; margin:0; font-weight: bold; line-height: 1.4;">*Thước đo của sự Toàn Năng! Điểm trên bảng là <b>TỔNG ĐIỂM</b> cộng dồn của tất cả các bài [Thi Thật Lần 1]. Càng hoàn thành nhiều ải, điểm tích lũy càng cao. Nếu bằng điểm nhau, 'Tốc Độ' xuất chiêu sẽ phân định Ngôi Vương!</p>
             </div>
             <div id="contentLBHocBa">Đang tải...</div>
         </div>
@@ -481,13 +481,13 @@
         </div>
         <div id="lbKienTri" class="tab-content" style="padding-bottom: 5px;">
             <div style="background: rgba(34, 197, 94, 0.1); border: 2px dashed #22c55e; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                <p style="font-size:11px; color:#14532d; text-align:center; font-style:italic; margin:0; font-weight: bold; line-height: 1.4;">*Vinh danh những giọt mồ hôi trên Tàng Kinh Các. Các hành vi treo máy, lướt thẻ tốc độ ảo, gian lận phòng thi đều bị hệ thống bóc tách và trừ sạch thời gian!</p>
+                <p style="font-size:11px; color:#14532d; text-align:center; font-style:italic; margin:0; font-weight: bold; line-height: 1.4;">*Đổ mồ hôi, sôi nước mắt! Bảng đo lường bằng TỔNG SỐ LƯỢT hoàn thành bài học (Thi Thật, Cày Vàng, Lật Thẻ...). Càng chăm chỉ rèn luyện nhiều lần, vị thế càng vững chắc!</p>
             </div>
             <div id="contentLBKienTri">Đang tải...</div>
         </div>
         <div id="lbChuaLanh" class="tab-content" style="padding-bottom: 5px;">
             <div style="background: rgba(236, 72, 153, 0.1); border: 2px dashed #ec4899; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                <p style="font-size:11px; color:#831843; text-align:center; font-style:italic; margin:0; font-weight: bold; line-height: 1.4;">*Rớt đài không đáng sợ, đáng sợ là không dám đứng lên! Bảng xếp hạng dựa trên Tỉ lệ % con chủ động đối mặt và xóa sổ Sổ Đen Hình Bộ.</p>
+                <p style="font-size:11px; color:#831843; text-align:center; font-style:italic; margin:0; font-weight: bold; line-height: 1.4;">*Vấp ngã không đáng sợ, đáng sợ là không chịu sửa sai! BXH chỉ dành cho Sĩ tử đã từng lọt vào Hình Bộ. Điểm số = [Số từ ĐÃ GỠ] trừ đi [Số từ CÒN NỢ]. Gỡ án càng nhiều, vinh quang càng lớn!</p>
             </div>
             <div id="contentLBChuaLanh">Đang tải...</div>
         </div>
@@ -1456,7 +1456,9 @@ function executeKickOut(reasonMsg) {
 
 // LỚP 2: Cảm biến 10s (Heartbeat gửi nhịp tim về Server để phát hiện Mở Máy Khác)
 setInterval(() => {
-    if (!currentStudentId || currentStudentId === 'T11') return; 
+    // 🚀 BỌC THÉP RACE CONDITION: Cấm gửi Heartbeat khi đang tải Đăng Nhập (để tránh tự đá chính mình ra chuồng gà!)
+    if (!currentStudentId || currentStudentId === 'T11' || window.isLoginSyncing) return; 
+    
     let scriptUrl = getScriptUrl();
     if (!scriptUrl) return;
     
@@ -1466,7 +1468,7 @@ setInterval(() => {
             executeKickOut("TÀI KHOẢN ĐANG ĐĂNG NHẬP TRÊN THIẾT BỊ KHÁC (Điện thoại/PC)!");
         }
     }).catch(e => {}); 
-}, 10000); 
+}, 10000);
 // ===========================================================================================
 
 // ================= KHUNG SƯỜN KINH TẾ & ĐỒNG BỘ ĐÁM MÂY TOÀN DIỆN (VIP PRO) =================
@@ -6376,7 +6378,7 @@ function openLeaderboard() {
     let url = getScriptUrl();
     if(!url) return;
 
-    // HÀM VẼ GIAO DIỆN CHUNG
+    // HÀM VẼ GIAO DIỆN CHUNG CHUẨN XÁC
     let renderUI = (data) => {
         let formatCard = (item, i, valueHtml, color) => {
             let isTop1 = i === 0;
@@ -6392,27 +6394,43 @@ function openLeaderboard() {
             </div>`;
         };
 
-        let h1 = ""; data.bxh1.forEach((x, i) => h1 += formatCard(x, i, `${x.avg.toFixed(2)} đ`, "#eab308"));
+        // BỌC THÉP TRÁNH CRASH: Mapping đúng với Data từ Google Sheet trả về!
+        let h1 = ""; 
+        if (data.bxh1) data.bxh1.forEach((x, i) => {
+            // 🚀 HIỂN THỊ TỔNG ĐIỂM THAY VÌ ĐIỂM TRUNG BÌNH
+            let total = x.l1ScoreSum ? x.l1ScoreSum.toFixed(1) : "0.0";
+            h1 += formatCard(x, i, `${total} đ`, "#eab308");
+        });
         document.getElementById('contentLBHocBa').innerHTML = h1 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa đủ điều kiện xếp hạng.</div>";
 
-        let h2 = ""; data.bxh2.forEach((x, i) => h2 += formatCard(x, i, `${x.perfectCount} Bài`, "#3b82f6"));
-        document.getElementById('contentLBBoNao').innerHTML = h2 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa ai đạt 10/10 Lần 1.</div>";
+        let h2 = ""; 
+        if (data.bxh2) data.bxh2.forEach((x, i) => {
+            // 🚀 BẢNG BỘ NÃO: GỌI ĐÚNG BIẾN PERFECT COUNT (BÀI 10đ)
+            let pCount = x.perfectCount || 0;
+            h2 += formatCard(x, i, `${pCount} Bài`, "#3b82f6");
+        });
+        document.getElementById('contentLBBoNao').innerHTML = h2 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa ai đạt mốc cao thủ.</div>";
 
-        let h3 = ""; data.bxh3.forEach((x, i) => {
-            let h = Math.floor(x.totalTime / 3600); let m = Math.floor((x.totalTime % 3600)/60);
-            let timeStr = h > 0 ? `${h}h ${m}p` : `${m}p`;
-            h3 += formatCard(x, i, timeStr, "#22c55e");
+        let h3 = ""; 
+        if (data.bxh3) data.bxh3.forEach((x, i) => {
+            let sessions = x.validSessions || 0;
+            h3 += formatCard(x, i, `${sessions} Lượt`, "#22c55e");
         });
         document.getElementById('contentLBKienTri').innerHTML = h3 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa có dữ liệu học tập.</div>";
 
-        let h4 = ""; data.bxh4.forEach((x, i) => h4 += formatCard(x, i, `${(x.fixRatio*100).toFixed(1)}%`, "#ec4899"));
+        let h4 = ""; 
+        if (data.bxh4) data.bxh4.forEach((x, i) => {
+            // 🚀 BẢNG BẬC THẦY CHỮA LÀNH: GỌI ĐÚNG BIẾN ĐIỂM CHỮA LÀNH
+            let hScore = x.healingScore || 0;
+            h4 += formatCard(x, i, `${hScore} Điểm`, "#ec4899");
+        });
         document.getElementById('contentLBChuaLanh').innerHTML = h4 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa đủ điều kiện xếp hạng.</div>";
 
-        document.getElementById('lbUpdateStatus').innerText = `⚡ Dữ liệu cập nhật ngầm lần cuối: ${data.lastUpdate}`;
+        document.getElementById('lbUpdateStatus').innerText = `⚡ Dữ liệu cập nhật ngầm lần cuối: ${data.lastUpdate || "Mới đây"}`;
     };
 
     // TỐI ƯU ZERO LAG: Lấy thẳng từ RAM nếu tải ngầm đã xong
-    if (window.leaderboardCache) {
+    if (window.leaderboardCache && !window.leaderboardCache.error) {
         renderUI(window.leaderboardCache);
         return;
     }
@@ -6424,56 +6442,20 @@ function openLeaderboard() {
     fetchWithFallback(url, "getLeaderboard", { error: "Lỗi kết nối" })
     .then(data => {
         if(data.error) {
-            document.getElementById('contentLBHocBa').innerHTML = `<div style="text-align:center; color:red; font-weight:bold; padding:20px;">${data.error}</div>`;
+            let errHtml = `<div style="text-align:center; color:red; font-weight:bold; padding:20px;">${data.error}</div>`;
+            ['contentLBHocBa', 'contentLBBoNao', 'contentLBKienTri', 'contentLBChuaLanh'].forEach(id => {
+                document.getElementById(id).innerHTML = errHtml;
+            });
             return;
         }
         window.leaderboardCache = data; // Lưu RAM dự phòng
         renderUI(data);
-        if(data.error) {
-            document.getElementById('contentLBHocBa').innerHTML = `<div style="text-align:center; color:red; font-weight:bold; padding:20px;">${data.error}</div>`;
-            return;
-        }
-
-        // HÀM VẼ THẺ GIAO DIỆN (TÔN VINH TOP 1)
-        let formatCard = (item, i, valueHtml, color) => {
-            let isTop1 = i === 0;
-            let medal = isTop1 ? '👑' : `#${i+1}`;
-            let bg = isTop1 ? `background: linear-gradient(135deg, #fffbeb, #fef08a); border: 3px solid #eab308; box-shadow: 4px 4px 0px #eab308; transform: scale(1.02); margin-bottom: 15px; position: relative; z-index: 2;` : `background: white; border: 2px solid var(--border-dark); margin-bottom: 10px;`;
-            let nameStyle = isTop1 ? `color: #b45309; font-size: 16px; text-transform: uppercase; font-weight: 900;` : `color: var(--border-dark); font-size: 14px; font-weight: 900;`;
-            
-            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-radius:8px; ${bg}">
-                <div style="display:flex; align-items:center; gap:15px;">
-                    <span style="font-size: ${isTop1 ? '28px' : '20px'}; filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.2));">${medal}</span>
-                    <span style="${nameStyle}">${item.name}</span>
-                </div>
-                <div style="color:${color}; font-weight:900; font-size: ${isTop1 ? '24px' : '18px'}; text-shadow: ${isTop1 ? '1px 1px 0px #fff' : 'none'};">${valueHtml}</div>
-            </div>`;
-        };
-
-        // Render BXH 1: Học Bá
-        let h1 = ""; data.bxh1.forEach((x, i) => h1 += formatCard(x, i, `${x.avg.toFixed(2)} đ`, "#eab308"));
-        document.getElementById('contentLBHocBa').innerHTML = h1 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa đủ điều kiện xếp hạng.</div>";
-
-        // Render BXH 2: Bộ Não Hoàn Mỹ
-        let h2 = ""; data.bxh2.forEach((x, i) => h2 += formatCard(x, i, `${x.perfectCount} Bài`, "#3b82f6"));
-        document.getElementById('contentLBBoNao').innerHTML = h2 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa ai đạt 10/10 Lần 1.</div>";
-
-        // Render BXH 3: Hảo Hán Kiên Trì
-        let h3 = ""; data.bxh3.forEach((x, i) => {
-            let h = Math.floor(x.totalTime / 3600); let m = Math.floor((x.totalTime % 3600)/60);
-            let timeStr = h > 0 ? `${h}h ${m}p` : `${m}p`;
-            h3 += formatCard(x, i, timeStr, "#22c55e");
-        });
-        document.getElementById('contentLBKienTri').innerHTML = h3 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa có dữ liệu học tập.</div>";
-
-        // Render BXH 4: Bậc Thầy Chữa Lành
-        let h4 = ""; data.bxh4.forEach((x, i) => h4 += formatCard(x, i, `${(x.fixRatio*100).toFixed(1)}%`, "#ec4899"));
-        document.getElementById('contentLBChuaLanh').innerHTML = h4 || "<div style='text-align:center; font-weight:bold; color:var(--text-muted);'>Chưa đủ điều kiện xếp hạng.</div>";
-
-        document.getElementById('lbUpdateStatus').innerText = `⚡ Dữ liệu cập nhật ngầm lần cuối: ${data.lastUpdate}`;
     })
     .catch(e => {
-        document.getElementById('contentLBHocBa').innerHTML = "<div style='color:red; text-align:center; font-weight:bold;'>Lỗi tải dữ liệu. Cáp quang đứt!</div>";
+        let errHtml = "<div style='color:red; text-align:center; font-weight:bold;'>Lỗi tải dữ liệu. Cáp quang đứt!</div>";
+        ['contentLBHocBa', 'contentLBBoNao', 'contentLBKienTri', 'contentLBChuaLanh'].forEach(id => {
+            document.getElementById(id).innerHTML = errHtml;
+        });
     });
 }
 
