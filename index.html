@@ -2650,7 +2650,7 @@ function openGossipFeed() {
     if (savedDrama) {
         renderDramaUI(savedDrama);
     } else {
-        ticker.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang móc thông tin từ Tàng Kinh Các...</div>';
+        ticker.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang truy xuất thông tin từ Tàng Kinh Các...</div>';
         storyBox.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br>Đang giở lại hồ sơ vụ án...</div>';
     }
 
@@ -3235,7 +3235,7 @@ function openTuHuyetPopup(isAttendance) {
             let clean = t.replace(/ĐANG HẠ ĐO VÁN NHIỀU SĨ TỬ NHẤT/g, "KHIẾN SĨ TỬ LÚ LẪN NHẤT").replace(/mạng\)/g, "sĩ tử)").replace(/🔪/g, "🥊");
             return `<div style="background: #f8fafc; border: 2px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #b91c1c; font-weight: bold; text-align: left;">${clean}</div>`;
         }).join('') :
-        `<div style="color: #16a34a; font-weight: bold; padding: 20px;"><i class="fa-solid fa-satellite-dish fa-spin"></i> Đang móc hồ sơ từ Tàng Kinh Các...</div>`;
+        `<div style="color: #16a34a; font-weight: bold; padding: 20px;"><i class="fa-solid fa-satellite-dish fa-spin"></i> Đang truy xuất hồ sơ từ Tàng Kinh Các...</div>`;
 
     overlay.innerHTML = `
         <div class="modal-content" style="max-width: 500px; background: #0f172a; border: 4px solid #38bdf8; box-shadow: 8px 8px 0px #0284c7; text-align: center; padding: 25px;">
