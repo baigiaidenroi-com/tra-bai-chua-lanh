@@ -290,18 +290,33 @@
         text-transform: uppercase;
     }
     .healing-slogan {
-        font-size: 10px; 
-        color: var(--accent-yellow); 
-        font-style: italic;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    @media (max-width: 768px) {
-        .healing-title-container { text-align: center; }
-    }
+            font-size: 10px; 
+            color: var(--accent-yellow); 
+            font-style: italic;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        @media (max-width: 768px) {
+            .healing-title-container { text-align: center; }
+        }
 
-</style>
+        /* ================= CƯỠNG CHẾ TĂNG SIZE CHỮ CỔNG PHỤ HUYNH ================= */
+        /* Tăng size toàn bộ báo cáo Hero Box */
+        #parentScreen .ph-box-content, #parentScreen .ph-box-content div, #parentScreen .ph-box-content span, #parentScreen .ph-box-content li { font-size: clamp(16px, 4.5vw, 19px) !important; }
+        #parentScreen .ph-box-title { font-size: clamp(18px, 5vw, 22px) !important; }
+        #parentScreen .ph-header-text, #parentScreen .ph-header-text b { font-size: clamp(15px, 4.5vw, 18px) !important; }
+        
+        /* Tăng size Timeline & Lịch sử trong Accordion */
+        #parentTimelineBox div { font-size: 14px !important; line-height: 1.6 !important; }
+        #parentTimelineBox div[style*="font-size:14px"] { font-size: 16px !important; color: #1e3a8a !important; }
+        #parentTimelineBox span { font-size: 14px !important; }
+        #parentVocabLogsBody td, #parentGrammarLogsBody td { font-size: 14px !important; }
+        #parentRecommendationBox { font-size: 16px !important; line-height: 1.6 !important; }
+        .admin-table th { font-size: 14px !important; }
+        /* ========================================================================= */
+
+    </style>
 
 <!-- 💣 SIÊU VŨ KHÍ V7: HỦY DIỆT DATA LỖI (LOCAL, SESSION, INDEXEDDB, SERVICE WORKER) -->
     <script>
@@ -947,23 +962,23 @@ function buyUpsaleShield(cost, hits) {
         </div>
     </div>
 
-    <!-- MÀN HÌNH TRUYỀN THÁNH Ý (BÁO BÀI) ĐÃ FIX LỖI TRẮNG CỤT -->
+    <!-- MÀN HÌNH TRUYỀN THÁNH Ý (BÁO BÀI) ĐÃ TĂNG SIZE -->
     <div id="baoBaiScreen" class="screen scrollable-area" style="padding-bottom: 40px;">
         <div class="top-bar" style="margin-top: 15px; border-bottom: 4px solid #111; padding-bottom: 15px; margin-bottom: 20px;">
             <h2 style="margin: 0; color: #111; text-transform: uppercase; font-weight: 900; font-size: 18px;"><i class="fa-solid fa-bullhorn"></i> Truyền Thánh Ý</h2>
             <button class="btn btn-outline" style="padding: 10px; border: 3px solid #111; box-shadow: 3px 3px 0px #111; background: #fff;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
         </div>
-        <div id="baoBaiContent" style="background: #fff; border: 5px solid #111; padding: 25px; border-radius: 16px; box-shadow: 8px 8px 0px #111; white-space: pre-wrap; font-size: 15px; line-height: 1.8; font-weight: bold; color: #111; margin-bottom: 20px;">Đang tải thánh chỉ...</div>
+        <div id="baoBaiContent" style="background: #fff; border: 5px solid #111; padding: 25px; border-radius: 16px; box-shadow: 8px 8px 0px #111; white-space: pre-wrap; font-size: 17px; line-height: 1.8; font-weight: bold; color: #111; margin-bottom: 20px;">Đang tải thánh chỉ...</div>
         <button class="btn btn-blue" style="width: 100%; padding: 18px; font-size: 16px; font-weight: 900; border: 4px solid #111; box-shadow: 6px 6px 0px #111;" onclick="goBack()">ĐÃ RÕ NHIỆM VỤ!</button>
     </div>
 
-    <!-- MÀN HÌNH BÍ TỊCH SINH TỒN ĐÃ FIX LỖI TRẮNG CỤT -->
+    <!-- MÀN HÌNH BÍ TỊCH SINH TỒN ĐÃ TĂNG SIZE -->
     <div id="biTichScreen" class="screen scrollable-area" style="padding-bottom: 40px;">
         <div class="top-bar" style="margin-top: 15px; border-bottom: 4px solid #111; padding-bottom: 15px; margin-bottom: 20px;">
             <h2 style="margin: 0; color: #111; text-transform: uppercase; font-weight: 900; font-size: 16px;"><i class="fa-solid fa-book-journal-whills"></i> Hỏi & Đáp: Cẩm nang Phụ huynh Đồng hành!</h2>
             <button class="btn btn-outline" style="padding: 10px; border: 3px solid #111; box-shadow: 3px 3px 0px #111; background: #fff;" onclick="goBack()"><i class="fa-solid fa-times"></i></button>
         </div>
-        <div id="biTichContent" style="background: #fff; border: 5px solid #0ea5e9; padding: 25px; border-radius: 16px; box-shadow: 8px 8px 0px #0ea5e9; white-space: pre-wrap; font-size: 15px; line-height: 1.8; font-weight: bold; color: #111; margin-bottom: 20px;">Đang mở Bí Tích...</div>
+        <div id="biTichContent" style="background: #fff; border: 5px solid #0ea5e9; padding: 25px; border-radius: 16px; box-shadow: 8px 8px 0px #0ea5e9; white-space: pre-wrap; font-size: 17px; line-height: 1.8; font-weight: bold; color: #111; margin-bottom: 20px;">Đang mở Bí Tích...</div>
         <button class="btn btn-blue" style="width: 100%; padding: 18px; font-size: 16px; font-weight: 900; background: #0ea5e9; border: 4px solid #111; box-shadow: 6px 6px 0px #111;" onclick="goBack()">Ba/ Mẹ đã nắm vững cơ chế hoạt động của APP!</button>
     </div>
 
@@ -4762,7 +4777,20 @@ function renderFlashcardMode() {
     let navBox = document.getElementById('fcNavButtons');
     if(navBox) navBox.style.paddingBottom = "30px";
 
-    if(btnNext) { if(currentQIndex === questionsQueue.length - 1) { btnNext.innerHTML = 'KẾT THÚC'; btnNext.className = "btn btn-green"; } else { btnNext.innerHTML = 'TIẾP TỤC'; btnNext.className = "btn btn-yellow"; } }
+    if(btnNext) { 
+        // 🚀 ĐẠI PHẪU: THÁO GÔNG CÙM! Xóa bỏ trạng thái "Khóa" của phiên học trước
+        btnNext.disabled = false;
+        btnNext.style.opacity = '1';
+        btnNext.style.pointerEvents = 'auto';
+
+        if(currentQIndex === questionsQueue.length - 1) { 
+            btnNext.innerHTML = 'KẾT THÚC'; 
+            btnNext.className = "btn btn-green"; 
+        } else { 
+            btnNext.innerHTML = 'TIẾP TỤC'; 
+            btnNext.className = "btn btn-yellow"; 
+        } 
+    }
     if (typeof updateHeartUI === 'function') updateHeartUI();
 }
 
@@ -4838,9 +4866,15 @@ function speakCurrentWord(e, accent = 'US') {
 }
 
 function navVocabLearn(dir) { 
+    // 🚀 BỌC THÉP CHỐNG SPAM: Nếu đang trong hiệu ứng lật thẻ, cấm bấm tiếp!
+    if (window.isFcNavigating) return;
+    window.isFcNavigating = true;
+
     let el = document.getElementById('flashcardEl'); if(el) el.classList.remove('is-flipped'); 
     
     setTimeout(() => { 
+        window.isFcNavigating = false; // Mở khóa sau khi lật thẻ xong
+
         if(dir === -1 && currentQIndex > 0) { 
             currentQIndex--; renderFlashcardMode(); 
         } 
@@ -4864,39 +4898,52 @@ function navVocabLearn(dir) {
             window.fcStartTime = window.fcStartTime || Date.now(); 
             if (window.fcIdleStartTime) { window.fcTotalIdleTime = (window.fcTotalIdleTime || 0) + (Date.now() - window.fcIdleStartTime); window.fcIdleStartTime = 0; }
             let durSec = Math.max(0, (Date.now() - window.fcStartTime - (window.fcTotalIdleTime || 0)) / 1000);
-let totalCards = questionsQueue.length;
-            let minTimeReq = totalCards * 1.5; // Tối thiểu 1.5 giây / 1 thẻ
+            let totalCards = questionsQueue.length;
+            
+            // 🚀 ĐẠI PHẪU: NÂNG THỜI GIAN ĐỌC TỐI THIỂU LÊN 2.5 GIÂY/THẺ CHỐNG LƯỚT ẢO
+            let minTimeReq = totalCards * 2.5; 
             let flippedCount = window.fcFlippedCards ? window.fcFlippedCards.size : 0;
             
-            // XÉT DUYỆT TỘI TRẠNG (Chỉ quét gắt nếu là Học Sinh, tha cho Admin)
-            if (currentStudentId !== 'T11' && (durSec < minTimeReq || flippedCount < totalCards)) {
-                window.fcSpamCount = (window.fcSpamCount || 0) + 1;
+// XÉT DUYỆT TỘI TRẠNG (Chỉ quét gắt nếu là Học Sinh, tha cho Admin)
+            if (currentStudentId !== 'T11') {
                 
-                let errorMsg = "";
-                if (flippedCount < totalCards) errorMsg = `Ngươi mới lật được ${flippedCount}/${totalCards} thẻ! Chưa xem Nghĩa Tiếng Anh mà đòi lãnh thưởng?`;
-                else errorMsg = `Tốc độ quá ảo (${durSec.toFixed(1)}s / ${totalCards} thẻ). Hãy đọc chậm lại!`;
+                // LỖI 1: TỘI NẶNG (Tốc độ ảo, lướt thẻ như cái máy) -> Không cho Vàng, Đuổi ra Sảnh bắt học lại!
+                if (durSec < minTimeReq) {
+                    window.fcSpamCount = (window.fcSpamCount || 0) + 1;
+                    let errorMsg = `Tốc độ quá ảo (${durSec.toFixed(1)}s / ${totalCards} thẻ).`;
 
-                if (window.fcSpamCount >= 3) {
-                    addEconomyLog(`🚨 Phạt Cấm Vệ Quân: Spam Flashcard lừa đảo (Lần 3)`, -1000);
-                    showToast(`🚨 BẮT QUẢ TANG LỪA ĐẢO! Phạt -1.000 Vàng tội khinh nhờn Thái Phó. Thu bài ngay!`);
-                    // KHÔNG gỡ cờ isFcSubmitting. Ép nó văng thẳng ra sảnh để triệt tiêu spam click.
-                    setTimeout(() => { window.location.reload(); }, 1500); 
-                    return;
-                } else {
-                    showToast(`⚠️ CHẬM LẠI TIỂU CHỦ! ${errorMsg} (Cảnh cáo lần ${window.fcSpamCount}/3).`);
-                    // Chặn đứng 3 giây. Tránh bấm lộn xộn sinh double logs. Mở khóa lại DOM.
+                    if (window.fcSpamCount >= 3) {
+                        addEconomyLog(`🚨 Phạt Cấm Vệ Quân: Spam Flashcard lừa đảo`, -1000);
+                        showToast(`🚨 BẮT QUẢ TANG LỪA ĐẢO! Phạt -1.000 Vàng. Cút ra Sảnh!`);
+                        window.fcSpamCount = 0; // Xóa án tích sau khi trảm để tính chu kỳ mới
+                    } else {
+                        showToast(`⚠️ ${errorMsg} Bài học bị hủy! Về Sảnh chính cày lại từ đầu! (Cảnh cáo lần ${window.fcSpamCount}/3).`);
+                    }
+                    
+                    // 🚀 ĐẠI PHẪU LOGIC: Ghi thẳng Án tích vào Sổ Nam Tào, KHÓA CỜ ĐỂ GOHOME KHÔNG ĐÈ CHỮ "THOÁT NGANG"
+                    if (typeof window.saveFlashcardProgress === 'function') {
+                        // Gọi hàm lưu với truyền tham số Lý do Cụ thể
+                        window.saveFlashcardProgress(`Gian lận tốc độ (Lần ${window.fcSpamCount || 3})`);
+                    }
+                    
                     setTimeout(() => { 
-                        window.isFcSubmitting = false; 
-                        if (btnNext) {
-                            btnNext.disabled = false;
-                            btnNext.innerHTML = 'KẾT THÚC';
-                            btnNext.style.opacity = '1';
-                        }
-                    }, 3000);
+                        // Cố tình giữ window.isFcSubmitting = true để hàm goHome không kích hoạt "Thoát ngang"
+                        goHome(); 
+                        setTimeout(() => { window.isFcSubmitting = false; }, 1000); // Xả khóa sau khi đã về sảnh an toàn
+                    }, 2500); 
                     return;
                 }
-            }
-
+                    
+                    // LỖI 2: TỘI NHẸ (Chưa lật hết thẻ do quên) -> Chỉ nhắc nhở, cho phép lật nốt rồi nộp!
+                    else if (flippedCount < totalCards) {
+                        showToast(`⚠️ KHOAN ĐÃ! Ngươi mới lật được ${flippedCount}/${totalCards} thẻ. Chạm tay vào thẻ để xem Nghĩa Tiếng Anh đi rồi mới được lãnh thưởng!`);
+                        setTimeout(() => { 
+                            window.isFcSubmitting = false; 
+                            if (btnNext) { btnNext.disabled = false; btnNext.innerHTML = 'KẾT THÚC'; btnNext.style.opacity = '1'; }
+                        }, 1500); 
+                        return;
+                    }
+                }
             // 3. XỬ LÝ LƯU KẾT QUẢ VÀ THƯỞNG VÀNG
             let typeTitles = { 'wordform': 'Word Form', 'vocab': 'Từ Vựng', 'prep': 'Giới từ' }; 
             let cpNum = parseInt(currentPart);
@@ -4904,18 +4951,20 @@ let totalCards = questionsQueue.length;
             let unitTitle = `Unit ${currentUnit}${partText}`;
             let catName = `Ôn Tập ${typeTitles[currentType] || currentType} [Flashcard]`;
 
-            // Quét lịch sử xem đã học bài này Lần Đầu chưa
+            // Quét lịch sử xem đã nhận thưởng Lần Đầu chưa
             let rewardKey = getIsoKey(`fc_reward_u${currentUnit}_p${cpNum}_${currentType}`);
             let hasRewardedLocal = localStorage.getItem(rewardKey);
-            // 🚀 BỌC THÉP V8: Chỉ tính là "Đã học" nếu log quá khứ KHÔNG chứa Rút quân / Thoát ngang
-            let hasLearnedBefore = allLogsCache.some(r => 
+            
+            // 🚀 BỌC THÉP LOGIC VÀNG: Chỉ tước quyền nhận Vàng nếu trong quá khứ ĐÃ TỪNG HỌC AN TOÀN / NGHIÊM TÚC
+            // Còn nếu quá khứ toàn bị "Thoát ngang", "Rút quân", hay "Gian lận tốc độ", thì LẦN NÀY HỌC ĐÀNG HOÀNG VẪN ĐƯỢC VÀNG!
+            let hasLearnedSafely = allLogsCache.some(r => 
                 String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && 
                 r[3] && r[3].toString().includes(catName) && 
                 r[4] && r[4].toString().includes(unitTitle) &&
-                !(r[10] && (r[10].toString().includes("Rút quân") || r[10].toString().includes("Thoát ngang")))
+                r[10] && (r[10].toString().includes("Nghiêm túc") || r[10].toString().includes("An toàn") || r[10].toString() === "")
             );
             
-            let isFirstTime = !hasLearnedBefore && !hasRewardedLocal && currentStudentId !== 'T11';
+            let isFirstTime = !hasLearnedSafely && !hasRewardedLocal && currentStudentId !== 'T11';
 
             let finalDurStr = Math.floor(durSec/60) > 0 ? `${Math.floor(durSec/60)}p ${Math.floor(durSec%60)}s` : `${Math.floor(durSec)}s`;
 
@@ -7011,16 +7060,25 @@ window.saveFlashcardProgress = function(exitType) {
     let catName = `Ôn Tập ${typeTitles[currentType] || currentType} [Flashcard]`;
     let finalDurStr = Math.floor(durSec/60) > 0 ? `${Math.floor(durSec/60)}p ${Math.floor(durSec%60)}s` : `${Math.floor(durSec)}s`;
 
+    // 🚀 ĐẠI PHẪU: ĐẾM LẦN THI ĐỘNG DỰA TRÊN LỊCH SỬ
+    let pastFcLogs = allLogsCache.filter(r => 
+        String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && 
+        r[3] && r[3].toString().includes(catName) && 
+        r[4] && r[4].toString().includes(unitTitle)
+    );
+    let attemptLogCount = pastFcLogs.length + 1;
+
     // 🚀 BỌC THÉP V12: NẾU ĐANG DÙNG MOCK DATA CẤP CỨU -> CẤM TUYỆT ĐỐI GHI LOG VÀ GỬI LÊN SERVER
     if (!window.isUsingMockData) {
         // 1. Cập nhật vào RAM để Cổng Phụ Huynh CẬP NHẬT TỨC THÌ (LIVE)
-        let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, catName, unitTitle, "1", "10", flippedCount.toString(), "0", totalCards.toString(), exitType, finalDurStr, 0, 0, "" ];
+        // Ép số lần thi linh hoạt thay vì "1" cứng ngắc
+        let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, catName, unitTitle, attemptLogCount.toString(), "10", flippedCount.toString(), "0", totalCards.toString(), exitType, finalDurStr, 0, 0, "" ];
         allLogsCache.push(localLog);
         localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
 
         // 2. Bắn lên Server Google Sheet
         if (getScriptUrl().startsWith("http")) { 
-            let fcPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: 1, score: 10, correctCount: flippedCount, wrongCount: 0, totalCount: totalCards, cheat: exitType, duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" };
+            let fcPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: attemptLogCount, score: 10, correctCount: flippedCount, wrongCount: 0, totalCount: totalCards, cheat: exitType, duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" };
             window.pendingLogsQueue = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
             window.pendingLogsQueue.push(fcPayload);
             localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
