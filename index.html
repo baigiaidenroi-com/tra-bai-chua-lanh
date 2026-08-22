@@ -1045,34 +1045,32 @@ function buyUpsaleShield(cost, hits) {
         </div>
     </div>
 
-    <!-- MÀN HÌNH THI GÕ TỪ VỰNG -->
+    <!-- MÀN HÌNH THI GÕ TỪ VỰNG (ĐÃ ÉP CÂN TỐI ĐA) -->
     <div id="vocabTestScreen" class="screen">
-        <div style="width:100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 3px solid var(--border-dark); background: #f8fafc; z-index: 10;">
-            <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px; box-shadow: 2px 2px 0px #111; border-color: var(--accent-red); color: var(--accent-red); background: white;" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button>
-            <div class="timer-brutal" id="vtTimer" style="font-size: 22px; padding: 4px 15px;">15</div>
+        <div style="width:100%; display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-bottom: 2px solid var(--border-dark); background: #f8fafc; z-index: 10;">
+            <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px; box-shadow: 2px 2px 0px #111; border-color: var(--accent-red); color: var(--accent-red); background: white;" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button>
+            <div class="timer-brutal" id="vtTimer" style="font-size: 16px; padding: 2px 10px;">15</div>
         </div>
-        <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center; padding-top: 20px;">
-            <div style="width: 100%; text-align: center; margin-bottom: 15px;">
-                <span id="vtProgress" style="font-weight: 900; font-size: 14px; background: var(--border-dark); color: white; padding: 4px 12px; border-radius: 20px;">Câu 1/10</span>
+        <div class="scrollable-area" style="display: flex; flex-direction: column; align-items: center; padding-top: 10px; padding-bottom: 20px;">
+            <div id="vtQuestionBox" style="width: 100%; border: 3px solid var(--border-dark); padding: 10px; text-align: center; border-radius: 8px; box-shadow: 3px 3px 0px var(--border-dark); background: white;">
+                <div style="margin-bottom: 5px;"><span id="vtProgress" style="font-weight: 900; font-size: 11px; background: var(--border-dark); color: white; padding: 2px 10px; border-radius: 12px;">Câu 1/10</span></div>
+                <div id="vtHint" style="font-size: clamp(16px, 4.5vw, 20px); font-weight: 900; color: var(--accent-blue); text-transform: uppercase; line-height: 1.2;">Nghĩa Tiếng Việt</div>
+                <div id="vtSubHint" style="font-size: 11px; color: var(--text-muted); margin-top: 2px; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;"></div>
+                <div id="vtInputArea" style="width: 100%; display: flex; flex-direction: column; gap: 6px; align-items: center;"></div>
+                <button class="btn btn-green" id="btnVtSubmit" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 13px;" onclick="checkVocabAnswer(false)">HẠ BÚT ĐIỂM NHÃN</button>
             </div>
-            <div style="width: 100%; border: 4px solid var(--border-dark); padding: 30px 15px; text-align: center; border-radius: 12px; box-shadow: var(--shadow-hard); background: white;">
-                <div id="vtHint" style="font-size: 26px; font-weight: 900; color: var(--accent-blue); text-transform: uppercase;">Nghĩa Tiếng Việt</div>
-                <div id="vtSubHint" style="font-size: 12px; color: var(--text-muted); margin-top: 10px; margin-bottom: 25px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;"></div>
-                <div id="vtInputArea" style="width: 100%; display: flex; flex-direction: column; gap: 15px; align-items: center;"></div>
-                <button class="btn btn-green" id="btnVtSubmit" style="width: 100%; margin-top: 25px; padding: 18px; font-size: 16px;" onclick="checkVocabAnswer(false)">HẠ BÚT ĐIỂM NHÃN</button>
-            </div>
-            <div id="vtFeedback" style="margin-top: 25px; width: 100%;"></div>
+            <div id="vtFeedback" style="margin-top: 10px; width: 100%;"></div>
         </div>
     </div>
 
-    <!-- MÀN HÌNH THI NGỮ PHÁP -->
+    <!-- MÀN HÌNH THI NGỮ PHÁP (ĐÃ ÉP CÂN) -->
     <div id="grammarTestScreen" class="screen scrollable-area">
-        <div style="width:100%; display: flex; justify-content: space-between; margin-bottom: 15px;"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> KÉO CỜ TRẮNG TẾ TƯỚNG</button></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark); padding-bottom: 15px; margin-bottom: 20px;"><h2 style="margin: 0; text-transform: uppercase; font-size: 16px; color: var(--accent-green);"><i class="fa-solid fa-vial"></i> Test Ngữ Pháp</h2><div style="font-size: 16px; font-weight: 900; background: var(--accent-green); padding: 5px 15px; border: 3px solid var(--border-dark); border-radius: 8px; box-shadow: 2px 2px 0px var(--border-dark);" id="grammarProgress">1/3</div></div>
-        <div style="background: white; border: 4px solid var(--border-dark); padding: 30px 20px; box-shadow: var(--shadow-hard); text-align: center; border-radius: 12px;">
-            <h3 style="margin-top: 0; font-size: 18px; line-height: 1.6; color: var(--border-dark);" id="grammarQuestionText">Đang tải câu hỏi...</h3><div id="grammarInputArea" style="margin-top: 25px; display: flex; flex-direction: column; gap: 15px;"></div><button class="btn btn-dark" id="btnGrammarSubmit" style="width: 100%; margin-top: 25px; padding: 18px; font-size: 16px;" onclick="checkGrammarAnswer()">HẠ BÚT ĐIỂM NHÃN</button>
+        <div style="width:100%; display: flex; justify-content: space-between; margin-bottom: 10px;"><button class="btn btn-outline" style="padding: 5px 10px; font-size: 12px; box-shadow: none; border-color: var(--accent-red); color: var(--accent-red);" onclick="surrenderTest()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ĐẦU HÀNG</button></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--border-dark); padding-bottom: 10px; margin-bottom: 15px;"><h2 style="margin: 0; text-transform: uppercase; font-size: 15px; color: var(--accent-green);"><i class="fa-solid fa-vial"></i> Test Ngữ Pháp</h2><div style="font-size: 14px; font-weight: 900; background: var(--accent-green); padding: 4px 12px; border: 3px solid var(--border-dark); border-radius: 8px; box-shadow: 2px 2px 0px var(--border-dark);" id="grammarProgress">1/3</div></div>
+        <div id="gmQuestionBox" style="background: white; border: 4px solid var(--border-dark); padding: 15px; box-shadow: var(--shadow-hard); text-align: center; border-radius: 12px;">
+            <h3 style="margin-top: 0; font-size: 16px; line-height: 1.5; color: var(--border-dark); margin-bottom: 15px;" id="grammarQuestionText">Đang tải câu hỏi...</h3><div id="grammarInputArea" style="display: flex; flex-direction: column; gap: 10px;"></div><button class="btn btn-dark" id="btnGrammarSubmit" style="width: 100%; margin-top: 15px; padding: 14px; font-size: 14px;" onclick="checkGrammarAnswer()">HẠ BÚT ĐIỂM NHÃN</button>
         </div>
-        <div id="grammarFeedback" style="margin-top: 25px;"></div>
+        <div id="grammarFeedback" style="margin-top: 15px;"></div>
     </div>
 
     <!-- MÀN HÌNH KẾT QUẢ -->
@@ -1160,35 +1158,33 @@ function buyUpsaleShield(cost, hits) {
     </div>
 </div>
 
-<!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM (ĐÃ FIX KHUYẾT ĐIỂM) ================= -->
-<!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM (ĐÃ FIX KHỔ LỚN) ================= -->
-<!-- ================= BÀN PHÍM ẢO (ĐÃ XÓA 3D, NẢY VÀ XÓA LIÊN TỤC) ================= -->
-<div id="neoKeyboard" style="position: fixed; bottom: -800px; left: 0; width: 100%; background: #facc15; border-top: 4px dashed #111; z-index: 100000; padding: 12px 6px 25px 6px; transition: bottom 0.2s ease-out; display: flex; flex-direction: column; gap: 8px;">
-    <div style="display: flex; justify-content: space-between; padding: 0 8px 6px 8px; border-bottom: 3px dashed #111; margin-bottom: 2px;">
-        <span style="font-weight: 900; color: #111; text-transform: uppercase; font-size: 13px;"><i class="fa-solid fa-keyboard"></i> Bàn Phím Sĩ Tử</span>
-        <i class="fa-solid fa-chevron-down" style="font-size: 22px; color: #111; cursor: pointer; padding: 0 10px;" onclick="closeVirtualKeyboard()"></i>
+<!-- ================= BÀN PHÍM ẢO NEO-BRUTALISM (SUPER SLIM) ================= -->
+<div id="neoKeyboard" style="position: fixed; bottom: -800px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 850px; background: #facc15; border: 4px solid #111; border-bottom: none; border-radius: 12px 12px 0 0; z-index: 100000; padding: 6px 6px 12px 6px; transition: bottom 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; flex-direction: column; gap: 5px; box-shadow: 0px -10px 40px rgba(0,0,0,0.2);">
+    <div style="display: flex; justify-content: space-between; padding: 0 8px 4px 8px; border-bottom: 2px dashed #111; margin-bottom: 2px;">
+        <span style="font-weight: 900; color: #111; text-transform: uppercase; font-size: 12px;"><i class="fa-solid fa-keyboard"></i> Bàn Phím</span>
+        <i class="fa-solid fa-chevron-down" style="font-size: 18px; color: #111; cursor: pointer; padding: 0 10px; transition: 0.2s;" onmousedown="this.style.transform='scale(0.8)'" onmouseup="this.style.transform='none'" onclick="closeVirtualKeyboard()"></i>
     </div>
-    <div style="display: flex; justify-content: center; gap: 6px; width: 100%;">
+    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
         <button class="vk-key" onclick="vkType('q')">q</button><button class="vk-key" onclick="vkType('w')">w</button><button class="vk-key" onclick="vkType('e')">e</button><button class="vk-key" onclick="vkType('r')">r</button><button class="vk-key" onclick="vkType('t')">t</button><button class="vk-key" onclick="vkType('y')">y</button><button class="vk-key" onclick="vkType('u')">u</button><button class="vk-key" onclick="vkType('i')">i</button><button class="vk-key" onclick="vkType('o')">o</button><button class="vk-key" onclick="vkType('p')">p</button>
     </div>
-    <div style="display: flex; justify-content: center; gap: 6px; width: 100%;">
+    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
         <button class="vk-key" onclick="vkType('a')">a</button><button class="vk-key" onclick="vkType('s')">s</button><button class="vk-key" onclick="vkType('d')">d</button><button class="vk-key" onclick="vkType('f')">f</button><button class="vk-key" onclick="vkType('g')">g</button><button class="vk-key" onclick="vkType('h')">h</button><button class="vk-key" onclick="vkType('j')">j</button><button class="vk-key" onclick="vkType('k')">k</button><button class="vk-key" onclick="vkType('l')">l</button>
     </div>
-    <div style="display: flex; justify-content: center; gap: 6px; width: 100%;">
+    <div style="display: flex; justify-content: center; gap: 4px; width: 100%;">
         <button class="vk-key" onclick="vkType('z')">z</button><button class="vk-key" onclick="vkType('x')">x</button><button class="vk-key" onclick="vkType('c')">c</button><button class="vk-key" onclick="vkType('v')">v</button><button class="vk-key" onclick="vkType('b')">b</button><button class="vk-key" onclick="vkType('n')">n</button><button class="vk-key" onclick="vkType('m')">m</button><button class="vk-key" onclick="vkType('-')">-</button><button class="vk-key" onclick="vkType('\'')">'</button>
     </div>
-    <div style="display: flex; justify-content: center; gap: 8px; width: 100%; padding-top: 4px;">
+    <div style="display: flex; justify-content: center; gap: 5px; width: 100%; padding-top: 2px;">
         <button class="vk-key wide" onpointerdown="startVkBack(event)" onpointerup="stopVkBack(event)" onpointerleave="stopVkBack(event)"><i class="fa-solid fa-delete-left"></i></button>
         <button class="vk-key space" onclick="vkType(' ')">space</button>
         <button class="vk-key submit" onclick="vkEnter()">hạ bút</button>
     </div>
 </div>
 <style>
-    .vk-key { background: #fff; border: 2px solid #111; border-radius: 8px; font-weight: 900; font-size: 24px; color: #111; padding: 14px 0; flex: 1; text-transform: lowercase; box-shadow: none; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; font-family: 'Space Grotesk', system-ui, sans-serif; transition: transform 0.05s ease-out, background-color 0.05s; will-change: transform; }
-    .vk-key:active { transform: scale(0.92); background: #e2e8f0; transition: none; }
+    .vk-key { background: #fff; border: 2px solid #111; border-radius: 6px; font-weight: 900; font-size: 16px; color: #111; padding: 6px 0; flex: 1; text-transform: lowercase; box-shadow: 2px 2px 0px #111; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; font-family: 'Space Grotesk', system-ui, sans-serif; transition: transform 0.05s ease-out, box-shadow 0.05s ease-out, background-color 0.05s; will-change: transform; }
+    .vk-key:active { transform: translate(2px, 2px) scale(0.95); box-shadow: 0px 0px 0px #111; background: #e2e8f0; transition: none; }
     .vk-key.wide { flex: 1.5; background: #ef4444; color: #fff; border-color: #111; }
-    .vk-key.space { flex: 3; font-size: 16px; letter-spacing: 2px; }
-    .vk-key.submit { flex: 2; background: #3b82f6; color: #fff; font-size: 14px; text-transform: uppercase; }
+    .vk-key.space { flex: 3; font-size: 13px; letter-spacing: 2px; }
+    .vk-key.submit { flex: 2; background: #3b82f6; color: #fff; font-size: 12px; text-transform: uppercase; }
 </style>
 <script>
     let vkBackInterval, vkBackTimeout;
@@ -1207,18 +1203,49 @@ function buyUpsaleShield(cost, hits) {
 
 
 function openVirtualKeyboard(inputEl) {
-    // ĐÃ FIX PC: Nếu là màn hình to, gỡ khóa Readonly để gõ phím cơ, KHÔNG bật phím ảo!
-    if (window.innerWidth > 850 || !('ontouchstart' in window)) {
-        inputEl.removeAttribute('readonly');
-        inputEl.focus();
-        return;
-    }
-    
     window.activeVKInput = inputEl;
-    document.getElementById('neoKeyboard').style.bottom = '0';
+    let vk = document.getElementById('neoKeyboard');
+    if (vk) vk.style.bottom = '0';
     
     let activeScreen = document.querySelector('.screen.active-screen');
-    if(activeScreen) activeScreen.style.paddingBottom = "260px"; 
+    let scrollContainer = null;
+    
+    if (activeScreen) {
+        scrollContainer = activeScreen.classList.contains('scrollable-area') ? activeScreen : activeScreen.querySelector('.scrollable-area');
+    } 
+    if (!scrollContainer) scrollContainer = inputEl.closest('.modal-content') || document.querySelector('.modal-content');
+
+    if (scrollContainer) {
+        // Bơm đệm đáy khổng lồ ngay lập tức để dư sức cuộn lên kịch kim
+        scrollContainer.style.paddingBottom = "500px"; 
+
+        // 🚀 TOÁN HỌC THỰC CHIẾN (Tính toán ngay T=0, cuộn đồng thời cùng animation bàn phím)
+        let questionBox = document.getElementById('vtQuestionBox') || document.getElementById('gmQuestionBox') || inputEl.closest('div[style*="border: 4px"]') || inputEl.parentElement;
+        
+        let containerRect = scrollContainer.getBoundingClientRect();
+        let boxRect = questionBox.getBoundingClientRect();
+        let inputRect = inputEl.getBoundingClientRect();
+        let vkHeight = vk ? (vk.offsetHeight || 310) : 310; 
+        
+        // Vùng nhìn thấy an toàn (Từ trần màn hình đến nóc bàn phím)
+        let visibleBottom = window.innerHeight - vkHeight;
+        
+        // BƯỚC 1: Neo kịch trần toàn bộ Box (Chừa 5px cho khít) để khoe trọn vẹn nội dung
+        let idealScrollTop = scrollContainer.scrollTop + (boxRect.top - containerRect.top) - 5;
+        
+        // BƯỚC 2: Kiểm tra chéo - Giả lập xem nếu cuộn theo Bước 1, thì cái "Ô ĐANG GÕ" nằm ở đâu?
+        let deltaScroll = idealScrollTop - scrollContainer.scrollTop;
+        let projectedInputBottom = inputRect.bottom - deltaScroll;
+        
+        // BƯỚC 3: Nếu Ô đang gõ bị kẹt dưới gầm Bàn phím (vượt quá vùng an toàn 20px)
+        if (projectedInputBottom > visibleBottom - 20) {
+            // Ép cuộn thêm lên để Input trồi hẳn lên trên!
+            idealScrollTop += (projectedInputBottom - (visibleBottom - 20));
+        }
+        
+        // Thực thi trượt mượt mà
+        scrollContainer.scrollTo({ top: idealScrollTop, behavior: "smooth" });
+    }
 
     document.querySelectorAll('.input-brutal').forEach(el => { 
         el.style.borderColor = "var(--border-dark)"; 
@@ -1226,17 +1253,21 @@ function openVirtualKeyboard(inputEl) {
     });
     inputEl.style.borderColor = "var(--accent-blue)";
     inputEl.style.boxShadow = "0 0 0 4px rgba(59, 130, 246, 0.3)";
-
-    setTimeout(() => { inputEl.scrollIntoView({ behavior: "smooth", block: "center" }); }, 250);
 }
 
 function closeVirtualKeyboard() {
     window.activeVKInput = null;
-    let vk = document.getElementById('neoKeyboard'); if(vk) vk.style.bottom = '-800px';
-    let activeScreen = document.querySelector('.screen.active-screen');
-    if(activeScreen) activeScreen.style.paddingBottom = "80px"; 
+    let vk = document.getElementById('neoKeyboard'); 
+    if (vk) vk.style.bottom = '-800px';
+    
+    // Rút đệm đáy thông minh: Trả về CSS nguyên thủy
+    document.querySelectorAll('.scrollable-area, .modal-content').forEach(el => {
+        el.style.paddingBottom = ""; 
+    });
+    
     document.querySelectorAll('.input-brutal').forEach(el => { 
-        el.style.borderColor = "var(--border-dark)"; el.style.boxShadow = "none"; 
+        el.style.borderColor = "var(--border-dark)"; 
+        el.style.boxShadow = "none"; 
     });
 }
 
@@ -4954,29 +4985,29 @@ function renderTypingTest() {
 
         // MA TRẬN NHẬN DIỆN THÔNG MINH CHO CẢ THI THẬT LẪN PHỤC THÙ
         if (q.type === 'wordform') {
-            document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
+            document.getElementById('vtHint').innerHTML = `<span style="font-size: clamp(20px, 5vw, 24px);">${hintTextClean}</span>`; 
             document.getElementById('vtSubHint').innerText = window.isRevengeMode ? "" : "Điền Tiếng Anh theo từng loại từ";
             let meanings = meanText.split('|');
             String(q.en).split('|').forEach((p, i) => { 
                 let type = p.split(':')[0] || 'word'; 
                 let m = meanings[i] ? meanings[i].trim() : '';
-                inputArea.innerHTML += `<div style="width:100%; display:flex; gap:10px; align-items:center;">
-                    <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:80px;">
-                        <span class="wf-type-label" style="font-weight:900; color:var(--accent-blue); text-transform:uppercase; font-size:15px;">${type}</span>
-                        ${m ? `<span style="font-size:11px; color:var(--accent-red); font-weight:900; margin-top:2px;">[${m}]</span>` : ''}
+                inputArea.innerHTML += `<div style="width:100%; display:flex; gap:8px; align-items:center;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:65px;">
+                        <span class="wf-type-label" style="font-weight:900; color:var(--accent-blue); text-transform:uppercase; font-size:12px;">${type}</span>
+                        ${m ? `<span style="font-size:10px; color:var(--accent-red); font-weight:900; margin-top:2px;">[${m}]</span>` : ''}
                     </div>
-                    <input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0; flex-grow:1; cursor:pointer;" data-ans="${p.split(':')[1] || p}" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">
+                    <input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0; flex-grow:1; cursor:pointer; padding:8px 10px; font-size:14px; height: 38px;" data-ans="${p.split(':')[1] || p}" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">
                 </div>`; 
             });
         } else if (q.type === 'prep') {
-            document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
-            document.getElementById('vtSubHint').innerHTML = meanText ? `<span style="color:var(--accent-red); font-size:14px; font-weight:900; text-transform:uppercase;">[${meanText}]</span>` : `<span style="color:var(--accent-red); font-size:14px; font-weight:900; text-transform:uppercase;">[Điền giới từ phù hợp]</span>`; 
-            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+            document.getElementById('vtHint').innerHTML = `<span style="font-size: clamp(20px, 5vw, 24px);">${hintTextClean}</span>`; 
+            document.getElementById('vtSubHint').innerHTML = meanText ? `<span style="color:var(--accent-red); font-size:12px; font-weight:900; text-transform:uppercase;">[${meanText}]</span>` : `<span style="color:var(--accent-red); font-size:12px; font-weight:900; text-transform:uppercase;">[Điền giới từ phù hợp]</span>`; 
+            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" style="cursor:pointer; padding:10px; font-size:15px; height: 42px;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
         } else {
-            document.getElementById('vtHint').innerHTML = `<span style="font-size: 26px;">${hintTextClean}</span>`; 
+            document.getElementById('vtHint').innerHTML = `<span style="font-size: clamp(20px, 5vw, 24px);">${hintTextClean}</span>`; 
             document.getElementById('vtSubHint').innerText = ""; 
             let cleanAns = String(q.en).split('(')[0].trim().replace(/\*/g, ''); 
-            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" style="cursor:pointer;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" style="cursor:pointer; padding:10px; font-size:15px; height: 42px;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
         }
         
         setTimeout(() => { let inp = document.getElementById('vtInput_0'); if(inp) { openVirtualKeyboard(inp); } }, 100); 
