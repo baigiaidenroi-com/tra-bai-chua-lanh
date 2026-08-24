@@ -1519,7 +1519,7 @@ window.runHeartbeatCheck = function() {
     })
     .then(res => {
         if (res && res.status === "kicked") {
-            executeKickOut("CẨM Y VỆ BẮT QUẢ TANG: TÀI KHOẢN ĐANG ĐĂNG NHẬP BẰNG THIẾT BỊ KHÁC!");
+            executeKickOut("CẨM Y VỆ BẮT QUẢ TANG: TÀI KHOẢN ĐANG ĐĂNG NHẬP BẰNG THIẾT BỊ KHÁC/ MỞ TAB KHÁC!");
         }
     }).catch(e => {
         // Lỗi mạng thì bỏ qua, không văng oan học sinh đang thi!
@@ -4913,8 +4913,8 @@ function navVocabLearn(dir) {
                     let errorMsg = `Tốc độ quá ảo (${durSec.toFixed(1)}s / ${totalCards} thẻ).`;
 
                     if (window.fcSpamCount >= 3) {
-                        addEconomyLog(`🚨 Phạt Cấm Vệ Quân: Spam Flashcard lừa đảo`, -1000);
-                        showToast(`🚨 BẮT QUẢ TANG LỪA ĐẢO! Phạt -1.000 Vàng. Thoát ra Sảnh Ngay!`);
+                        addEconomyLog(`🚨 Phạt Cấm Vệ Quân: GIAN LẬN TỐC ĐỘ Spam Flashcard!`, -1000);
+                        showToast(`🚨 BẮT QUẢ TANG GIAN LẬN TỐC ĐỘ Spam Flashcard! Phạt -1.000 Vàng. Thoát ra Sảnh Ngay!`);
                         window.fcSpamCount = 0; // Xóa án tích sau khi trảm để tính chu kỳ mới
                     } else {
                         showToast(`⚠️ ${errorMsg} Bài học bị hủy! Về Sảnh chính cày lại từ đầu! (Cảnh cáo lần ${window.fcSpamCount}/3).`);
