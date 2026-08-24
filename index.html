@@ -4913,8 +4913,8 @@ function navVocabLearn(dir) {
                     let errorMsg = `Tốc độ quá ảo (${durSec.toFixed(1)}s / ${totalCards} thẻ).`;
 
                     if (window.fcSpamCount >= 3) {
-                        addEconomyLog(`🚨 Phạt Cấm Vệ Quân: GIAN LẬN TỐC ĐỘ Spam Flashcard!`, -1000);
-                        showToast(`🚨 BẮT QUẢ TANG GIAN LẬN TỐC ĐỘ Spam Flashcard! Phạt -1.000 Vàng. Thoát ra Sảnh Ngay!`);
+                        addEconomyLog(`🚨 Phạt Cấm Vệ Quân: GIAN LẬN TỐC ĐỘ SPAM FLASHCARDS! BẤM CHẬM THÔI!!!`, -1000);
+                        showToast(`🚨 BẮT QUẢ TANG GIAN LẬN TỐC ĐỘ SPAM FLASHCARDS! BẤM CHẬM THÔI!!! Phạt -1.000 Vàng. Thoát ra Sảnh Ngay!`);
                         window.fcSpamCount = 0; // Xóa án tích sau khi trảm để tính chu kỳ mới
                     } else {
                         showToast(`⚠️ ${errorMsg} Bài học bị hủy! Về Sảnh chính cày lại từ đầu! (Cảnh cáo lần ${window.fcSpamCount}/3).`);
