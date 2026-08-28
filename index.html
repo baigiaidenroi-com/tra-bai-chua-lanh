@@ -1469,7 +1469,7 @@ function parseCustomDeadline(dlStr) {
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
 const SYSTEM_APIS = {
-    "6": "https://script.google.com/macros/s/AKfycbwXXWH4a5cICqa9F93zFWfnejwJPmOVPajT-1mXI4BsoHEllbK4BO08d4TW0wQGRmT6/exec",
+     "6": "https://script.google.com/macros/s/AKfycbwXXWH4a5cICqa9F93zFWfnejwJPmOVPajT-1mXI4BsoHEllbK4BO08d4TW0wQGRmT6/exec",
     "7": "https://script.google.com/macros/s/AKfycbwWEnk4fYN1kH_ghFukI6geGSaoSMy58j0NV2JXrQBTKJs5C0TaheyVLkPrr5K_YWao/exec",
     "8": "https://script.google.com/macros/s/AKfycbxE0W8RpJQYsK2sqdY61ZlelIJL8p3ZsSeAmlbaT7atPtcA5AHIInat52vpRRqa9uoU2w/exec",
     "9": "https://script.google.com/macros/s/AKfycbwWZfLZPFVFOc_bwcmoDb1qbIMGVbQeuYYLGzRix6DSQd_7PsFqGtZbYt8E_WfhoKepqg/exec"
@@ -5007,25 +5007,27 @@ function getBestVoice(accent) {
 
 function formatWordForSpeech(q, type) {
     if (!q) return "";
+    // ĐÃ FIX: Bổ sung dấu ~ vào chung với màng lọc dấu * ( /[\*~]/g ) để quét dọn sạch sẽ rác định dạng
     if (type === 'prep') {
-        let vnClean = String(q.vn).replace(/\*/g, '').replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim();
-        let enClean = String(q.en).replace(/\*/g, '').trim(); return (vnClean + " " + enClean).toLowerCase();
+        let vnClean = String(q.vn).replace(/[\*~]/g, '').replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim();
+        let enClean = String(q.en).replace(/[\*~]/g, '').trim(); return (vnClean + " " + enClean).toLowerCase();
     }
     if (type === 'wordform') {
         let parts = String(q.en).split('|');
         let readParts = parts.map(p => {
             let split = p.split(':');
             if (split.length > 1) {
-                let pos = split[0].trim().toLowerCase(); let word = split[1].replace(/\*/g, '').trim().toLowerCase(); let posFull = pos;
+                let pos = split[0].trim().toLowerCase(); let word = split[1].replace(/[\*~]/g, '').trim().toLowerCase(); let posFull = pos;
                 if(pos === 'n') posFull = 'noun'; else if(pos === 'v') posFull = 'verb'; else if(pos === 'adj') posFull = 'adjective'; else if(pos === 'adv') posFull = 'adverb';
                 return `${word}. ${posFull}.`; 
             }
-            return p.replace(/\*/g, '').trim().toLowerCase();
+            return p.replace(/[\*~]/g, '').trim().toLowerCase();
         });
         return readParts.join(" . "); 
     }
-    return String(q.en).replace(/\*/g, '').replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim().toLowerCase(); 
+    return String(q.en).replace(/[\*~]/g, '').replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim().toLowerCase(); 
 }
+
 
 function speakCurrentWord(e, accent = 'US') { 
     if(e) e.stopPropagation(); 
@@ -5276,9 +5278,15 @@ function checkVocabAnswer(isTimeout) {
     if(window.isCheckingAnswer) return; // KHÓA ĐÓNG BĂNG TRÁNH DOUBLE CLICK GÂY NGÁO DATA
     window.isCheckingAnswer = true;
     
-    // KHÓA MÕM INPUT TỨC THÌ
+    // KHÓA MÕM INPUT TỨC THÌ VÀ CHẶN BÀN PHÍM ẢO
     let inputs = document.querySelectorAll('#vtInputArea input');
-    inputs.forEach(inp => { inp.setAttribute('readonly', 'true'); inp.onkeypress = null; });
+    inputs.forEach(inp => { 
+        inp.setAttribute('readonly', 'true'); 
+        inp.onclick = null; // CHÉM RỤNG SỰ KIỆN MỞ BÀN PHÍM ẢO
+        inp.onkeypress = null; 
+    });
+    
+
 
     clearInterval(timerInterval); let q = questionsQueue[0]; let isAllCorrect = true, specificErrors = [];
     
