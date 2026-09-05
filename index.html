@@ -1470,10 +1470,10 @@ function parseCustomDeadline(dlStr) {
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
 const SYSTEM_APIS = {
-    "6": "https://script.google.com/macros/s/AKfycbwXXWH4a5cICqa9F93zFWfnejwJPmOVPajT-1mXI4BsoHEllbK4BO08d4TW0wQGRmT6/exec",
-    "7": "https://script.google.com/macros/s/AKfycbwWEnk4fYN1kH_ghFukI6geGSaoSMy58j0NV2JXrQBTKJs5C0TaheyVLkPrr5K_YWao/exec",
-    "8": "https://script.google.com/macros/s/AKfycbxE0W8RpJQYsK2sqdY61ZlelIJL8p3ZsSeAmlbaT7atPtcA5AHIInat52vpRRqa9uoU2w/exec",
-    "9": "https://script.google.com/macros/s/AKfycbwWZfLZPFVFOc_bwcmoDb1qbIMGVbQeuYYLGzRix6DSQd_7PsFqGtZbYt8E_WfhoKepqg/exec"
+    "6": "https://script.google.com/macros/s/AKfycbwzcm7yy7QjjWmdWiFKKimDBqG3i7FwcCWGaFyyYnSFYaw7qfch4oFzGq77YAQ0O5sd/exec",
+    "7": "https://script.google.com/macros/s/AKfycbw9VMH5Z47bdL5QZleJIt4vWO64aO8Fr8_A0OUk06vIsy1IXQq2NM8iggmHU6CQ0FFp/exec",
+    "8": "https://script.google.com/macros/s/AKfycbw-BdRBqIF7fmLC_JyLb4s8hZ35iR1mBuixLA6yg_3A2nZ58N2sHZgHNIBMn_G-IvXtWQ/exec",
+    "9": "https://script.google.com/macros/s/AKfycbxVC2ohk7BOIKqPJtlFTHxQx8FsBYILrOb-USq3f-PRpcL4s5FNVKXISHXBNmjPGOWkQQ/exec"
 };
 
 let currentSelectedGrade = ""; // ÉP BUỘC PHẢI CHỌN LỚP MỚI CÓ DATA
@@ -1490,7 +1490,12 @@ window.addEventListener('load', async () => {
 
 
 function getScriptUrl() {
-    if (!currentSelectedGrade) return null; // Không chọn lớp thì không cấp Link
+    // 🚀 BẬT TỰ ĐỘNG BÁM ĐUỔI LINK DEPLOY MỚI NHẤT
+    let currentUrl = window.location.href.split('?')[0];
+    if (currentUrl.includes('/exec') || currentUrl.includes('/dev')) {
+        return currentUrl;
+    }
+    if (!currentSelectedGrade) return null;
     return SYSTEM_APIS[currentSelectedGrade];
 }
 
@@ -1690,19 +1695,18 @@ function checkAndApplyTax() {
             userEconomy.gold = newGold;
             localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
             
-            // 🚀 ĐẠI PHẪU: Cấm Frontend tự sinh chuỗi [💰 ...]. Trả lại quyền Kế toán cho Backend!
-            // Backend sẽ tự động quét số dư thực tế trên máy chủ và nối chuỗi này, tránh bị nhân đôi!
             let safeDateStr = today.replace(/\//g, '');
             let taxTxId = "TAX_" + currentStudentId + "_" + safeDateStr; // MÃ ĐÓNG ĐINH CHỐNG TRỪ 2 LẦN
             
             let logItem = {
-                id: taxTxId,
-                time: now.toLocaleString('vi-VN'),
-                studentId: currentStudentId,
+                id: taxTxId, 
+                time: now.toLocaleString('vi-VN'), 
+                studentId: currentStudentId, 
                 studentName: currentStudentName,
-                action: `[⚖️ THUẾ HÌNH BỘ] Nuôi cơm ${localBB.length} tội phạm (Tích lũy ${missedDays} ngày)`, 
-                goldDiff: -taxAmount 
-            };
+                action: `[💰 ${oldGold} - ${taxAmount} = ${newGold}] [⚖️ THUẾ HÌNH BỘ] Nuôi cơm ${localBB.length} tội phạm (Tích lũy ${missedDays} ngày)`, 
+                goldDiff: -taxAmount, 
+                newBalance: newGold 
+            };            
             offlineQueue.push(logItem);
             localStorage.setItem(getIsoKey('queue'), JSON.stringify(offlineQueue));
             
@@ -1850,19 +1854,22 @@ function addEconomyLog(actionName, goldChange, customId = null) {
     let txId = customId ? customId : (Date.now().toString(36) + Math.random().toString(36).substring(2));
     if (customId && offlineQueue.some(item => item.id === txId)) return; 
 
-    // Update UI Local cho học sinh thấy Vàng nhảy
-    userEconomy.gold = parseFloat(userEconomy.gold) || 0;
-    userEconomy.gold += goldChange;
+    // 🚀 ĐẠI PHẪU TOÁN HỌC: Frontend tự tính và chốt chuỗi Vàng tuyệt đối chính xác
+    let oldGold = parseFloat(userEconomy.gold) || 0;
+    let newGold = oldGold + goldChange;
+    userEconomy.gold = newGold;
     localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
     
-    // 🚀 ĐẠI PHẪU: TRUYỀN RAW DATA, CẤM FRONTEND GHÉP CHUỖI VÀNG!
+    // 🚀 FRONTEND CHỈ LÀ MÁY IN: TUYỆT ĐỐI CẤM tự sinh ngoặc vuông [💰...]
+    // Chỉ gửi đúng cái tên hành động (actionName) lên Server!
     let logItem = {
         id: txId,
         time: new Date().toLocaleString('vi-VN'),
         studentId: currentStudentId,
         studentName: currentStudentName,
-        action: actionName, // CHỈ TRUYỀN LÝ DO THUẦN TÚY
-        goldDiff: goldChange 
+        action: actionName, // <-- CHỈ GỬI TEXT THUẦN
+        goldDiff: goldChange,
+        newBalance: newGold 
     };
     
     offlineQueue.push(logItem);
@@ -2340,7 +2347,7 @@ function initiateRedeem(tierId) {
     localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
 
     if (getScriptUrl() && getScriptUrl().startsWith("http")) {
-        let fcPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: logTitle, unit: tier.name, attempt: 1, score: 0, correctCount: 0, wrongCount: 0, totalCount: 0, cheat: "Hợp lệ", duration: "0s", maxCombo: 0, fixedErrors: 0, errorWords: "" };
+        let fcPayload = { mode: "saveResultPost", txId: "MARKET_" + currentStudentId + "_" + Date.now(), studentId: currentStudentId, studentName: currentStudentName, category: logTitle, unit: tier.name, attempt: 1, score: 0, correctCount: 0, wrongCount: 0, totalCount: 0, cheat: "Hợp lệ", duration: "0s", maxCombo: 0, fixedErrors: 0, errorWords: "" };
         window.pendingLogsQueue = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
         window.pendingLogsQueue.push(fcPayload);
         localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
@@ -2472,6 +2479,13 @@ function emergencyDataRescue() {
     // Bốc luôn Queue Vàng chưa kịp gửi
     if (typeof offlineQueue !== 'undefined' && offlineQueue.length > 0) {
         payload.economyQueue = offlineQueue; // Kẹp chung vào 1 gói
+        hasDataToRescue = true;
+    }
+
+    // 🚀 ĐẠI PHẪU KỲ ÁN 3: Bốc luôn Hàng đợi Bài Thi (Logs) bị kẹt để chống "Thiếu bài"
+    let pendingLogs = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
+    if (pendingLogs.length > 0) {
+        payload.logsQueue = pendingLogs;
         hasDataToRescue = true;
     }
 
@@ -2991,16 +3005,29 @@ window.processLogsQueue = function() {
 
     fetch(scriptUrl, { 
         method: "POST", 
-        mode: "no-cors", 
         keepalive: true, 
         headers: { "Content-Type": "text/plain" }, 
         body: JSON.stringify(logPayload) 
-    }).then(() => {
-        window.pendingLogsQueue.shift(); // Xóa khỏi hàng đợi sau khi gửi
-        localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
-        if(typeof checkMissingTasks === 'function') checkMissingTasks(logPayload.studentId);
-    }).catch(e => {
-        console.log("Lỗi mạng, chờ gửi lại log sau...");
+    })
+    .then(res => res.json())
+.then(data => {
+        // 🚀 ĐẠI PHẪU CHỐNG KẸT HÀNG ĐỢI: Dù Server báo Thành công, Báo Trùng hay Báo Lỗi, ĐỀU PHẢI XÓA KHỎI QUEUE để giải phóng đường truyền cho bài mới!
+        if(data && (data.status === 'success' || data.message === "Anti-RaceCondition: Duplicate Ignored" || data.status === 'error')) {
+            window.pendingLogsQueue.shift(); 
+            localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
+            if(typeof checkMissingTasks === 'function') checkMissingTasks(logPayload.studentId);
+        }
+    })
+    .catch(e => {
+        console.log("Lỗi mạng hoặc data rác, tự hủy bài lỗi...");
+        // 🚀 CỨU HỘ KHẨN CẤP: Nếu gọi Server thất bại (do mạng hoặc do Payload lỗi), thử 3 lần rồi tự động vứt bỏ bài lỗi để giải phóng kẹt xe!
+        if(window.pendingLogsQueue.length > 0) {
+            window.pendingLogsQueue[0].retryCount = (window.pendingLogsQueue[0].retryCount || 0) + 1;
+            if(window.pendingLogsQueue[0].retryCount > 3) {
+                window.pendingLogsQueue.shift();
+                localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
+            }
+        }
     }).finally(() => {
         window.isSyncingLogs = false;
     });
@@ -3228,14 +3255,25 @@ async function login() {
         // 🚀 BƯỚC 3: THÁC NƯỚC HẬU CẦN VÀ PRE-FETCH BÍ TỊCH (CHẠY NGẦM BÊN DƯỚI)
         (async () => {
             try {
-                // ⏱️ T + 0.1s: Kéo Init (Cấu hình lõi)
+// ⏱️ T + 0.1s: Kéo Init (Cấu hình lõi)
                 let initData = await fetchWithFallback(scriptUrl, "init", { students: [] }, "", 2, 10000);
                 if (initData && !initData.error && initData.students && initData.students.length > 0) {
                     studentDB = { "T11": { name: "Thầy Tiến (Admin)", pass: "123", gold: 9999999 } };
-                    initData.students.forEach(s => { studentDB[String(s.id).trim().toUpperCase()] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0, penaltyChecked: s.penaltyChecked || "" }; });
+                    initData.students.forEach(s => { studentDB[String(s.id).trim().toUpperCase()] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0, penaltyChecked: s.penaltyChecked || "", startUnit: s.startUnit || 1 }; });
                     
+                    // 🛡️ LƯỚI LỌC TỬ THẦN: Trảm ngay lập tức nếu ID bị xóa HOẶC bị bỏ trống Tên trên Sheet!
+                    if (id !== 'T11' && (!studentDB[id] || studentDB[id].name === "")) {
+                        let coreCacheKey = "SYSTEM_CORE_CACHE_G" + currentSelectedGrade;
+                        localStorage.removeItem(coreCacheKey); // Xóa sạch Cache để chặn cửa vĩnh viễn
+                        executeKickOut("TÀI KHOẢN ĐÃ BỊ XÓA HOẶC VÔ HIỆU HÓA KHỎI DANH SÁCH LỚP!");
+                        return; // Đóng sập luồng thác nước hậu cần
+                    }
+
                     serverDeadlines = initData.deadlines || [];
-                    window.baoBaiCacheContent = initData.baoBaiContent || "Chưa có thông báo.";
+                    
+                    
+                    
+                        window.baoBaiCacheContent = initData.baoBaiContent || "Chưa có thông báo.";
                     window.noteManualCache = initData.noteManual || "";
                     window.globalTreasuryTax = initData.totalTax || 0;
                     window.globalMaxUnit = initData.maxAvailableUnit || 1;
@@ -3285,7 +3323,8 @@ async function login() {
                         allLogsCache = syncData.logs.map(row => {
                             if (typeof row === 'string') {
                                 let parts = row.split('|'); let newRow = new Array(15).fill(""); 
-                                newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; 
+                                // 🚀 VÁ LỖI CỔNG PHỤ HUYNH: Giải nén Cột 14 trả về đúng vị trí
+                                newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; newRow[14] = parts[4] || "";
                                 return newRow;
                             } return row;
                         });
@@ -3343,8 +3382,8 @@ async function login() {
         })();
     }; // <--- CHÍNH XÁC NHẤT LÀ SẾP ĐÃ XÓA NHẦM DẤU NÀY LÀM APP SẬP ĐÂY!
 
-    // 🛡️ BƯỚC 0: NGÃ BA SINH TỬ
-    if (coreCache && coreCache.studentDB && coreCache.studentDB[id]) {
+    // 🛡️ BƯỚC 0: NGÃ BA SINH TỬ (CHẶN CACHE RỖNG TÊN)
+    if (coreCache && coreCache.studentDB && coreCache.studentDB[id] && coreCache.studentDB[id].name !== "") {
         // LUỒNG 1: MÁY ĐÃ CÓ DATA -> PHÓNG QUA BÌNH PHONG 0ms
         proceedToDashboard();
     } else {
@@ -3355,7 +3394,7 @@ async function login() {
             if (initData.error) throw new Error(initData.error);
             if (initData.students && initData.students.length > 0) {
                 studentDB = { "T11": { name: "Thầy Tiến (Admin)", pass: "123", gold: 9999999 } };
-                initData.students.forEach(s => { studentDB[String(s.id).trim().toUpperCase()] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0, penaltyChecked: s.penaltyChecked || "" }; });
+                initData.students.forEach(s => { studentDB[String(s.id).trim().toUpperCase()] = { name: s.name, pass: s.pass, memoryBox: s.memoryBox, blackbook: s.blackbook, gold: s.gold || 0, penaltyChecked: s.penaltyChecked || "", startUnit: s.startUnit || 1 }; });
                 
                 // Đóng gói 100% Core Data vào Vali Hành Lý ngay từ đầu
                 let freshCore = {
@@ -3368,7 +3407,8 @@ async function login() {
                 // 🛡️ ĐẠI PHẪU: Cập nhật luôn biến coreCache để lát nữa proceedToDashboard đọc không bị Null
                 coreCache = freshCore;
             }
-            if (id !== 'T11' && !studentDB[id]) throw new Error("Mã lệnh bài sai, không có trong danh sách lớp!");
+            // 🛡️ BỌC THÉP: Nếu ID không tồn tại HOẶC Tên bị bỏ trống -> Đá văng!
+            if (id !== 'T11' && (!studentDB[id] || studentDB[id].name === "")) throw new Error("Mã lệnh bài sai, hoặc tài khoản đã bị vô hiệu hóa!");
             proceedToDashboard();
         } catch (err) {
             if (btnMaster) { btnMaster.innerHTML = '<i class="fa-solid fa-gavel fa-shake"></i> TIẾP CHỈ'; btnMaster.disabled = false; }
@@ -5145,7 +5185,7 @@ function navVocabLearn(dir) {
                         localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
 
                         if (getScriptUrl().startsWith("http")) { 
-                            let fcPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: attemptLogCount, score: 10, correctCount: flippedCount, wrongCount: 0, totalCount: totalCards, cheat: cheatMsgStr, duration: finalDurStrFail, maxCombo: 0, fixedErrors: 0, errorWords: "" };
+                            let fcPayload = { mode: "saveResultPost", txId: "FC_SPAM_" + currentStudentId + "_" + Date.now(), studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: attemptLogCount, score: 10, correctCount: flippedCount, wrongCount: 0, totalCount: totalCards, cheat: cheatMsgStr, duration: finalDurStrFail, maxCombo: 0, fixedErrors: 0, errorWords: "" };
                             window.pendingLogsQueue = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
                             window.pendingLogsQueue.push(fcPayload);
                             localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
@@ -5185,7 +5225,7 @@ function navVocabLearn(dir) {
                 localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
 
                 if (getScriptUrl().startsWith("http")) { 
-                    let fcPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: attemptLogCount, score: 10, correctCount: totalCards, wrongCount: 0, totalCount: totalCards, cheat: "An toàn", duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" };
+                    let fcPayload = { mode: "saveResultPost", txId: "FC_SAFE_" + currentStudentId + "_" + Date.now(), studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: attemptLogCount, score: 10, correctCount: totalCards, wrongCount: 0, totalCount: totalCards, cheat: "An toàn", duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" };
                     window.pendingLogsQueue = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
                     window.pendingLogsQueue.push(fcPayload);
                     localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
@@ -5363,8 +5403,14 @@ function checkVocabAnswer(isTimeout) {
             window.sessionFixedWords.push(cleanWordKey);
             
             let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
-            if(!redeemed.includes(cleanWordKey)) redeemed.push(cleanWordKey);
+            let rdQueue = JSON.parse(localStorage.getItem(getIsoKey('redeemed_queue'))) || [];
+            
+            if(!redeemed.includes(cleanWordKey)) {
+                redeemed.push(cleanWordKey);
+                rdQueue.push(cleanWordKey);
+            }
             localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(redeemed));
+            localStorage.setItem(getIsoKey('redeemed_queue'), JSON.stringify(rdQueue));
             
             // TASK 1 FIX: Trục xuất hoàn toàn khỏi mảng blackbook để không bị hoàn sinh
             let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
@@ -5520,23 +5566,7 @@ function checkVocabAnswer(isTimeout) {
         }
     }
 }
-function evaluateVocabTest(isForce = false) { 
-    if(isForce) exactErrorDetails = [{q:"Thu bài do gian lận", htmlDetails:"Con nhập: (Rời tab) - Đáp án chuẩn: N/A"}]; 
-    let wrongCount = exactErrorDetails.length; 
-    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10)/10); 
-    
-    if (window.isThamThinh) { finishThamThinhSession(score, "Từ Vựng / Giới Từ / Wordform"); return; }
-    finishSession(score, "Từ Vựng / Giới Từ / Wordform", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
-}
 
-function evaluateGrammarTest(isForce = false) { 
-    if (isForce) { exactErrorDetails = [{ q: "Thu bài do gian lận", htmlDetails: "<span style='color: var(--accent-red); font-weight: bold;'>Con nhập: (Rời tab) - Đáp án chuẩn: N/A</span>" }]; }
-    let wrongCount = exactErrorDetails.length; 
-    let score = isForce ? 0 : Math.max(0, Math.round(((totalQuestionsCount - wrongCount) / totalQuestionsCount) * 10 * 10) / 10); 
-    
-    if (window.isThamThinh) { finishThamThinhSession(score, "Ngữ Pháp"); return; }
-    finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
-}
 
 // BỘ NÃO KIẾN TẠO BÁO CÁO THÁM THÍNH (KHÔNG LƯU DATA, CHỈ GẠ BÙA TẠI ĐÍCH)
 function finishThamThinhSession(score, typeName) {
@@ -5732,104 +5762,93 @@ function evaluateGrammarTest(isForce = false) {
     finishSession(score, "Ngữ Pháp", isForce ? "Bị hủy do rời Tab 3 lần" : "Nghiêm túc"); 
 }
 function finishSession(score, typeName, cheatMsg) {
-    if (window.isSessionFinished) return; // CHỐNG SPAM CLICK: Nếu nộp rồi thì không chạy lần 2
+    if (window.isSessionFinished) return; // CHỐNG SPAM CLICK
     
     // 🛡️ BƯỚC 1 (RAM LOCK): TẠO CHỮ KÝ BẤT BIẾN CHỐNG NHÂN BẢN
     window.submittedSignatures = window.submittedSignatures || new Set();
     let attemptCheck = allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && r[3] && r[3].toString().includes(typeName) && r[4].toString().trim() === `Unit ${currentUnit}${currentPart === 0 ? "" : (currentPart === 1 ? " - P1" : " - P2")}`).length + 1;
-    let txSig = `${currentStudentId}_TEST_${currentType.toUpperCase()}_U${currentUnit}_P${currentPart}_L${attemptCheck}`;
+    
+    // 🚀 ĐẠI PHẪU: Nối thêm thời gian T${testStartTime} để phá vỡ kết giới 6 tiếng của Server.
+    let txSig = `${currentStudentId}_TEST_${currentType.toUpperCase()}_U${currentUnit}_P${currentPart}_L${attemptCheck}_T${testStartTime}`;
     if (window.isRevengeMode) txSig = `${currentStudentId}_REVENGE_${Date.now()}`; 
     
     if (window.submittedSignatures.has(txSig)) {
         console.log("🛑 RAM LOCK: Chặn nộp bài trùng lặp!", txSig);
         return;
     }
+    
     window.submittedSignatures.add(txSig);
-    window.currentTxSignature = txSig; // Lưu ra toàn cục để Kế Toán Vàng sử dụng
+    window.currentTxSignature = txSig; 
 
     window.isSessionFinished = true;
     clearInterval(timerInterval);
-    closeVirtualKeyboard(); // BUG 2 FIX: Gặp đích là TỰ ĐỘNG dẹp bàn phím ảo ngay lập tức!
-
+    closeVirtualKeyboard(); 
 
     let durSec = Math.round((Date.now() - testStartTime)/1000), durStr = Math.floor(durSec/60) + "p " + (durSec%60) + "s";
-    
     let startStr = new Date(testStartTime).toLocaleTimeString('vi-VN');
     let endStr = new Date().toLocaleTimeString('vi-VN');
 
     let typeTitles = { 'wordform': 'Word Form', 'vocab': 'Từ Vựng', 'prep': 'Giới từ', 'grammar': 'Ngữ Pháp' };
-    
-    // ÉP KIỂU SỐ NGUYÊN ĐỂ KHÔNG BAO GIỜ BỊ GỘP CHUNG P1 VÀ P2 KHI LƯU LỊCH SỬ
     let cpNum = parseInt(currentPart);
     let partText = cpNum === 0 ? "" : (cpNum === 1 ? " - P1" : " - P2");
     
-let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
+    let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
     let fullTitle = `Thi ${typeTitles[currentType] || typeName}${logModeTag}`;
     let unitTitle = `Unit ${currentUnit}${partText}`;
 
-    // ĐẠI PHẪU: Ép chuẩn Tiêu đề cho Hình Bộ
     if (window.isRevengeMode) {
         fullTitle = "PHỤC THÙ HÌNH BỘ";
         unitTitle = "Toàn bộ Sổ Đen";
     }
 
-    let baseCategory = fullTitle.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace(" [Phục Thù]", "");    let pastTestLogs = allLogsCache.filter(r => 
+    let baseCategory = fullTitle.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace(" [Phục Thù]", "");    
+    let pastTestLogs = allLogsCache.filter(r => 
         String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase() && 
         r[3] && r[3].toString().includes(baseCategory) && 
         r[4].toString().trim() === unitTitle
     );
     
     let attemptLogCount = pastTestLogs.length + 1;
-
-    // 🚀 BẢO TOÀN LẦN 1 CHUẨN XÁC KHI GHI LOG: 
-    // Nếu đang là Thi Thật, mà lịch sử chưa có bài Thi Thật nào -> Tước quyền đếm của log rác, trao danh hiệu Lần 1 cho bài thi này!
     let hasThiThatInPast = pastTestLogs.some(r => r[3].toString().includes("[Thi Thật]"));
     if (currentIsOfficial && !hasThiThatInPast && !window.isRevengeMode) {
         attemptLogCount = 1;
     }
     
-    // ĐẠI PHẪU: Lưu danh sách chữ (turn, feed) thay vì lưu con số nếu là Hình Bộ
     let fixedDataToSave = (window.isRevengeMode && window.sessionFixedWords) ? window.sessionFixedWords.join(', ') : sessionFixedErrors;
 
     let localLog = [ new Date().toLocaleString('vi-VN'), currentStudentId, currentStudentName, fullTitle, unitTitle, attemptLogCount.toString(), score.toString(), (totalQuestionsCount - exactErrorDetails.length).toString(), exactErrorDetails.length.toString(), totalQuestionsCount.toString(), cheatMsg, durStr, sessionMaxCombo, fixedDataToSave, sessionErrorWords.join(',') ];
     allLogsCache.push(localLog);
-    // FIX: Bắt buộc lưu lịch sử mới ngay xuống bộ nhớ Local
     localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
     
-    // CHỈ ĐƯA VÀO SỔ ĐEN NẾU: Là Thi Chuẩn / Cày Vàng (Lần 1, 2, 3)
-    // MIỄN NHIỄM SỔ ĐEN NẾU: Là Tự Luyện (Lần 4+) HOẶC Đang trả nợ trong Hình Bộ
     if (sessionErrorWords.length > 0 && attemptLogCount < 4 && !window.isRevengeMode) {
         let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+        let bbQueue = JSON.parse(localStorage.getItem(getIsoKey('blackbook_queue'))) || [];
         
         sessionErrorWords.forEach(w => { 
-            // 1. TRẠM GÁC: Tuyệt đối bỏ qua các câu có dấu (Đầu Hàng)
             if (!w.includes("::(Đầu Hàng)")) {
-                
-                // 2. GỌT RÁC: Chỉ lấy 4 tham số gốc (VN::EN::MEAN::TYPE), vứt bỏ tham số thứ 5 (chữ học sinh gõ) để Sổ Đen không bị rác
                 let parts = w.split('::');
                 let bbFormat = parts.slice(0, 4).join('::'); 
-                
-                // 3. CHECK TRÙNG LẶP: Quét thông minh bằng gốc Tiếng Việt để chống nhân bản từ
                 let isExist = localBB.some(item => {
                     return typeof item === 'string' && item.split('::')[0].trim().toLowerCase() === parts[0].trim().toLowerCase();
                 });
                 
-                if (!isExist) localBB.push(bbFormat);
+                if (!isExist) {
+                    localBB.push(bbFormat);
+                    bbQueue.push(bbFormat);
+                }
             }
         });
         
         localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(localBB));
+        localStorage.setItem(getIsoKey('blackbook_queue'), JSON.stringify(bbQueue));
         if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
     }
 
-    // ===== LUẬT KINH TẾ & ANTI-CHEAT =====
     let finalGold = 0; let goldReasonHtml = ""; let petLogForUI = "";
-  
     let baseGold = window.sessionBaseGold || 0;
     let comboGold = window.sessionComboGold || 0;
     let tempFinalGold = window.sessionTotalGold || 0;
     
-    // Làm sạch RAM cho lượt thi sau
     window.sessionBaseGold = 0; window.sessionComboGold = 0; window.sessionTotalGold = 0;
 
     let shortTypeMap = { 'wordform': 'WF', 'vocab': 'VOCAB', 'prep': 'PREP', 'grammar': 'GRAMMAR' };
@@ -5840,7 +5859,6 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
     let cheatTag = ""; let spamTag = ""; let dailyCapTag = "";
     let isPunished = false;
 
-    // KIẾN TRÚC MỚI: QUỸ KÉP & TỶ LỆ VÀNG LẦN 1, 2, 3
     if (window.isRevengeMode) {
         tempFinalGold = tempFinalGold; 
         goldReasonHtml = window.isPhaoCuuSinh ? "Vớt vát 50% (Dùng Phao Cứu Sinh)" : "Thành công Lấy công chuộc tội";
@@ -5863,147 +5881,136 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
         isPunished = true; 
     }
 
-    // 🚀 ĐÃ FIX: Tháo gông cùm T11 để Admin trải nghiệm 100% UI Anti-cheat và Trả Vàng
-    // 🚀 BỌC THÉP 1: NẾU LÀ ĐẦU HÀNG HOẶC GIAN LẬN THÌ SỐ CÂU ĐÚNG = 0 (ÉP BUỘC)
-        let isHeadShot = cheatMsg.includes("Bị hủy") || cheatMsg.includes("Đầu hàng");
-        let correctCount = isHeadShot ? 0 : (totalQuestionsCount - exactErrorDetails.length);
+    let isHeadShot = cheatMsg.includes("Bị hủy") || cheatMsg.includes("Đầu hàng");
+    let correctCount = isHeadShot ? 0 : (totalQuestionsCount - exactErrorDetails.length);
 
-        // 🚀 BỌC THÉP AUTO BOUNTY: BẮN TIỀN LỆNH TRUY NÃ (CHỈ ÁP DỤNG THI THẬT LẦN 1, KHÔNG GIAN LẬN)
-        if (attemptLogCount === 1 && !isHeadShot && !window.isRevengeMode && logModeTag.includes("Thi Thật")) {
-            let savedBountyUnit = localStorage.getItem('bounty_target_unit');
-            
-            // Bảo mật: Chỉ kích hoạt nếu đang thi đúng Unit được giao nhiệm vụ
-            if (savedBountyUnit && currentUnit.toString() === savedBountyUnit) {
-                let savedBountyScore = localStorage.getItem('bounty_target_score');
-                let savedBountyName = localStorage.getItem('bounty_target_name');
-                let currentScore10 = Math.max(0, Math.round((correctCount / totalQuestionsCount) * 10 * 10) / 10);
+    if (attemptLogCount === 1 && !isHeadShot && !window.isRevengeMode && logModeTag.includes("Thi Thật")) {
+        let savedBountyUnit = localStorage.getItem('bounty_target_unit');
+        if (savedBountyUnit && currentUnit.toString() === savedBountyUnit) {
+            let savedBountyScore = localStorage.getItem('bounty_target_score');
+            let savedBountyName = localStorage.getItem('bounty_target_name');
+            let currentScore10 = Math.max(0, Math.round((correctCount / totalQuestionsCount) * 10 * 10) / 10);
 
-                if (savedBountyScore && savedBountyName) {
-                    let targetScore = parseFloat(savedBountyScore);
-                    let bountyReward = 0;
-                    
-                    if (savedBountyName === "TOP1_DEFENSE") {
-                        if (currentScore10 >= targetScore) {
-                            bountyReward = 5000;
-                            if(!window.sessionPetLogs) window.sessionPetLogs = [];
-                            window.sessionPetLogs.push(`👑 <b>BẢO VỆ NGÔI VƯƠNG:</b> Tiểu chủ đã giữ vững mức điểm >= ${targetScore} ở Unit ${currentUnit}, thủ thành thành công trước hàng chục kẻ bám đuổi! Hệ thống ban thưởng <b style="color:#ef4444;">+5.000 VÀNG</b>!`);
-                            if(typeof addEconomyLog === 'function') addEconomyLog(`👑 Lệnh Bảo Vệ Ngôi Vương: Thủ thành Unit ${currentUnit}!`, bountyReward, window.currentTxSignature + "_BOUNTY");
-                        }
-                    } else {
-                        if (currentScore10 > targetScore) {
-                            bountyReward = 1500;
-                            if(!window.sessionPetLogs) window.sessionPetLogs = [];
-                            window.sessionPetLogs.push(`🎯 <b>THỢ SĂN TIỀN THƯỞNG:</b> Tuyệt vời! Tiểu chủ đã vượt qua Bóng ma (${targetScore}đ) của [${savedBountyName}] ở Unit ${currentUnit}. Hệ thống ban thưởng <b style="color:#ef4444;">+1.500 VÀNG</b>!`);
-                            if(typeof addEconomyLog === 'function') addEconomyLog(`🎯 Lệnh Truy Nã: Vượt mốc điểm của [${savedBountyName}]`, bountyReward, window.currentTxSignature + "_BOUNTY");
-                        }
+            if (savedBountyScore && savedBountyName) {
+                let targetScore = parseFloat(savedBountyScore);
+                let bountyReward = 0;
+                
+                if (savedBountyName === "TOP1_DEFENSE") {
+                    if (currentScore10 >= targetScore) {
+                        bountyReward = 5000;
+                        if(!window.sessionPetLogs) window.sessionPetLogs = [];
+                        window.sessionPetLogs.push(`👑 <b>BẢO VỆ NGÔI VƯƠNG:</b> Tiểu chủ đã giữ vững mức điểm >= ${targetScore} ở Unit ${currentUnit}, thủ thành thành công trước hàng chục kẻ bám đuổi! Hệ thống ban thưởng <b style="color:#ef4444;">+5.000 VÀNG</b>!`);
+                        if(typeof addEconomyLog === 'function') addEconomyLog(`👑 Lệnh Bảo Vệ Ngôi Vương: Thủ thành Unit ${currentUnit}!`, bountyReward, window.currentTxSignature + "_BOUNTY");
                     }
-                    
-                    if (bountyReward > 0) window.sessionTotalGold = (window.sessionTotalGold || 0) + bountyReward; 
-                    
-                    // Xóa chip lệnh truy nã để chống cày vàng
-                    localStorage.removeItem('bounty_target_unit');
-                    localStorage.removeItem('bounty_target_score');
-                    localStorage.removeItem('bounty_target_name');
+                } else {
+                    if (currentScore10 > targetScore) {
+                        bountyReward = 1500;
+                        if(!window.sessionPetLogs) window.sessionPetLogs = [];
+                        window.sessionPetLogs.push(`🎯 <b>THỢ SĂN TIỀN THƯỞNG:</b> Tuyệt vời! Tiểu chủ đã vượt qua Bóng ma (${targetScore}đ) của [${savedBountyName}] ở Unit ${currentUnit}. Hệ thống ban thưởng <b style="color:#ef4444;">+1.500 VÀNG</b>!`);
+                        if(typeof addEconomyLog === 'function') addEconomyLog(`🎯 Lệnh Truy Nã: Vượt mốc điểm của [${savedBountyName}]`, bountyReward, window.currentTxSignature + "_BOUNTY");
+                    }
                 }
+                
+                if (bountyReward > 0) window.sessionTotalGold = (window.sessionTotalGold || 0) + bountyReward; 
+                
+                localStorage.removeItem('bounty_target_unit');
+                localStorage.removeItem('bounty_target_score');
+                localStorage.removeItem('bounty_target_name');
             }
         }
+    }
 
+    if (cheatMsg.includes("Đầu hàng")) {
+        tempFinalGold = 0; cheatTag = " | 🏳️ [ĐẦU HÀNG] Bỏ dở bài thi";
+        goldReasonHtml = "Thu 0 Vàng (Tự nguyện Đầu hàng)";
+        isPunished = true;
+    } else if (cheatMsg.includes("Bị hủy") || cheatWarnings >= 3) {
+        tempFinalGold = 0; cheatTag = " | 🚨 [PHẠT NẶNG] Rời Tab/Gian lận (-200 Vàng)";
+        goldReasonHtml = "Thu 0 Vàng + Phạt 200 Vàng (Rời Tab gian lận)";
+        isPunished = true;
+        addEconomyLog("🚨 Cấm Vệ Quân Phạt: Rời Tab gian lận", -200, window.currentTxSignature + "_CHEAT");
+    } else if (cheatWarnings > 0) {
+        tempFinalGold = Math.floor(tempFinalGold * 0.5); cheatTag = ` | ⚠️ [CẢNH CÁO] Rời Tab ${cheatWarnings} lần (-50% xu)`;
+        goldReasonHtml = `Bị trừ 50% Vàng do Rời Tab ${cheatWarnings} lần`;
+    }
 
+    let avgTimePerQuestion = durSec / totalQuestionsCount;
+    // 🛡️ ĐẠI PHẪU CỘT SỐNG: Tuyệt đối bypass (bỏ qua) bắt tội Spam nếu đã Đầu Hàng hoặc Bị Hủy (isHeadShot)
+    if (!isHeadShot && durSec >= 0 && avgTimePerQuestion < 1.5) {
+        tempFinalGold = 0; spamTag = ` | 🤖 [PHẠT SPAM] Tốc độ ảo (${avgTimePerQuestion.toFixed(1)}s/câu)`;
+        goldReasonHtml = "Phạt 0 Vàng (Tốc độ Spam/Auto-click)";
+        isPunished = true;
+    }
 
+    window.finalLogCheatMsg = cheatMsg;
+    // 🛡️ CHUẨN HÓA HIẾN PHÁP ƯU TIÊN:
+    if (cheatTag.includes("ĐẦU HÀNG")) window.finalLogCheatMsg = "Đầu hàng";
+    else if (cheatTag.includes("Rời Tab") || cheatTag.includes("Gian lận") || cheatWarnings >= 3) window.finalLogCheatMsg = "Gian lận/Rời Tab";
+    else if (spamTag !== "") window.finalLogCheatMsg = "Spam tốc độ ảo";
+    else if (cheatWarnings > 0) window.finalLogCheatMsg = `Cảnh cáo rời tab ${cheatWarnings} lần`;
+    else if (cheatMsg === "Nghiêm túc") window.finalLogCheatMsg = "An toàn";
 
-        // 🚀 BỌC THÉP 2: PHÂN LOẠI RÕ RÀNG ĐẦU HÀNG VÀ GIAN LẬN
-        if (cheatMsg.includes("Đầu hàng")) {
-            tempFinalGold = 0; cheatTag = " | 🏳️ [ĐẦU HÀNG] Bỏ dở bài thi";
-            goldReasonHtml = "Thu 0 Vàng (Tự nguyện Đầu hàng)";
-            isPunished = true;
-        } else if (cheatMsg.includes("Bị hủy") || cheatWarnings >= 3) {
-            tempFinalGold = 0; cheatTag = " | 🚨 [PHẠT NẶNG] Rời Tab/Gian lận (-200 Vàng)";
-            goldReasonHtml = "Thu 0 Vàng + Phạt 200 Vàng (Rời Tab gian lận)";
-            isPunished = true;
-            addEconomyLog("🚨 Cấm Vệ Quân Phạt: Rời Tab gian lận", -200, window.currentTxSignature + "_CHEAT");
-        } else if (cheatWarnings > 0) {
-          
-            tempFinalGold = Math.floor(tempFinalGold * 0.5); cheatTag = ` | ⚠️ [CẢNH CÁO] Rời Tab ${cheatWarnings} lần (-50% xu)`;
-            goldReasonHtml = `Bị trừ 50% Vàng do Rời Tab ${cheatWarnings} lần`;
-        }
+    let allPetLogs = window.sessionPetLogs || [];
+    window.sessionPetLogs = []; 
+    
+    finalGold = tempFinalGold;
 
-        let avgTimePerQuestion = durSec / totalQuestionsCount;
-        if (durSec > 0 && avgTimePerQuestion < 1.5 && correctCount > 0) {
-            tempFinalGold = 0; spamTag = ` | 🤖 [PHẠT SPAM] Tốc độ ảo (${avgTimePerQuestion.toFixed(1)}s/câu)`;
-            goldReasonHtml = "Phạt 0 Vàng (Tốc độ Spam/Auto-click)";
-            isPunished = true;
-        }
+    if (finalGold > 0 && !isPunished && allPetLogs.length > 0) {
+        petLogForUI = `<div style="background:#f8fafc; border:2px dashed var(--border-dark); padding:12px; border-radius:8px; color:var(--border-dark); font-weight:bold; font-size:12px; margin-top:15px; line-height:1.6; max-height: 150px; overflow-y: auto;">
+            <div style="color:var(--accent-red); margin-bottom:5px; text-transform:uppercase;"><i class="fa-solid fa-paw"></i> Nhật ký Vệ sĩ:</div>
+            ${allPetLogs.join('<br><br>')}
+         </div>`;
+    }
 
-        // TỔNG KẾT VÀ IN SỚ NHẬT KÝ VỆ SĨ
-        let allPetLogs = window.sessionPetLogs || [];
-        window.sessionPetLogs = []; 
-        
-        finalGold = tempFinalGold;
+    let todayStr = new Date().toLocaleDateString('vi-VN');
+    if (userEconomy.lastPlayDate !== todayStr) { 
+        userEconomy.dailyGold = 0; 
+        userEconomy.dailyFarmGold = 0; 
+        userEconomy.lastPlayDate = todayStr; 
+    }
+    userEconomy.dailyGold = parseInt(userEconomy.dailyGold) || 0;
+    userEconomy.dailyFarmGold = parseInt(userEconomy.dailyFarmGold) || 0;
 
-        if (finalGold > 0 && !isPunished && allPetLogs.length > 0) {
-            petLogForUI = `<div style="background:#f8fafc; border:2px dashed var(--border-dark); padding:12px; border-radius:8px; color:var(--border-dark); font-weight:bold; font-size:12px; margin-top:15px; line-height:1.6; max-height: 150px; overflow-y: auto;">
-                <div style="color:var(--accent-red); margin-bottom:5px; text-transform:uppercase;"><i class="fa-solid fa-paw"></i> Nhật ký Vệ sĩ:</div>
-                ${allPetLogs.join('<br><br>')}
-             </div>`;
-        }
-
-        let todayStr = new Date().toLocaleDateString('vi-VN');
-        if (userEconomy.lastPlayDate !== todayStr) { 
-            userEconomy.dailyGold = 0; 
-            userEconomy.dailyFarmGold = 0; // Reset thêm quỹ Farm mới
-            userEconomy.lastPlayDate = todayStr; 
-        }
-        userEconomy.dailyGold = parseInt(userEconomy.dailyGold) || 0;
-        userEconomy.dailyFarmGold = parseInt(userEconomy.dailyFarmGold) || 0;
-
-        // MỚI: KIỂM SOÁT MAX TRẦN CÀY CUỐC (CÓ TÍCH HỢP THẺ KÍCH THÍCH)
-        if (finalGold > 0) {
-            if (attemptLogCount > 1) { 
-                // Kiểm tra xem hôm nay có cắn Thẻ Kích Thích không
-                let todayStr = new Date().toLocaleDateString('vi-VN');
-                let activeCap = 1000;
-                if (localStorage.getItem(getIsoKey('item_farmcap')) === todayStr) {
-                    activeCap = 2500;
-                }
-
-                if (userEconomy.dailyFarmGold + finalGold > activeCap) {
-                    let allowedGold = Math.max(0, activeCap - userEconomy.dailyFarmGold);
-                    finalGold = allowedGold;
-                    if (allowedGold === 0) { 
-                        dailyCapTag = ` [Đạt trần Farm ${activeCap.toLocaleString('vi-VN')} xu/ngày]`; 
-                        goldReasonHtml = `Đạt trần Farm ${activeCap.toLocaleString('vi-VN')} xu/ngày`; 
-                    } else { 
-                        dailyCapTag = ` [Tràn mốc Farm, nhận ${allowedGold}]`; 
-                        goldReasonHtml = `Chạm trần Farm, chỉ nhận ${allowedGold} Vàng`; 
-                    }
-                    petLogForUI = ""; 
-                }
-                if (finalGold > 0) userEconomy.dailyFarmGold += finalGold;
-            
-            } else {
-                // Nếu là Lần 1 Học Thuật -> Vẫn ghi nhận vào dailyGold để sau này làm báo cáo, nhưng KHÔNG khóa chặn.
-                userEconomy.dailyGold += finalGold;
+    if (finalGold > 0) {
+        if (attemptLogCount > 1) { 
+            let todayStr = new Date().toLocaleDateString('vi-VN');
+            let activeCap = 1000;
+            if (localStorage.getItem(getIsoKey('item_farmcap')) === todayStr) {
+                activeCap = 2500;
             }
-        }
 
-        let phatMsg = [spamTag, cheatTag, dailyCapTag].filter(Boolean).join(" ");
-        let reasonStr = phatMsg ? ` | Phạt/Trừ: ${phatMsg}` : ` | Phạt/Trừ: Không`;
-        
-        let fullLogString = `${shortActionCode} | Điểm: ${correctCount}/${totalQuestionsCount} (+${baseGold} xu), Combo: ${sessionMaxCombo} (+${comboGold} xu)${reasonStr} |=> TỔNG THU: ${finalGold} xu (TG: ${durSec}s)`;
-        if (finalGold > 0 || fullLogString.includes("Phạt/Trừ")) {
+            if (userEconomy.dailyFarmGold + finalGold > activeCap) {
+                let allowedGold = Math.max(0, activeCap - userEconomy.dailyFarmGold);
+                finalGold = allowedGold;
+                if (allowedGold === 0) { 
+                    dailyCapTag = ` [Đạt trần Farm ${activeCap.toLocaleString('vi-VN')} xu/ngày]`; 
+                    goldReasonHtml = `Đạt trần Farm ${activeCap.toLocaleString('vi-VN')} xu/ngày`; 
+                } else { 
+                    dailyCapTag = ` [Tràn mốc Farm, nhận ${allowedGold}]`; 
+                    goldReasonHtml = `Chạm trần Farm, chỉ nhận ${allowedGold} Vàng`; 
+                }
+                petLogForUI = ""; 
+            }
+            if (finalGold > 0) userEconomy.dailyFarmGold += finalGold;
+        } else {
             userEconomy.dailyGold += finalGold;
-            localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
-            
-            // 🛡️ CHỈ BẮN VÀO QUEUE, GIAO QUYỀN SIN SÁT CHO BACKEND
-            addEconomyLog(fullLogString, finalGold);
         }
-    // Đã xóa 1 dấu ngoặc đóng thừa của block T11
+    }
+
+    let phatMsg = [spamTag, cheatTag, dailyCapTag].filter(Boolean).join(" ");
+    let reasonStr = phatMsg ? ` | Phạt/Trừ: ${phatMsg}` : ` | Phạt/Trừ: Không`;
+    
+    let fullLogString = `${shortActionCode} | Điểm: ${correctCount}/${totalQuestionsCount} (+${baseGold} xu), Combo: ${sessionMaxCombo} (+${comboGold} xu)${reasonStr} |=> TỔNG THU: ${finalGold} xu (TG: ${durSec}s)`;
+    if (finalGold > 0 || fullLogString.includes("Phạt/Trừ")) {
+        userEconomy.dailyGold += finalGold;
+        localStorage.setItem(getIsoKey('eco'), JSON.stringify(userEconomy));
+        addEconomyLog(fullLogString, finalGold);
+    }
 
     let fbMsg = document.getElementById('feedbackMsg'), scBox = document.getElementById('scoreBoxColor');
     let msgText = score === 10 ? "XUẤT SẮC - HOÀN HẢO!" : (score >= 8 ? "GIỎI - HÃY PHÁT HUY!" : (score >= 5 ? "TẠM ỔN - CẦN CHÚ Ý LỖI SAI!" : "YẾU - CẦN ÔN TẬP LẠI KHẨN CẤP!"));
     let borderColor = score >= 8 ? "var(--accent-green)" : (score >= 5 ? "var(--accent-yellow)" : "var(--accent-red)");
     
-    // Đã tiêm biến [petLogForUI] chứa câu thoại tấu hài hiển thị siêu đẹp vào trong bảng điểm
     let goldHtml = `${petLogForUI}<div style="color:#d97706; font-size:22px; font-weight:900; margin-top:15px; border-top: 2px dashed ${borderColor}; padding-top: 10px;"><i class="fa-solid fa-coins fa-bounce"></i> TỔNG THU HOẠCH: +${finalGold} XU</div>`;
 
     scBox.innerHTML = `<h1 id="finalScore" style="font-size: 55px; margin: 0; font-weight: 900;">${score}/10</h1><div id="feedbackMsg" style="font-weight:900; margin-top:10px; font-size: 16px; text-transform: uppercase; color:${borderColor};">${msgText}</div>${goldHtml}`;
@@ -6013,7 +6020,6 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
     let dNow = new Date();
     let dateStr = `${dNow.getDate().toString().padStart(2,'0')} THÁNG ${(dNow.getMonth()+1).toString().padStart(2,'0')} NĂM ${dNow.getFullYear()}`;
 
-    // THIẾT KẾ LẠI GIAO DIỆN HTML UI THEO ĐÚNG FORMAT YÊU CẦU CỦA USER
     let timeBoxHtml = `<div style="border: 4px solid var(--accent-red); padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; box-shadow: 4px 4px 0px var(--accent-red); background: #fef2f2;">
         <div style="font-size: 14px; font-weight: 900; color: var(--accent-red); margin-bottom: 5px; line-height: 1.6;">
             Con trả bài test này, vào NGÀY ${dateStr}<br>
@@ -6037,11 +6043,9 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
         let fixedWordsList = (window.sessionFixedWords && window.sessionFixedWords.length > 0) ? window.sessionFixedWords.join(", ") : "Không có";
         let stillErrorWordsList = (sessionErrorWords && sessionErrorWords.length > 0) ? sessionErrorWords.map(w => w.split("::")[0]).join(", ") : "Không có";
         
-        // 1. RENDER LÊN UI MÀN HÌNH BÁO CÁO
         errBox.innerHTML = `<div style="font-size: 15px; line-height: 1.8;"><b>🔥 KẾT QUẢ PHỤC THÙ:</b><br><span style="color: var(--accent-green);">✔️ Đã tiêu diệt thành công: [${fixedWordsList}]</span><br><span style="color: var(--accent-red);">❌ Tội phạm còn tẩu thoát: [${stillErrorWordsList}]</span></div>`;
         errBox.style.borderLeftColor = "var(--border-dark)"; errBox.style.background = "white"; errBox.style.color = "var(--border-dark)";
         
-        // 2. RENDER LÊN TEXT GỬI ZALO
         errorPlainText = `\n🔥 KẾT QUẢ PHỤC THÙ:\n✔️ Đã tiêu diệt thành công: [${fixedWordsList}]\n❌ Tội phạm còn tẩu thoát: [${stillErrorWordsList}]\n`;
     } else {
         if(exactErrorDetails.length === 0) { 
@@ -6066,13 +6070,9 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
         }
     }
 
-    // ========================================================
-    // TẠO NỘI DUNG ZALO CHUẨN FORM BÁO CÁO CHI TIẾT
-    // ========================================================
     let attemptText = attemptLogCount === 1 ? "LẦN 1 - TRẢ BÀI CHUẨN DUY NHẤT" : `LẦN ${attemptLogCount} - CÀY VÀNG BÙ ĐẮP`;
     let subjectText = `TEST UNIT ${currentUnit} - ${currentType.toUpperCase()} ✨ NEW ✨`;
     
-    // ĐẠI PHẪU: ÉP CHUẨN TIÊU ĐỀ CHO HÌNH BỘ
     if (window.isRevengeMode) {
         attemptText = "TRẢ BÀI CHỮA LÀNH";
         subjectText = `PHỤC THÙ HÌNH BỘ (SỔ ĐEN)`;
@@ -6088,16 +6088,14 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
     
     window.pendingZaloShareText = `BÁO CÁO KẾT QUẢ CHI TIẾT [${attemptText}]\nSĩ tử: ${currentStudentId}\n${subjectText}\nCon làm bài vào NGÀY ${dateStr}\n⏳ Thời gian làm bài: ${durStr}   -  Bắt đầu: ${startStr} => Kết thúc: ${endStr}\n🎯 Điểm: ${score}/10 (Đúng: ${cCount}, Sai: ${wCount})\n${errorPlainText}\n👩‍🏫 Đánh giá: ${remarkText}`;
     
-// ĐẢM BẢO NÚT ZALO LUÔN HIỂN THỊ NẾU LÀ HÌNH BỘ HOẶC THI LẦN 1
     let zaloBox = document.getElementById('zaloShareContainer');
     if (zaloBox) {
         zaloBox.innerHTML = `<button class="btn btn-blue" style="width: 100%; font-size: 14px; background: #0088FF; color: white; border-color: var(--border-dark); display: flex; flex-direction: column; gap: 4px; padding: 12px; align-items: center;" onclick="shareZalo()"><div style="font-weight: 900;"><i class="fa-solid fa-paper-plane fa-bounce"></i> BÁO CÁO CHO BA/ MẸ NGAY!</div><div style="font-size: 11px; font-weight: bold; color: #e0f2fe; text-transform: none;">[Nội dung báo cáo đã copy sẵn, dán vào ZALO gửi thôi!]</div></button>`;
         zaloBox.style.display = (attemptLogCount === 1 || window.isRevengeMode) ? 'block' : 'none';
     }
     if (getScriptUrl().startsWith("http")) {
-        // 🚀 ĐẠI PHẪU: Tống gói Log vào Queue để Bot chạy ngầm xử lý. 100% không bao giờ rớt Log!
-        let logPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, attempt: attemptLogCount, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: cheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: fixedDataToSave, errorWords: sessionErrorWords.join(',') };
-        
+        let logPayload = { mode: "saveResultPost", txId: window.currentTxSignature, studentId: currentStudentId, studentName: currentStudentName, category: fullTitle, unit: unitTitle, attempt: attemptLogCount, score: score, correctCount: totalQuestionsCount - exactErrorDetails.length, wrongCount: exactErrorDetails.length, totalCount: totalQuestionsCount, cheat: window.finalLogCheatMsg, duration: durStr, maxCombo: sessionMaxCombo, fixedErrors: fixedDataToSave, errorWords: sessionErrorWords.join(',') };
+
         window.pendingLogsQueue = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
         window.pendingLogsQueue.push(logPayload);
         localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
@@ -6105,11 +6103,9 @@ let logModeTag = currentIsOfficial ? " [Thi Thật]" : " [Tự Luyện]";
         checkMissingTasks(currentStudentId);
     }
     
-    // THU HỒI ẤN TÍN SAU KHI THI XONG (Chống xài chùa)
     localStorage.removeItem(getIsoKey('item_shield'));
     localStorage.removeItem(getIsoKey('item_practice'));
 
-    // ĐÃ FIX: Trả lại nút "VỀ SẢNH CHÍNH" cho màn hình Thi Thật / Tự Luyện bình thường
     let actionBox = document.getElementById('resultActionContainer');
     if(actionBox) {
         actionBox.innerHTML = `<button class="btn btn-outline" style="width: 100%; border-color: var(--border-dark);" onclick="goHome()"><i class="fa-solid fa-house"></i> VỀ SẢNH CHÍNH</button>`;
@@ -6343,8 +6339,18 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
 
                 let unitStr = r[4] ? r[4].toString() : "";
                 let partStr = unitStr.indexOf('-') > -1 ? unitStr.split('-')[1].trim() : "P1";
-                let cheatEvidence = (score === 0 && sec < 5) ? "SỰ CỐ KẾT NỐI" : (r[10] && r[10].toString().includes("Rời Tab") ? "RỜI TAB" : "");
-                let evidenceBox = cheatEvidence ? ` <span style="color:#e11d48; font-size:11px;">[${cheatEvidence}]</span>` : "";
+                let cheatTag = r[10] ? r[10].toString().toUpperCase() : "";
+                let errTag = r[14] ? r[14].toString().toUpperCase() : "";
+                let cheatEvidence = "";
+                
+                // 🚀 HIỂN THỊ SỰ THẬT TỘI TRẠNG:
+                if (cheatTag.includes("ĐẦU HÀNG") || errTag.includes("ĐẦU HÀNG")) cheatEvidence = "ĐẦU HÀNG TỰ NGUYỆN";
+                else if (cheatTag.includes("SPAM") || cheatTag.includes("TỐC ĐỘ ẢO")) cheatEvidence = "SPAM TỐC ĐỘ ẢO";
+                else if (score === 0 && sec < 5 && cheatTag === "") cheatEvidence = "SỰ CỐ KẾT NỐI";
+                else if (cheatTag.includes("RỜI TAB") || cheatTag.includes("GIAN LẬN")) cheatEvidence = "RỜI TAB/ GIAN LẬN";
+                else if (cheatTag !== "" && cheatTag !== "AN TOÀN" && cheatTag !== "NGHIÊM TÚC") cheatEvidence = cheatTag;
+                
+                let evidenceBox = cheatEvidence ? ` <span style="color:#e11d48; font-size:11px; font-weight:bold;">[${cheatEvidence}]</span>` : "";
                 
                 let timeLogStr = ""; let dStr = String(r[0]);
                 if (dStr) {
@@ -6358,32 +6364,50 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
         let penaltyDataArr = studentDB[id] && studentDB[id].penaltyChecked ? studentDB[id].penaltyChecked.split(",").map(i => i.trim()) : [];
         let allPenaltyHtml = "";
         let errorByUnitMap = new Map();
+        let taskChotSo = new Set(); // 🚀 BỌC THÉP: Theo dõi bài nào đã chốt sổ phạt
+
         studentRows.forEach(r => {
             let pAct = r[3] ? r[3].toString() : "";
             let pUnitStr = r[4] ? r[4].toString() : "";
-            let pAttempt = parseInt(r[5]) || 1;
             let pWarn = r[10] ? r[10].toString().toLowerCase() : "";
             let pErrList = r[14] ? r[14].toString() : "";
-            if (pAttempt === 1 && pAct.includes("[Thi Thật]") && !pWarn.includes("gian lận") && !pWarn.includes("đầu hàng") && !pWarn.includes("rời tab") && pErrList) {
+            
+            let isSurrender = pWarn.includes("đầu hàng") || pErrList.toLowerCase().includes("đầu hàng");
+            
+            // 🚀 ĐẠI PHẪU: Quét "Lần Hợp Lệ Đầu Tiên" (Thi thật hoặc Cày bù)
+            if (pAct.includes("Test") || pAct.includes("Thi ")) {
                 let uMatch = pUnitStr.match(/Unit\s+(\d+)/i);
                 let pMatch = pUnitStr.match(/- P(\d+)/i);
                 if (uMatch) {
                     let uNum = parseInt(uMatch[1]);
                     let pNum = pMatch ? parseInt(pMatch[1]) : 0;
-                    let baseAct = pAct.replace(" [Thi Thật]", "").replace("Thi ", "").trim();
+                    let baseAct = pAct.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace("Thi ", "").replace("Test ", "").trim();
                     let typeCode = "VOCAB";
-                    if (baseAct.includes("Word Form")) typeCode = "WF";
-                    else if (baseAct.includes("Giới từ")) typeCode = "PREP";
-                    let typePartKey = `${typeCode}-${pNum > 0 ? pNum : 1}`;
-
-                    if (!errorByUnitMap.has(uNum)) errorByUnitMap.set(uNum, new Map());
-                    let uMap = errorByUnitMap.get(uNum);
-                    if (!uMap.has(typePartKey)) uMap.set(typePartKey, new Set());
-                    let tpSet = uMap.get(typePartKey);
-                    pErrList.split(',').forEach(item => {
-                        let w = item.split('::')[0].trim();
-                        if (w && !w.includes("(Đầu Hàng)")) tpSet.add(w);
-                    });
+                    if (baseAct.includes("Word Form") || baseAct.includes("WF")) typeCode = "WF";
+                    else if (baseAct.includes("Giới từ") || baseAct.includes("PREP")) typeCode = "PREP";
+                    
+                    let taskKey = `${typeCode}-${uNum}-${pNum}`;
+                    
+                    if (!taskChotSo.has(taskKey)) {
+                        if (isSurrender) {
+                            // Đầu hàng -> Bỏ qua, cho phép quét tiếp xuống Lần thi sau
+                        } else {
+                            // Lần thi Hợp lệ đầu tiên (Nghiêm túc, Spam, Rời Tab...) -> CHỐT SỔ!
+                            taskChotSo.add(taskKey);
+                            
+                            if (pErrList) {
+                                let typePartKey = `${typeCode}-${pNum > 0 ? pNum : 1}`;
+                                if (!errorByUnitMap.has(uNum)) errorByUnitMap.set(uNum, new Map());
+                                let uMap = errorByUnitMap.get(uNum);
+                                if (!uMap.has(typePartKey)) uMap.set(typePartKey, new Set());
+                                
+                                pErrList.split(',').forEach(item => {
+                                    let w = item.split('::')[0].trim();
+                                    if (w) uMap.get(typePartKey).add(w);
+                                });
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -7958,7 +7982,13 @@ function renderMatrixAttendance(type) {
             let id = String(row[1]).trim().toUpperCase();
             let cat = row[3].toString();
             let unit = row[4].toString();
-            logsSet.add(`${id}|${cat}|${unit}`);
+            // 🛡️ BỌC THÉP: Chặn đứng các Log Đầu Hàng vừa mới tạo ra ở máy Local (RAM)
+            let warnStr = row[10] ? String(row[10]).toLowerCase() : "";
+            let errStr = row[14] ? String(row[14]).toLowerCase() : "";
+            let isSurrender = warnStr.includes("đầu hàng") || errStr.includes("đầu hàng");
+            if (!isSurrender) {
+                logsSet.add(`${id}|${cat}|${unit}`);
+            }
         }
     });
 
@@ -7990,8 +8020,9 @@ function renderMatrixAttendance(type) {
         let rowHtml = `<tr><td style="border-right: 4px solid var(--border-dark); position: sticky; left: 0; z-index: 1; background: white; min-width: 90px; max-width: 120px; white-space: normal; word-break: break-word; line-height: 1.3; font-size: 12px; padding: 6px 4px;" title="${studentDB[id].name}"><b>${studentDB[id].name}</b></td>`;
         let totalTasks = 0;
         let completedTasks = 0;
+        let stuStartUnit = studentDB[id].startUnit || 1; // 🚀 TỌA ĐỘ LẤY ĐIỂM CHUẨN CỦA HS MỚI
 
-        // 🚀 ĐẠI PHẪU: Đảo ngược vòng lặp trong Body
+// 🚀 ĐẠI PHẪU: Đảo ngược vòng lặp trong Body
         if (type === 'vocab') {
             for(let u=maxUnit; u>=1; u--) {
                 let tasks = [
@@ -7999,38 +8030,51 @@ function renderMatrixAttendance(type) {
                     {cat: "Thi Từ Vựng", part: `Unit ${u} - P1`}, {cat: "Thi Từ Vựng", part: `Unit ${u} - P2`}, 
                     {cat: "Thi Giới từ", part: `Unit ${u} - P1`}, {cat: "Thi Giới từ", part: `Unit ${u} - P2`}
                 ];
-                totalTasks += tasks.length;
+                
+                if (u >= stuStartUnit) totalTasks += tasks.length;
+
                 tasks.forEach((task, i) => { 
                     let borderStyle = (i === 1 || i === 3) ? "border-right: 2px dashed var(--border-dark);" : (i === 5 ? "border-right: 4px solid var(--border-dark);" : ""); 
                     
-                    let isDone1 = logsSet.has(`${safeId}|${task.cat} [Thi Thật]|${task.part}`);
-                    let isDone2 = logsSet.has(`${safeId}|${task.cat} [Tự Luyện]|${task.part}`);
-                    let isDone = isDone1 || isDone2;
-
-                    if(isDone) {
-                        completedTasks++;
-                        rowHtml += `<td style="color:var(--accent-green); font-size: 14px; text-align: center; padding: 2px; background: rgba(46, 213, 115, 0.1); ${borderStyle}">✅</td>`; 
+                    if (u < stuStartUnit) {
+                        // 🚀 TÂN BINH: Vẫn vẽ đủ 6 ô xám mờ để bảo toàn cấu trúc bảng
+                        rowHtml += `<td style="color:#94a3b8; font-size: 14px; text-align: center; padding: 2px; background: #f1f5f9; ${borderStyle}">➖</td>`;
                     } else {
-                        rowHtml += `<td style="color:var(--accent-red); font-size: 14px; text-align: center; padding: 2px; opacity:0.2; background: rgba(239, 68, 68, 0.05); ${borderStyle}">❌</td>`;
+                        // 🛑 HIẾN PHÁP MỚI: CHỈ CÓ "ĐẦU HÀNG" MỚI KHÔNG CÓ TRONG LOGS NÉN. MỌI LOG L1, L2, L3, LỤI, CÓ ĐỀU VƯỢT ẢI.
+                        let isDone1 = logsSet.has(`${safeId}|${task.cat} [Thi Thật]|${task.part}`);
+                        let isDone2 = logsSet.has(`${safeId}|${task.cat} [Tự Luyện]|${task.part}`);
+                        let isDone3 = logsSet.has(`${safeId}|${task.cat}|${task.part}`); // Vớt Log đời Tống
+                        let isDone = isDone1 || isDone2 || isDone3;
+
+                        if (isDone) {
+                            completedTasks++;
+                            rowHtml += `<td style="color:var(--accent-green); font-size: 14px; text-align: center; padding: 2px; background: rgba(46, 213, 115, 0.1); ${borderStyle}">✅</td>`; 
+                        } else {
+                            rowHtml += `<td style="color:var(--accent-red); font-size: 14px; text-align: center; padding: 2px; opacity:0.2; background: rgba(239, 68, 68, 0.05); ${borderStyle}">❌</td>`;
+                        }
                     }
                 });
             }
         } else {
             for(let u=maxUnit; u>=1; u--) { 
-                totalTasks += 1;
-                let isDone1 = logsSet.has(`${safeId}|Thi Ngữ Pháp [Thi Thật]|Unit ${u}`);
-                let isDone2 = logsSet.has(`${safeId}|Thi Ngữ Pháp [Tự Luyện]|Unit ${u}`);
-                let isDone = isDone1 || isDone2;
-
-                if(isDone) {
-                    completedTasks++;
-                    rowHtml += `<td style="color:var(--accent-green); font-size: 18px; background: rgba(46, 213, 115, 0.1); border-right: 2px solid var(--border-dark);">✅</td>`; 
+                if (u < stuStartUnit) {
+                    rowHtml += `<td style="color:#94a3b8; font-size: 18px; text-align: center; background: #f1f5f9; border-right: 2px solid var(--border-dark);">➖</td>`;
                 } else {
-                    rowHtml += `<td style="color:var(--accent-red); font-size: 18px; opacity:0.2; background: rgba(239, 68, 68, 0.05); border-right: 2px solid var(--border-dark);">❌</td>`; 
+                    totalTasks += 1;
+                    let isDone1 = logsSet.has(`${safeId}|Thi Ngữ Pháp [Thi Thật]|Unit ${u}`);
+                    let isDone2 = logsSet.has(`${safeId}|Thi Ngữ Pháp [Tự Luyện]|Unit ${u}`);
+                    let isDone3 = logsSet.has(`${safeId}|Thi Ngữ Pháp|Unit ${u}`);
+                    let isDone = isDone1 || isDone2 || isDone3;
+
+                    if(isDone) {
+                        completedTasks++;
+                        rowHtml += `<td style="color:var(--accent-green); font-size: 18px; background: rgba(46, 213, 115, 0.1); border-right: 2px solid var(--border-dark);">✅</td>`; 
+                    } else {
+                        rowHtml += `<td style="color:var(--accent-red); font-size: 18px; opacity:0.2; background: rgba(239, 68, 68, 0.05); border-right: 2px solid var(--border-dark);">❌</td>`; 
+                    }
                 }
             }
-        }
-        rowHtml += `</tr>`;
+        }        rowHtml += `</tr>`;
 
         if (!isAdmin && completedTasks === totalTasks && totalTasks > 0) continue; 
         bodyHtml += rowHtml;
@@ -8139,15 +8183,19 @@ function surrenderTest(isForced = false) {
     
     questionsQueue.forEach(q => {
         if(currentType === 'grammar') {
-            exactErrorDetails.push({ q: q.q, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do Đầu Hàng)</span>` });
+            exactErrorDetails.push({ q: q.q, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do ${isForced ? "Gian lận/Hủy" : "Đầu Hàng"})</span>` });
         } else {
             let cleanWordKey = q.vn.replace(/\*/g, '').trim();
-            exactErrorDetails.push({ q: cleanWordKey, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do Đầu Hàng)</span>` });
-            let safeEn = String(q.en || "").replace(/,/g, ' -');
-            let safeMean = String(q.meaning || "").replace(/,/g, ' -');
-            // 🚀 ĐẠI PHẪU: LOẠI BỎ LỆNH PUSH VÀO sessionErrorWords KHI ĐẦU HÀNG
-            // Các từ bị Đầu Hàng (bỏ qua) SẼ KHÔNG CÒN BỊ CHUI VÀO SỔ ĐEN NỮA!
-            // Ghi chú đính kèm "(Đầu Hàng)" giờ chỉ dùng cho Report, không ảnh hưởng Sổ Đen.
+            exactErrorDetails.push({ q: cleanWordKey, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do ${isForced ? "Gian lận/Hủy" : "Đầu Hàng"})</span>` });
+            
+            // 🚀 ĐẠI PHẪU SỔ ĐEN: 
+            // - Nếu TỰ NGUYỆN Đầu Hàng -> Bỏ qua, KHÔNG tống vào Sổ Đen.
+            // - Nếu GIAN LẬN/RỜI TAB (Bị ép nộp) -> TỐNG TOÀN BỘ VÀO SỔ ĐEN ĐỂ TRỪNG PHẠT!
+            if (isForced) {
+                let safeEn = String(q.en || "").replace(/,/g, ' -');
+                let safeMean = String(q.meaning || "").replace(/,/g, ' -');
+                sessionErrorWords.push(cleanWordKey + "::" + safeEn + "::" + safeMean + "::" + (q.type || "vocab") + "::(Gian lận/Bỏ trống)");
+            }
         }
     });
     questionsQueue = []; 
@@ -8252,7 +8300,7 @@ window.saveFlashcardProgress = function(exitType) {
 
         // 2. Bắn lên Server Google Sheet
         if (getScriptUrl().startsWith("http")) { 
-            let fcPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: attemptLogCount, score: 10, correctCount: flippedCount, wrongCount: 0, totalCount: totalCards, cheat: exitType, duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" };
+            let fcPayload = { mode: "saveResultPost", txId: "FC_" + currentStudentId + "_" + Date.now(), studentId: currentStudentId, studentName: currentStudentName, category: catName, unit: unitTitle, attempt: attemptLogCount, score: 10, correctCount: flippedCount, wrongCount: 0, totalCount: totalCards, cheat: exitType, duration: finalDurStr, maxCombo: 0, fixedErrors: 0, errorWords: "" };
             window.pendingLogsQueue = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
             window.pendingLogsQueue.push(fcPayload);
             localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
@@ -8572,24 +8620,38 @@ function saveMemoryBox(box) {
 // ================= ĐỒNG BỘ SỔ ĐEN LÊN SERVER =================
 let syncBlackbookTimeout = null;
 function syncBlackbookToServer() {
+    let blackbookQueue = JSON.parse(localStorage.getItem(getIsoKey('blackbook_queue'))) || [];
+    let redeemedQueue = JSON.parse(localStorage.getItem(getIsoKey('redeemed_queue'))) || [];
+    
     let localBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
     let redeemed = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
-    
+
+    let finalErrors = blackbookQueue.length > 0 ? blackbookQueue : localBB;
+    let finalFixed = redeemedQueue.length > 0 ? redeemedQueue : redeemed;
+
     clearTimeout(syncBlackbookTimeout);
     syncBlackbookTimeout = setTimeout(() => {
         if(getScriptUrl().startsWith("http") && currentStudentId) {
-            let payload = { errors: localBB, fixed: redeemed };
-        fetch(getScriptUrl(), {
-            keepalive: true,
-            method: 'POST',
-                mode: "no-cors", 
+            let payload = { errors: finalErrors, fixed: finalFixed };
+            fetch(getScriptUrl(), {
+                keepalive: true,
+                method: 'POST',
                 headers: { "Content-Type": "text/plain" }, 
                 body: JSON.stringify({ 
                     mode: "saveBlackbook", 
                     studentId: currentStudentId, 
                     blackbookData: JSON.stringify(payload) 
                 }) 
-            }).catch(e => console.log("Lỗi đồng bộ Sổ Đen: ", e));
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.status === 'success') {
+                    // Xóa Queue ngay khi Server xác nhận nhận thành công
+                    localStorage.setItem(getIsoKey('blackbook_queue'), "[]");
+                    localStorage.setItem(getIsoKey('redeemed_queue'), "[]");
+                }
+            })
+            .catch(e => console.log("Lỗi đồng bộ Sổ Đen chờ đợt sau..."));
         }
     }, 2000);
 }
@@ -8943,11 +9005,13 @@ window.processSyncData = function(data) {
         }
 
         if (data.logs && Array.isArray(data.logs) && data.logs.length > 0) {
-            // FIX TẬN GỐC: Giãn nén lại toàn bộ Log bị nén thành mảng 15 cột để Bảng Cái Gai không bị ngáo số
+            // FIX TẬN GỐC: Bung nén ĐẦY ĐỦ 15 CỘT để Cổng Phụ Huynh đọc được Lỗi Sai và Lần Thi
             let expandedLogs = data.logs.map(row => {
                 if (typeof row === 'string') {
                     let parts = row.split('|'); let newRow = new Array(15).fill(""); 
-                    newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; newRow[5] = "1"; newRow[6] = parts[3]; 
+                    newRow[1] = parts[0]; newRow[3] = parts[1]; newRow[4] = parts[2]; 
+                    newRow[5] = parts[3] || "1"; newRow[6] = parts[4] || "0"; 
+                    newRow[10] = parts[5] || ""; newRow[14] = parts[6] || ""; 
                     return newRow;
                 } return row;
             });
@@ -9301,10 +9365,13 @@ function checkGhostWord() {
                 
                 // 🚀 ĐẠI PHẪU: Đưa từ đã gỡ vào Redeemed để tăng hạng Bậc Thầy Chữa Lành!
                 let rd = JSON.parse(localStorage.getItem(getIsoKey('redeemed'))) || [];
+                let rdQueue = JSON.parse(localStorage.getItem(getIsoKey('redeemed_queue'))) || [];
                 let cleanKey = currentGhostTarget.vn.replace(/\*/g, '').trim().toLowerCase();
                 if(!rd.includes(cleanKey)) {
                     rd.push(cleanKey);
+                    rdQueue.push(cleanKey);
                     localStorage.setItem(getIsoKey('redeemed'), JSON.stringify(rd));
+                    localStorage.setItem(getIsoKey('redeemed_queue'), JSON.stringify(rdQueue));
                     if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
                 }
             } else {
@@ -9312,6 +9379,7 @@ function checkGhostWord() {
                 showToast("💢 SAI BÉT! Từ này bị tống lại vào Hình Bộ, ráng mà học đi!"); // Không phạt 10k nữa
                 
                 let rawBB = JSON.parse(localStorage.getItem(getIsoKey('blackbook'))) || [];
+                let bbQueue = JSON.parse(localStorage.getItem(getIsoKey('blackbook_queue'))) || [];
                 let bb = Array.isArray(rawBB) ? rawBB : (rawBB.errors ? rawBB.errors : []);
                 let meanStr = currentGhostTarget.meaning ? currentGhostTarget.meaning : "";
                 let typeStr = currentGhostTarget.type ? currentGhostTarget.type : "vocab";
@@ -9319,8 +9387,10 @@ function checkGhostWord() {
                 let newEntry = currentGhostTarget.vn + "::" + currentGhostTarget.en + "::" + meanStr + "::" + typeStr;
                 if (!bb.includes(newEntry)) {
                     bb.push(newEntry);
+                    bbQueue.push(newEntry);
                 }
                 localStorage.setItem(getIsoKey('blackbook'), JSON.stringify(bb));
+                localStorage.setItem(getIsoKey('blackbook_queue'), JSON.stringify(bbQueue));
                 if (typeof syncBlackbookToServer === 'function') syncBlackbookToServer();
             }
         } catch(e) {
@@ -9437,7 +9507,7 @@ addEconomyLog(`🎁 Thưởng Lật Thẻ Lần 1: ${unitTitle}`, 1000, fcSig);
             localStorage.setItem(getIsoKey('logs'), JSON.stringify(allLogsCache));
 
             if (getScriptUrl() && getScriptUrl().startsWith("http")) {
-                let fcPayload = { mode: "saveResultPost", studentId: currentStudentId, studentName: currentStudentName, category: logTitle, unit: deletedStr, attempt: 1, score: 0, correctCount: 0, wrongCount: 0, totalCount: 0, cheat: "Hối lộ", duration: "0s", maxCombo: 0, fixedErrors: 0, errorWords: "" };
+                let fcPayload = { mode: "saveResultPost", txId: "ITEM5_" + currentStudentId + "_" + Date.now(), studentId: currentStudentId, studentName: currentStudentName, category: logTitle, unit: deletedStr, attempt: 1, score: 0, correctCount: 0, wrongCount: 0, totalCount: 0, cheat: "Hối lộ", duration: "0s", maxCombo: 0, fixedErrors: 0, errorWords: "" };
                 window.pendingLogsQueue = JSON.parse(localStorage.getItem('pending_logs_queue')) || [];
                 window.pendingLogsQueue.push(fcPayload);
                 localStorage.setItem('pending_logs_queue', JSON.stringify(window.pendingLogsQueue));
