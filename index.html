@@ -1470,10 +1470,10 @@ function parseCustomDeadline(dlStr) {
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
 const SYSTEM_APIS = {
-    "6": "https://script.google.com/macros/s/AKfycbwzcm7yy7QjjWmdWiFKKimDBqG3i7FwcCWGaFyyYnSFYaw7qfch4oFzGq77YAQ0O5sd/exec",
-    "7": "https://script.google.com/macros/s/AKfycbw9VMH5Z47bdL5QZleJIt4vWO64aO8Fr8_A0OUk06vIsy1IXQq2NM8iggmHU6CQ0FFp/exec",
-    "8": "https://script.google.com/macros/s/AKfycbw-BdRBqIF7fmLC_JyLb4s8hZ35iR1mBuixLA6yg_3A2nZ58N2sHZgHNIBMn_G-IvXtWQ/exec",
-    "9": "https://script.google.com/macros/s/AKfycbxVC2ohk7BOIKqPJtlFTHxQx8FsBYILrOb-USq3f-PRpcL4s5FNVKXISHXBNmjPGOWkQQ/exec"
+    "6": "https://script.google.com/macros/s/AKfycbz0DHFTO_jZQ562xCBkpilt1jk0M3164xluljAoPcsjK5CVgqhK9ScP4a5IPK3ISTG8/exec",
+    "7": "https://script.google.com/macros/s/AKfycbx8ABuSh9c2182KfqSOczac19Hho52bR6teQLAPPrZYcMidkvzs30C4EZQnGOQ1qw-t/exec",
+    "8": "https://script.google.com/macros/s/AKfycbx3yzHMwdI4-8KKZNjpH1bUw4bQZEXhokovm5y1E_US1A8xmi_mhEdBfgyVwyiENCci1A/exec",
+    "9": "https://script.google.com/macros/s/AKfycbzPuY-XqlYm2wVcdhOcKMPI89zju6qLFZU2co_ihtC1HGde1Wj8T5wv9FZ3roIT5ZkAZQ/exec"
 };
 
 let currentSelectedGrade = ""; // ÉP BUỘC PHẢI CHỌN LỚP MỚI CÓ DATA
@@ -6526,6 +6526,20 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
         let totalSpent = 0;
         let listHtml = itemLogs.map(l => {
             let cat = l[3].toString(); let itemName = l[4] ? l[4].toString() : ""; let timeStr = l[0] ? l[0].toString() : "";
+            
+            // LỌC THỜI GIAN ISO (XÓA CHỮ T, Z) ĐỂ HIỂN THỊ CHUẨN VIỆT NAM
+            let displayExactTime = timeStr;
+            let d = new Date(timeStr);
+            if (!isNaN(d.getTime()) && timeStr.includes("T") && timeStr.includes("Z")) {
+                let hh = d.getHours().toString().padStart(2, '0');
+                let mm = d.getMinutes().toString().padStart(2, '0');
+                let ss = d.getSeconds().toString().padStart(2, '0');
+                let dd = d.getDate().toString().padStart(2, '0');
+                let mo = (d.getMonth() + 1).toString().padStart(2, '0');
+                let yyyy = d.getFullYear();
+                displayExactTime = `${hh}:${mm}:${ss} - ${dd}/${mo}/${yyyy}`;
+            }
+
             let costHtml = "";
             if (cat.includes("Mua vật phẩm")) {
                 let cost = 0; 
@@ -6538,7 +6552,7 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                 }
                 totalSpent += cost; costHtml = `<span style="color:#ef4444; font-size:12px; font-weight:900; margin-left:6px;">(-${cost}V)</span>`;
             }
-            return `<li style="margin-bottom: 10px;"><b>${timeStr}:</b> <span style="color:var(--text-dark);">${itemName}</span>${costHtml}</li>`;
+            return `<li style="margin-bottom: 10px;"><b>${displayExactTime}:</b> <span style="color:var(--text-dark);">${itemName}</span>${costHtml}</li>`;
         }).join("");
 
         itemLogsHtml = `
