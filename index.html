@@ -7192,9 +7192,8 @@ function loginParentPortal() {
         }
     }, 150);
 
-    // 🚀 ĐẠI PHẪU MÀNG LỌC: HIỂN THỊ LOG MÙA GIẢI HIỆN TẠI VÀ LỊCH SỬ PHỤC THÙ HÌNH BỘ
-    let currentUnitLogs = studentRows.filter(r => (r[4] && r[4].toString().includes("Unit " + targetUnit)) || (r[3] && r[3].toString().includes("PHỤC THÙ")));
-    let hasData = currentUnitLogs.length > 0;
+    // 🚀 ĐẠI PHẪU MÀNG LỌC: XÓA BỎ GIỚI HẠN UNIT, HIỂN THỊ FULL 100% LỊCH SỬ TỪ CỔ CHÍ KIM
+    let hasData = studentRows.length > 0;
 
     let accordionSection = document.querySelector('.brutal-accordion');
     if (!hasData) {
@@ -7202,7 +7201,8 @@ function loginParentPortal() {
     } else {
         if (accordionSection) accordionSection.style.display = 'block';
 
-        let vocabRowsAsc = currentUnitLogs.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ") || r[3].toString().includes("PHỤC THÙ")));
+        // 🚀 DÙNG TRỰC TIẾP studentRows ĐỂ LẤY FULL DATA THAY VÌ BỊ GIỚI HẠN TRONG currentUnitLogs
+        let vocabRowsAsc = studentRows.filter(r => r[3] && (r[3].toString().includes("Từ Vựng") || r[3].toString().includes("Word Form") || r[3].toString().includes("Giới từ") || r[3].toString().includes("PHỤC THÙ")));
         let vocabRowsDesc = [...vocabRowsAsc].reverse(); 
         
         let vocabHtml = "", totalVocabScore = 0, vocabCount = 0;
