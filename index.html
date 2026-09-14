@@ -1470,10 +1470,10 @@ function parseCustomDeadline(dlStr) {
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
 const SYSTEM_APIS = {
-    "6": "https://script.google.com/macros/s/AKfycbz0DHFTO_jZQ562xCBkpilt1jk0M3164xluljAoPcsjK5CVgqhK9ScP4a5IPK3ISTG8/exec",
-    "7": "https://script.google.com/macros/s/AKfycbx8ABuSh9c2182KfqSOczac19Hho52bR6teQLAPPrZYcMidkvzs30C4EZQnGOQ1qw-t/exec",
-    "8": "https://script.google.com/macros/s/AKfycbx3yzHMwdI4-8KKZNjpH1bUw4bQZEXhokovm5y1E_US1A8xmi_mhEdBfgyVwyiENCci1A/exec",
-    "9": "https://script.google.com/macros/s/AKfycbzPuY-XqlYm2wVcdhOcKMPI89zju6qLFZU2co_ihtC1HGde1Wj8T5wv9FZ3roIT5ZkAZQ/exec"
+    "6": "https://script.google.com/macros/s/AKfycbw7asxFazd172mxIC5JDTR9yXU44KasO6wlraaMyy02w6muA3FP9n6ymNz8uPoI7R0T/exec",
+    "7": "https://script.google.com/macros/s/AKfycbx2pWNHfNB2JzU3GYKWj0tm0ijZE1l-8z33J--xIZ55LxY0Iz9cFGZajTveNPC8_1KL/exec",
+    "8": "https://script.google.com/macros/s/AKfycbxkLb3gIWGowOlLuhq2pbrXY_hrqQgQziIHNcEI3ANxqqCaLcKS87MgrQCzUpKZV0Mt4w/exec",
+    "9": "https://script.google.com/macros/s/AKfycbwsWZv7fUvwJ6XJuMkhhz9NBkb9fCsIVvUL2tLbNjkphpMnvgj77L3niTUVZENoOFB48Q/exec"
 };
 
 let currentSelectedGrade = ""; // ÉP BUỘC PHẢI CHỌN LỚP MỚI CÓ DATA
@@ -2027,10 +2027,12 @@ function showQuickCard(vn, en, type, meaning) {
     let el = document.getElementById('quickFlashcardEl');
     if (el) el.classList.remove('is-flipped');
 
-    document.getElementById('qfcVi').innerText = vn;
+    // 🚀 LỘT DẤU ~ Ở MẶT TRƯỚC VÀ RENDER HIGHLIGHT MẶT SAU HÌNH BỘ
+    document.getElementById('qfcVi').innerText = vn.replace(/~/g, '');
     document.getElementById('qfcViMeaning').innerText = meaning ? `[${meaning}]` : '';
 
     let cleanEn = en.replace(/\|/g, '<br>').replace(/:/g, ': ');
+    cleanEn = cleanEn.replace(/~(.*?)~/g, '<b style="color: #60a5fa; font-size: 110%; font-weight: 900; background: rgba(59,130,246,0.15); padding: 0 4px; border-radius: 4px; border: 1px solid #3b82f6; box-shadow: 2px 2px 0px #0f172a;">$1</b>');
     document.getElementById('qfcEn').innerHTML = cleanEn;
 
     let posMap = { 'wordform': 'WORD FAMILY', 'prep': 'PREPOSITION', 'vocab': 'VOCABULARY' };
@@ -4676,8 +4678,8 @@ function setupSession(data, part = 0) {
     // FIX SO SÁNH ID LỖI: Ép kiểu chuỗi tuyệt đối để không bị lỗi số vs chuỗi
     allLogsCache.filter(r => String(r[1]).trim().toUpperCase() === String(currentStudentId).trim().toUpperCase()).forEach(r => { 
         if(r[14]) r[14].toString().split(',').forEach(w => { 
-            // 🛡️ CHÉM SẠCH DẤU SAO (*) ĐỂ CHỐNG LỆCH PHA
-            let vn = w.split('::')[0].replace(/\*/g, '').trim(); 
+            // 🛡️ CHÉM SẠCH DẤU SAO VÀ DẤU NGÃ (*, ~) ĐỂ CHỐNG LỆCH PHA
+            let vn = w.split('::')[0].replace(/[\*~]/g, '').trim(); 
             if(vn) pastStudentErrors.add(vn.toLowerCase());
         }); 
     });
@@ -4693,8 +4695,8 @@ function setupSession(data, part = 0) {
     
     localBB.forEach(w => { 
         if (typeof w === 'string') {
-            // 🛡️ CHÉM SẠCH DẤU SAO (*) ĐỂ CHỐNG LỆCH PHA
-            let vn = w.split('::')[0].replace(/\*/g, '').trim(); 
+            // 🛡️ CHÉM SẠCH DẤU SAO VÀ DẤU NGÃ (*, ~) ĐỂ CHỐNG LỆCH PHA
+            let vn = w.split('::')[0].replace(/[\*~]/g, '').trim(); 
             if(vn) pastStudentErrors.add(vn.toLowerCase()); 
         }
     });
@@ -4930,34 +4932,37 @@ function renderFlashcardMode() {
         showToast("⚠️ Ải này chưa có từ vựng! Đang chờ Thái Phó nạp thêm data...");
         setTimeout(goHome, 1500); return;
     }
-    let q = questionsQueue[currentQIndex]; document.getElementById('fcProgress').innerText = `Thẻ ${currentQIndex + 1} / ${questionsQueue.length}`; document.getElementById('fcVi').innerText = q.vn || "Trống";
-    let enText = q.en || "", posHtml = ""; let meanText = q.meaning ? q.meaning : "";
+    let q = questionsQueue[currentQIndex]; 
+    document.getElementById('fcProgress').innerText = `Thẻ ${currentQIndex + 1} / ${questionsQueue.length}`; 
+    // 🚀 LỘT SẠCH DẤU ~ Ở MẶT TRƯỚC (TIẾNG VIỆT)
+    let cleanVnCard = (q.vn || "Trống").replace(/~/g, '');
+    document.getElementById('fcVi').innerText = cleanVnCard;
+    
+    // 🚀 ĐẠI PHẪU MẶT SAU: Lột sạch dấu ~ HOẶC biến nó thành Highlight đẹp mắt cho TẤT CẢ các môn
+    let rawEn = q.en || "";
+    let meanText = q.meaning ? q.meaning : "";
+    let highlightStyle = '<b style="color: #60a5fa; font-size: 110%; font-weight: 900; background: rgba(59,130,246,0.15); padding: 0 4px; border-radius: 4px; border: 1px solid #3b82f6; box-shadow: 2px 2px 0px #0f172a;">$1</b>';
+
+    let enText = rawEn.replace(/~(.*?)~/g, highlightStyle); 
+    let posHtml = ""; 
 
     if(currentType === 'vocab') {
-        posHtml = `<div class="pos-tag">Vocabulary</div>`; 
-        if(meanText) document.getElementById('fcVi').innerHTML = `${q.vn}<br><span style="font-size: clamp(16px, 5vw, 22px); color:var(--text-muted); display:block; margin-top: 10px;">[${meanText}]</span>`;
+        if(meanText) document.getElementById('fcVi').innerHTML = `${cleanVnCard}<br><span style="font-size: clamp(16px, 5vw, 22px); color:var(--text-muted); display:block; margin-top: 10px;">[${meanText}]</span>`;
     } else if(currentType === 'wordform') { 
         let meanings = meanText.split('|');
         enText = String(q.en).split('|').map((p, i) => { 
             let parts = p.split(':'); 
             let m = meanings[i] ? ` <span style="color:var(--accent-yellow); font-size: 0.85em; font-weight:bold; margin-left: 6px;">[${meanings[i].trim()}]</span>` : '';
-            
             let highlightText = parts.length > 1 ? parts[1].trim() : p.trim();
-            
-            // 🚀 ĐỔI MÀU GIAO DIỆN DARK-MODE CHO MẶT SAU THẺ
-            highlightText = highlightText.replace(/~(.*?)~/g, '<b style="color: #60a5fa; font-size: 110%; font-weight: 900; background: rgba(59,130,246,0.15); padding: 0 4px; border-radius: 4px; border: 1px solid #3b82f6; box-shadow: 2px 2px 0px #0f172a;">$1</b>');
+            highlightText = highlightText.replace(/~(.*?)~/g, highlightStyle);
 
             let tag = parts.length > 1 ? `<span style="font-size:0.75em; background:#f8fafc; color:#0f172a; padding:2px 6px; border-radius:4px; margin-right:8px; font-weight: 900; box-shadow: 2px 2px 0px #0f172a; flex-shrink: 0;">[${parts[0].trim().toUpperCase()}]</span>` : '';
-            
-            // 🚀 ĐÃ FIX: Đổi align-items và text-align thành center để đưa chữ ra giữa
             return `<div style="display:flex; align-items:center; justify-content:center; width:100%; text-align:center; line-height: 1.5;"><span style="color:white; word-wrap: break-word;">${tag}${highlightText}${m}</span></div>`; 
-        }).join(''); /* 🛡️ BỎ divider tĩnh đi để nhường quyền cho thuật toán Auto-Resize bên dưới */
-        
-// 🚀 XÓA VĨNH VIỄN LỆNH BỌC wfContainer RÁC, CHỈ SINH HTML THUẦN TÚY!
-        // Xóa hoàn toàn posHtml (Bỏ chữ Word Family / Preposition)
+        }).join(''); 
     } else if (currentType === 'prep') { 
-        if(meanText) document.getElementById('fcVi').innerHTML = `${q.vn}<br><span style="font-size: clamp(16px, 5vw, 22px); color:var(--text-muted); display:block; margin-top: 10px;">[${meanText}]</span>`;
-        enText = `${q.vn} <span style="color:var(--accent-blue); text-transform:uppercase;">${q.en}</span> <br><span style="font-size: clamp(18px, 6vw, 24px); color:var(--accent-yellow); font-weight:900; margin-top:10px; display:block;">[${meanText}]</span>`; 
+        if(meanText) document.getElementById('fcVi').innerHTML = `${cleanVnCard}<br><span style="font-size: clamp(16px, 5vw, 22px); color:var(--text-muted); display:block; margin-top: 10px;">[${meanText}]</span>`;
+        let prepHighlighted = String(q.en).replace(/~(.*?)~/g, highlightStyle);
+        enText = `${cleanVnCard} <span style="color:var(--accent-blue); text-transform:uppercase;">${prepHighlighted}</span> <br><span style="font-size: clamp(18px, 6vw, 24px); color:var(--accent-yellow); font-weight:900; margin-top:10px; display:block;">[${meanText}]</span>`; 
     }
     
     let fcEn = document.getElementById('fcEn');
@@ -5264,8 +5269,8 @@ function renderTypingTest() {
         let inputArea = document.getElementById('vtInputArea'); 
         inputArea.innerHTML = ""; 
         
-        // Ép kiểu String chống lỗi crash replace
-        let hintTextClean = String(q.vn).replace(/\*/g, '');
+        // Ép kiểu String chống lỗi crash replace, CẠO SẠCH DẤU ~ ĐỂ KHÔNG HIỆN RA GỢI Ý
+        let hintTextClean = String(q.vn).replace(/[\*~]/g, '');
         let meanText = q.meaning ? q.meaning : "";
 
         let inputCount = (q.type === 'wordform') ? String(q.en).split('|').length : 1;
@@ -5290,22 +5295,27 @@ function renderTypingTest() {
             String(q.en).split('|').forEach((p, i) => { 
                 let type = p.split(':')[0] || 'word'; 
                 let m = meanings[i] ? meanings[i].trim() : '';
+                // 🚀 LỘT DẤU ~ KHỎI ĐÁP ÁN ĐỂ KHÔNG BẮT HỌC SINH GÕ
+                let cleanDataAns = (p.split(':')[1] || p).replace(/~/g, '');
                 inputArea.innerHTML += `<div style="width:100%; display:flex; gap:8px; align-items:center;">
                     <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:65px;">
                         <span class="wf-type-label" style="font-weight:900; color:var(--accent-blue); text-transform:uppercase; font-size:12px;">${type}</span>
                         ${m ? `<span style="font-size:10px; color:var(--accent-red); font-weight:900; margin-top:2px;">[${m}]</span>` : ''}
                     </div>
-                    <input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0; flex-grow:1; cursor:pointer; padding:8px 10px; font-size:14px; height: 38px;" data-ans="${p.split(':')[1] || p}" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">
+                    <input type="text" class="input-brutal" id="vtInput_${i}" style="margin:0; flex-grow:1; cursor:pointer; padding:8px 10px; font-size:14px; height: 38px;" data-ans="${cleanDataAns}" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">
                 </div>`; 
             });
         } else if (q.type === 'prep') {
             document.getElementById('vtHint').innerHTML = `<span style="font-size: clamp(20px, 5vw, 24px);">${hintTextClean}</span>`; 
             document.getElementById('vtSubHint').innerHTML = meanText ? `<span style="color:var(--accent-red); font-size:12px; font-weight:900; text-transform:uppercase;">[${meanText}]</span>` : `<span style="color:var(--accent-red); font-size:12px; font-weight:900; text-transform:uppercase;">[Điền giới từ phù hợp]</span>`; 
-            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${q.en}" style="cursor:pointer; padding:10px; font-size:15px; height: 42px;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
+            // 🚀 LỘT DẤU ~ KHỎI ĐÁP ÁN ĐỂ KHÔNG BẮT HỌC SINH GÕ
+            let cleanDataAns = String(q.en).replace(/~/g, '');
+            inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanDataAns}" style="cursor:pointer; padding:10px; font-size:15px; height: 42px;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
         } else {
             document.getElementById('vtHint').innerHTML = `<span style="font-size: clamp(20px, 5vw, 24px);">${hintTextClean}</span>`; 
             document.getElementById('vtSubHint').innerText = ""; 
-            let cleanAns = String(q.en).split('(')[0].trim().replace(/\*/g, ''); 
+            // 🚀 LỘT DẤU ~ KHỎI ĐÁP ÁN ĐỂ KHÔNG BẮT HỌC SINH GÕ
+            let cleanAns = String(q.en).split('(')[0].trim().replace(/[\*~]/g, ''); 
             inputArea.innerHTML = `<input type="text" class="input-brutal" id="vtInput_0" data-ans="${cleanAns}" style="cursor:pointer; padding:10px; font-size:15px; height: 42px;" readonly onclick="openVirtualKeyboard(this)" placeholder="Chạm gõ đáp án...">`;
         }
         
@@ -5346,7 +5356,8 @@ function checkVocabAnswer(isTimeout) {
     // ==========================================
     if (q.type === 'wordform') {
         let expectedGroups = {}, userGroups = {};
-        q.en.split('|').forEach(p => { let parts = p.split(':'), type = parts.length > 1 ? parts[0].trim().toLowerCase() : 'word', target = normalizeText(parts[1] || p).replace(/\*/g, ''); if(!expectedGroups[type]) expectedGroups[type] = []; expectedGroups[type].push(target); if(!expectedGroups[type + "_orig"]) expectedGroups[type + "_orig"] = []; expectedGroups[type + "_orig"].push((parts[1] || p).replace(/\*/g, '').trim()); });
+        // 🚀 CẠO SẠCH DẤU ~ KHI CHẤM ĐIỂM VÀ LƯU ĐÁP ÁN GỐC
+        q.en.split('|').forEach(p => { let parts = p.split(':'), type = parts.length > 1 ? parts[0].trim().toLowerCase() : 'word', target = normalizeText(parts[1] || p).replace(/[\*~]/g, ''); if(!expectedGroups[type]) expectedGroups[type] = []; expectedGroups[type].push(target); if(!expectedGroups[type + "_orig"]) expectedGroups[type + "_orig"] = []; expectedGroups[type + "_orig"].push((parts[1] || p).replace(/[\*~]/g, '').trim()); });
         inputs.forEach(inp => { 
             let typeLabel = inp.previousElementSibling.querySelector('.wf-type-label');
             let typeSpan = typeLabel ? typeLabel.innerText.toLowerCase() : inp.previousElementSibling.innerText.toLowerCase();
@@ -5369,7 +5380,8 @@ function checkVocabAnswer(isTimeout) {
         }
     } else {
         inputs.forEach(inp => {
-            let answer = normalizeText(inp.value), target = normalizeText(inp.getAttribute('data-ans').replace(/\*/g, '')), origTarget = inp.getAttribute('data-ans').split('(')[0].trim().replace(/\*/g, '');
+            // 🚀 CẠO SẠCH DẤU ~ KHI CHẤM ĐIỂM
+            let answer = normalizeText(inp.value), target = normalizeText(inp.getAttribute('data-ans').replace(/[\*~]/g, '')), origTarget = inp.getAttribute('data-ans').split('(')[0].trim().replace(/[\*~]/g, '');
             
             // CẤY LÕI KHOAN HỒNG: Xóa sạch khoảng trắng và đưa về in thường trước khi so sánh
             let cleanAnswer = answer.replace(/\s+/g, '').toLowerCase();
@@ -5385,7 +5397,7 @@ function checkVocabAnswer(isTimeout) {
     // PHẦN 2: XỬ LÝ KẾT QUẢ & HIỂN THỊ GACHA
     // ==========================================
     let feedback = document.getElementById('vtFeedback'), btnSubmit = document.getElementById('btnVtSubmit');
-    let cleanWordKey = (q.vn || q.en || "").replace(/\*/g, '').trim().toLowerCase();
+    let cleanWordKey = (q.vn || q.en || "").replace(/[\*~]/g, '').trim().toLowerCase();
 
     if(isAllCorrect && !isTimeout) {
         // Tăng Combo
@@ -8199,7 +8211,7 @@ function surrenderTest(isForced = false) {
         if(currentType === 'grammar') {
             exactErrorDetails.push({ q: q.q, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do ${isForced ? "Gian lận/Hủy" : "Đầu Hàng"})</span>` });
         } else {
-            let cleanWordKey = q.vn.replace(/\*/g, '').trim();
+            let cleanWordKey = q.vn.replace(/[\*~]/g, '').trim();
             exactErrorDetails.push({ q: cleanWordKey, htmlDetails: `<span style="color:var(--text-muted);">(Chưa làm do ${isForced ? "Gian lận/Hủy" : "Đầu Hàng"})</span>` });
             
             // 🚀 ĐẠI PHẪU SỔ ĐEN: 
