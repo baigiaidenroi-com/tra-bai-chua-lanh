@@ -6323,6 +6323,94 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
     // ==========================================
     // RENDER HTML OUTPUT (ĐÚNG THỨ TỰ SẾP YÊU CẦU)
     // ==========================================
+    
+    // 🚀 BỌC THÉP: ĐƯA LOGIC SỔ PHẠT RA NGOÀI ĐỂ LUÔN QUÉT LỊCH SỬ TOÀN DIỆN
+    let penaltyDataArr = studentDB[id] && studentDB[id].penaltyChecked ? studentDB[id].penaltyChecked.split(",").map(i => i.trim()) : [];
+    let allPenaltyHtml = "";
+    let errorByUnitMap = new Map();
+    let taskChotSo = new Set(); // 🚀 BỌC THÉP: Theo dõi bài nào đã chốt sổ phạt
+
+    studentRows.forEach(r => {
+        let pAct = r[3] ? r[3].toString() : "";
+        let pUnitStr = r[4] ? r[4].toString() : "";
+        let pWarn = r[10] ? r[10].toString().toLowerCase() : "";
+        let pErrList = r[14] ? r[14].toString() : "";
+        
+        let isSurrender = pWarn.includes("đầu hàng") || pErrList.toLowerCase().includes("đầu hàng");
+        
+        // 🚀 ĐẠI PHẪU: Quét "Lần Hợp Lệ Đầu Tiên" (Thi thật hoặc Cày bù)
+        if (pAct.includes("Test") || pAct.includes("Thi ")) {
+            let uMatch = pUnitStr.match(/Unit\s+(\d+)/i);
+            let pMatch = pUnitStr.match(/- P(\d+)/i);
+            if (uMatch) {
+                let uNum = parseInt(uMatch[1]);
+                let pNum = pMatch ? parseInt(pMatch[1]) : 0;
+                let baseAct = pAct.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace("Thi ", "").replace("Test ", "").trim();
+                let typeCode = "VOCAB";
+                if (baseAct.includes("Word Form") || baseAct.includes("WF")) typeCode = "WF";
+                else if (baseAct.includes("Giới từ") || baseAct.includes("PREP")) typeCode = "PREP";
+                
+                let taskKey = `${typeCode}-${uNum}-${pNum}`;
+                
+                if (!taskChotSo.has(taskKey)) {
+                    if (isSurrender) {
+                        // Đầu hàng -> Bỏ qua, cho phép quét tiếp xuống Lần thi sau
+                    } else {
+                        // Lần thi Hợp lệ đầu tiên (Nghiêm túc, Spam, Rời Tab...) -> CHỐT SỔ!
+                        taskChotSo.add(taskKey);
+                        
+                        if (pErrList) {
+                            let typePartKey = `${typeCode}-${pNum > 0 ? pNum : 1}`;
+                            if (!errorByUnitMap.has(uNum)) errorByUnitMap.set(uNum, new Map());
+                            let uMap = errorByUnitMap.get(uNum);
+                            if (!uMap.has(typePartKey)) uMap.set(typePartKey, new Set());
+                            
+                            pErrList.split(',').forEach(item => {
+                                let w = item.split('::')[0].trim();
+                                if (w) uMap.get(typePartKey).add(w);
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    let sortedUnits = Array.from(errorByUnitMap.keys()).sort((a, b) => a - b);
+    sortedUnits.forEach(uNum => {
+        let uMap = errorByUnitMap.get(uNum);
+        let lines = [];
+        let sortOrder = { "PREP": 1, "WF": 2, "VOCAB": 3 };
+        let keys = Array.from(uMap.keys()).sort((a, b) => {
+            let typeA = a.split('-')[0], pA = a.split('-')[1];
+            let typeB = b.split('-')[0], pB = b.split('-')[1];
+            if (typeA !== typeB) return (sortOrder[typeA] || 9) - (sortOrder[typeB] || 9);
+            return parseInt(pA) - parseInt(pB);
+        });
+
+        for (let k of keys) {
+            let set = uMap.get(k);
+            if (set.size > 0) lines.push(`<b style="color:var(--accent-blue);">${k} [${set.size}]:</b> ${Array.from(set).join(", ")}`);
+        }
+
+        if (lines.length > 0) {
+            let isChecked = penaltyDataArr.includes("U" + uNum);
+            let textStyle = isChecked ? "color: #16a34a; text-decoration: line-through; font-weight: normal; opacity: 0.6;" : "color: #b91c1c; font-weight: 500;";
+            let badgeStyle = isChecked ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px dashed #16a34a;">ĐÃ HOÀN THÀNH</span>` : `<span style="background: #fef2f2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px dashed #ef4444; animation: pulseAlertUI 1s infinite alternate;">ĐANG NỢ PHẠT</span>`;
+            allPenaltyHtml += `<div style="margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px;"><div style="display:flex; justify-content:space-between; margin-bottom: 6px; align-items:center;"><b style="color: #0f172a; font-size: 14px;">UNIT ${uNum}:</b> ${badgeStyle}</div><div style="font-size: 13px; ${textStyle} line-height: 1.6; padding-left: 5px; border-left: 2px solid ${isChecked ? '#16a34a' : '#ef4444'}; margin-left: 2px;">${lines.join("<br>")}</div></div>`;
+        }
+    });
+
+    let finalPenaltyHtmlBlock = "";
+    if (allPenaltyHtml !== "") {
+        finalPenaltyHtmlBlock = `
+        <div style="background: #fffbeb; border: 2px dashed #b45309; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+            <b class="ph-box-title" style="color: #b45309; text-transform: uppercase;"><i class="fa-solid fa-book-journal-whills"></i> SỔ TAY VIẾT PHẠT & KHẮC PHỤC LỖI:</b><br>
+            <div style="font-size: 11px; color: #78350f; font-style: italic; margin-top: 4px; margin-bottom: 10px;">*Hệ thống ghi nhận VĨNH VIỄN các từ làm sai ở Lần 1 để Thầy cô đối soát việc chép phạt.</div>
+            <div class="ph-box-content" style="background: white; border: 2px solid #fcd34d; padding: 10px; border-radius: 8px;">${allPenaltyHtml}</div>
+        </div>`;
+    }
+
     let htmlOutput = ``;
 
     if (!hasUnitData) {
@@ -6332,8 +6420,12 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                 <h3 style="color: #1e3a8a; margin: 0 0 10px 0; text-transform: uppercase; font-weight: 900;">MÙA GIẢI MỚI ĐANG KHAI MỞ!</h3>
                 <p style="font-size: 14px; color: #334155; line-height: 1.6; margin: 0; font-weight: bold;">Sĩ tử hiện đang trong doanh trại rèn binh khí, chưa xuất chiêu nên chưa có thành tích khảo hạch. Ba/Mẹ hãy theo dõi [Sao Kê Thời Gian] bên dưới để xem con có đang nghiêm túc ôn luyện Flashcard không nhé!</p>
             </div>`;
+        
+        // 🚀 HIỂN THỊ SỔ TAY VIẾT PHẠT Ở MÙA GIẢI MỚI CHƯA CÓ DATA TEST
+        htmlOutput += finalPenaltyHtmlBlock;
+
     } else {
-        // BẢNG 1: SỔ TAY VIẾT PHẠT (CODE GỐC CHUẨN)
+        // BẢNG 1: NHẬT KÝ CHI TIẾT LẦN 1
         let unitStatsHtml = ""; let unitStatsData = { sVoc:0, cVoc:0, sWF:0, cWF:0, sPrep:0, cPrep:0 };
         unitLogs.forEach(r => {
             let act = r[3] ? r[3].toString() : ""; let attempt = parseInt(r[5]) || 1; let score = parseFloat(r[6]) || 0;
@@ -6373,90 +6465,8 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
             }
         });
 
-        let penaltyDataArr = studentDB[id] && studentDB[id].penaltyChecked ? studentDB[id].penaltyChecked.split(",").map(i => i.trim()) : [];
-        let allPenaltyHtml = "";
-        let errorByUnitMap = new Map();
-        let taskChotSo = new Set(); // 🚀 BỌC THÉP: Theo dõi bài nào đã chốt sổ phạt
-
-        studentRows.forEach(r => {
-            let pAct = r[3] ? r[3].toString() : "";
-            let pUnitStr = r[4] ? r[4].toString() : "";
-            let pWarn = r[10] ? r[10].toString().toLowerCase() : "";
-            let pErrList = r[14] ? r[14].toString() : "";
-            
-            let isSurrender = pWarn.includes("đầu hàng") || pErrList.toLowerCase().includes("đầu hàng");
-            
-            // 🚀 ĐẠI PHẪU: Quét "Lần Hợp Lệ Đầu Tiên" (Thi thật hoặc Cày bù)
-            if (pAct.includes("Test") || pAct.includes("Thi ")) {
-                let uMatch = pUnitStr.match(/Unit\s+(\d+)/i);
-                let pMatch = pUnitStr.match(/- P(\d+)/i);
-                if (uMatch) {
-                    let uNum = parseInt(uMatch[1]);
-                    let pNum = pMatch ? parseInt(pMatch[1]) : 0;
-                    let baseAct = pAct.replace(" [Thi Thật]", "").replace(" [Tự Luyện]", "").replace("Thi ", "").replace("Test ", "").trim();
-                    let typeCode = "VOCAB";
-                    if (baseAct.includes("Word Form") || baseAct.includes("WF")) typeCode = "WF";
-                    else if (baseAct.includes("Giới từ") || baseAct.includes("PREP")) typeCode = "PREP";
-                    
-                    let taskKey = `${typeCode}-${uNum}-${pNum}`;
-                    
-                    if (!taskChotSo.has(taskKey)) {
-                        if (isSurrender) {
-                            // Đầu hàng -> Bỏ qua, cho phép quét tiếp xuống Lần thi sau
-                        } else {
-                            // Lần thi Hợp lệ đầu tiên (Nghiêm túc, Spam, Rời Tab...) -> CHỐT SỔ!
-                            taskChotSo.add(taskKey);
-                            
-                            if (pErrList) {
-                                let typePartKey = `${typeCode}-${pNum > 0 ? pNum : 1}`;
-                                if (!errorByUnitMap.has(uNum)) errorByUnitMap.set(uNum, new Map());
-                                let uMap = errorByUnitMap.get(uNum);
-                                if (!uMap.has(typePartKey)) uMap.set(typePartKey, new Set());
-                                
-                                pErrList.split(',').forEach(item => {
-                                    let w = item.split('::')[0].trim();
-                                    if (w) uMap.get(typePartKey).add(w);
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        let sortedUnits = Array.from(errorByUnitMap.keys()).sort((a, b) => a - b);
-        sortedUnits.forEach(uNum => {
-            let uMap = errorByUnitMap.get(uNum);
-            let lines = [];
-            let sortOrder = { "PREP": 1, "WF": 2, "VOCAB": 3 };
-            let keys = Array.from(uMap.keys()).sort((a, b) => {
-                let typeA = a.split('-')[0], pA = a.split('-')[1];
-                let typeB = b.split('-')[0], pB = b.split('-')[1];
-                if (typeA !== typeB) return (sortOrder[typeA] || 9) - (sortOrder[typeB] || 9);
-                return parseInt(pA) - parseInt(pB);
-            });
-
-            for (let k of keys) {
-                let set = uMap.get(k);
-                if (set.size > 0) lines.push(`<b style="color:var(--accent-blue);">${k} [${set.size}]:</b> ${Array.from(set).join(", ")}`);
-            }
-
-            if (lines.length > 0) {
-                let isChecked = penaltyDataArr.includes("U" + uNum);
-                let textStyle = isChecked ? "color: #16a34a; text-decoration: line-through; font-weight: normal; opacity: 0.6;" : "color: #b91c1c; font-weight: 500;";
-                let badgeStyle = isChecked ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px dashed #16a34a;">ĐÃ HOÀN THÀNH</span>` : `<span style="background: #fef2f2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px dashed #ef4444; animation: pulseAlertUI 1s infinite alternate;">ĐANG NỢ PHẠT</span>`;
-                allPenaltyHtml += `<div style="margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px;"><div style="display:flex; justify-content:space-between; margin-bottom: 6px; align-items:center;"><b style="color: #0f172a; font-size: 14px;">UNIT ${uNum}:</b> ${badgeStyle}</div><div style="font-size: 13px; ${textStyle} line-height: 1.6; padding-left: 5px; border-left: 2px solid ${isChecked ? '#16a34a' : '#ef4444'}; margin-left: 2px;">${lines.join("<br>")}</div></div>`;
-            }
-        });
-
-        if (allPenaltyHtml !== "") {
-            htmlOutput += `
-            <div style="background: #fffbeb; border: 2px dashed #b45309; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
-                <b class="ph-box-title" style="color: #b45309; text-transform: uppercase;"><i class="fa-solid fa-book-journal-whills"></i> SỔ TAY VIẾT PHẠT & KHẮC PHỤC LỖI:</b><br>
-                <div style="font-size: 11px; color: #78350f; font-style: italic; margin-top: 4px; margin-bottom: 10px;">*Hệ thống ghi nhận VĨNH VIỄN các từ làm sai ở Lần 1 để Thầy cô đối soát việc chép phạt.</div>
-                <div class="ph-box-content" style="background: white; border: 2px solid #fcd34d; padding: 10px; border-radius: 8px;">${allPenaltyHtml}</div>
-            </div>`;
-        }
+        // 🚀 HIỂN THỊ SỔ TAY VIẾT PHẠT Ở MÙA GIẢI ĐÃ CÓ DATA TEST
+        htmlOutput += finalPenaltyHtmlBlock;
         
         // BẢNG 2: NHẬT KÝ CHI TIẾT LẦN 1
         htmlOutput += `
