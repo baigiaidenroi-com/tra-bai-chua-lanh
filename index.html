@@ -1470,7 +1470,7 @@ function parseCustomDeadline(dlStr) {
 // CẤY BIẾN TOÀN CỤC ĐỂ KHẮC PHỤC LỖI LOCALSTORAGE
 // ================= HỆ THỐNG ĐỊNH TUYẾN 4 KHỐI LỚP =================
 const SYSTEM_APIS = {
-    "6": "https://script.google.com/macros/s/AKfycbw7asxFazd172mxIC5JDTR9yXU44KasO6wlraaMyy02w6muA3FP9n6ymNz8uPoI7R0T/exec",
+ "6": "https://script.google.com/macros/s/AKfycbw7asxFazd172mxIC5JDTR9yXU44KasO6wlraaMyy02w6muA3FP9n6ymNz8uPoI7R0T/exec",
     "7": "https://script.google.com/macros/s/AKfycbx2pWNHfNB2JzU3GYKWj0tm0ijZE1l-8z33J--xIZ55LxY0Iz9cFGZajTveNPC8_1KL/exec",
     "8": "https://script.google.com/macros/s/AKfycbxkLb3gIWGowOlLuhq2pbrXY_hrqQgQziIHNcEI3ANxqqCaLcKS87MgrQCzUpKZV0Mt4w/exec",
     "9": "https://script.google.com/macros/s/AKfycbwsWZv7fUvwJ6XJuMkhhz9NBkb9fCsIVvUL2tLbNjkphpMnvgj77L3niTUVZENoOFB48Q/exec"
@@ -6450,7 +6450,8 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                                         if (typed && typed !== "") {
                                             if (type.includes('PREP')) {
                                                 let cleanVn = vn.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim().toUpperCase();
-                                                let cleanEn = en.replace(/~/g, '').trim().toUpperCase();
+                                                // 🚀 ĐẠI PHẪU: Cạo sạch cả sao (*) và ngã (~) chống báo lỗi ảo
+                                                let cleanEn = en.replace(/[\*~]/g, '').trim().toUpperCase();
                                                 displayStr = `<span style="color:#ef4444; text-decoration:line-through;">${typed}</span> ➔ <span style="color:#16a34a; font-weight:bold;">${cleanVn} ${cleanEn}</span>`;
                                                 localErrCount = 1;
                                             } else if (type.includes('WF') || type.includes('WORD FORM') || type.includes('WORDFORM')) {
@@ -6472,13 +6473,15 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                                                 let wrongPairs = [];
                                                 
                                                 if (typed === "(Hết giờ)") {
-                                                    let cleanEns = enArr.map(e => e.split(':').length > 1 ? e.split(':')[1].replace(/~/g, '').trim() : e.replace(/~/g, '').trim());
+                                                    // 🚀 ĐẠI PHẪU: Cạo sạch sao (*) chống báo lỗi ảo
+                                                    let cleanEns = enArr.map(e => e.split(':').length > 1 ? e.split(':')[1].replace(/[\*~]/g, '').trim() : e.replace(/[\*~]/g, '').trim());
                                                     displayStr = `<span style="color:#ef4444; text-decoration:line-through;">(Hết giờ)</span> ➔ <span style="color:#16a34a; font-weight:bold;">${cleanEns.join(' | ')}</span>`;
                                                     localErrCount = enArr.length;
                                                 } else {
                                                     for(let i=0; i<enArr.length; i++) {
                                                         let eStr = enArr[i] ? enArr[i].trim() : "";
-                                                        let cleanEn = eStr.split(':').length > 1 ? eStr.split(':')[1].replace(/~/g, '').trim() : eStr.replace(/~/g, '').trim();
+                                                        // 🚀 ĐẠI PHẪU: Cạo sạch sao (*) chống báo lỗi ảo
+                                                        let cleanEn = eStr.split(':').length > 1 ? eStr.split(':')[1].replace(/[\*~]/g, '').trim() : eStr.replace(/[\*~]/g, '').trim();
                                                         let tStr = typedArr[i] ? typedArr[i].trim() : "(Trống)";
                                                         
                                                         // So khớp từng ô
@@ -6499,7 +6502,8 @@ window.buildReportHtml = function(id, sName, targetUnit, studentRows, isForPdf =
                                                     }
                                                 }
                                             } else {
-                                                let cleanEn = en.replace(/~/g, '').trim();
+                                                // 🚀 ĐẠI PHẪU: Cạo sạch sao (*) chống báo lỗi ảo Vocab thường
+                                                let cleanEn = en.replace(/[\*~]/g, '').trim();
                                                 displayStr = `<span style="color:#ef4444; text-decoration:line-through;">${typed}</span> ➔ <span style="color:#16a34a; font-weight:bold;">${cleanEn}</span>`;
                                                 localErrCount = 1;
                                             }
